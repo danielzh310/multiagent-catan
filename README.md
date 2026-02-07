@@ -74,29 +74,6 @@ RL/results/
 
 ---
 
-## Forward Search / Planning Agents (Optional)
-
-The project may include planning-based agents that use a learned policy for evaluation or rollouts.
-
-Example usage (placeholder):
-
-```
-python play.py \
-  --policy1 "human" \
-  --policy2 "forward_search_TBD" \
-  --policy3 "forward_search_TBD" \
-  --policy4 "forward_search_TBD"
-```
-
-These agents may support additional configuration options such as:
-
-* number of CPU processes
-* thinking time per decision
-
-Exact behavior and flags are TBD.
-
----
-
 ## Training Agents
 
 To train a reinforcement learning agent from scratch:
