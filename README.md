@@ -107,16 +107,87 @@ RL/arguments.py
 ## Repository Structure (Tentative)
 
 ```
-multiagent-catan/
-├── env/
-├── agents/
-├── RL/
-├── analysis/
-├── ui/
-├── main.py
-├── setup.py
+multiagent_catan/
 ├── README.md
-└── ...
+├── setup.py
+├── .gitignore
+├── launch.py
+│
+├── core/
+│   ├── engine.py
+│   ├── board.py
+│   ├── corner_edge.py
+│   ├── board_elements.py
+│   ├── agent_state.py
+│   ├── constants.py
+│   ├── utils.py
+│   └── __init__.py
+│
+├── environment/
+│   ├── catan_env.py
+│   └── __init__.py
+│
+├── learning/
+│   ├── train_loop.py
+│   ├── learning_utils.py
+│   ├── __init__.py
+│
+│   ├── models/
+│   ├── build_model.py
+│   ├── policy.py
+│   ├── state_encoder.py
+│   ├── board_encoder.py
+│   ├── attention.py
+│   ├── player_modules.py
+│   ├── action_heads.py
+│   ├── network_utils.py
+│   └── __init__.py
+│
+│   ├── ppo_trainer/
+│   │   ├── config.py
+│   │   ├── trainer.py
+│   │   ├── game_manager.py
+│   │   ├── batch_processor.py
+│   │   ├── distributed_rollout.py
+│   │   ├── evaluator.py
+│   │   ├── opponent_scheduler.py
+│   │   ├── schedule_utils.py
+│   │   └── __init__.py
+│   │
+│   ├── search_policy/
+│   │   ├── search_agent.py
+│   │   ├── simulation.py
+│   │   ├── action_sampler.py
+│   │   ├── search_utils.py
+│   │   └── __init__.py
+│   │
+│   └── results/
+│       └── placeholder.pt
+│
+├── evaluation/
+│   ├── run_eval.py
+│   ├── run_search_eval.py
+│   ├── evaluator.py
+│   └── distributed_eval.py
+│
+└── interface/
+    ├── display.py
+    ├── assets/
+    │   ├── tiles/
+    │   ├── tokens/
+    │   ├── buildings/
+    │   ├── dev_cards/
+    │   ├── ports/
+    │   ├── dice/
+    │   └── menu/
+    │
+    ├── text_render/
+    │   ├── text_engine.py
+    │   ├── resources.py
+    │   ├── styles.py
+    │   ├── fonts/
+    │   └── LICENSE
+    └── __init__.py
 ```
 
 ---
