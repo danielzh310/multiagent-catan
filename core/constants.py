@@ -1,9 +1,15 @@
-# core/constants.py
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum, IntEnum
+from enum import IntEnum
 from typing import Dict, Tuple
+
+
+class PlayerId(IntEnum):
+    WHITE = 0
+    BLUE = 1
+    ORANGE = 2
+    RED = 3
 
 
 class Resource(IntEnum):
@@ -12,7 +18,8 @@ class Resource(IntEnum):
     SHEEP = 2
     WHEAT = 3
     ORE = 4
-    DESERT = 5 # Note: Desert isn't a collectable resource but is useful for tile typing
+    DESERT = 5
+
 
 COLLECTABLE_RESOURCES = (
     Resource.WOOD,
@@ -37,45 +44,42 @@ class DevCard(IntEnum):
 
 
 class Phase(IntEnum):
-    # Phases of the game are general for now as a placeholder
     SETUP = 0
     TURN = 1
     GAME_OVER = 2
 
 
 class ActionType(IntEnum):
-    # Not all the possible actions, just some atm
     END_TURN = 0
     BUILD_ROAD = 1
     BUILD_SETTLEMENT = 2
-    UPGRADE_CITY = 3
+    BUILD_CITY = 3
     BUY_DEV_CARD = 4
     PLAY_DEV_CARD = 5
     MOVE_ROBBER = 6
     TRADE_BANK = 7
     TRADE_PLAYER = 8
 
-# Costs are expressed as vectors over COLLECTABLE_RESOURCES order
-# (wood, brick, sheep, wheat, ore)
+
 ResourceCost = Tuple[int, int, int, int, int]
 
 COST_BUILD_ROAD: ResourceCost = (1, 1, 0, 0, 0)
 COST_BUILD_SETTLEMENT: ResourceCost = (1, 1, 1, 1, 0)
-COST_UPGRADE_CITY: ResourceCost = (0, 0, 0, 2, 3)
+COST_BUILD_CITY: ResourceCost = (0, 0, 0, 2, 3)
 COST_BUY_DEV_CARD: ResourceCost = (0, 0, 1, 1, 1)
+
 
 VICTORY_POINTS_TARGET = 10
 
 VP_SETTLEMENT = 1
 VP_CITY = 2
 
-# Building the board composition for standard Catan
 
 NUM_TILES = 19
 NUM_PORTS = 9
 NUM_PLAYERS_DEFAULT = 4
 
-# Standard resource tile counts, this excludes desert
+
 TILE_RESOURCE_COUNTS: Dict[Resource, int] = {
     Resource.WOOD: 4,
     Resource.BRICK: 3,
@@ -85,7 +89,7 @@ TILE_RESOURCE_COUNTS: Dict[Resource, int] = {
     Resource.DESERT: 1,
 }
 
-# Standard number token counts for 19-tile board should be 18 tokens total
+
 NUMBER_TOKEN_COUNTS: Dict[int, int] = {
     2: 1,
     3: 2,
@@ -99,9 +103,10 @@ NUMBER_TOKEN_COUNTS: Dict[int, int] = {
     12: 1,
 }
 
+
 ROBBER_DICE_VALUE = 7
 
-# Standard dev card deck composition
+
 DEV_CARD_COUNTS: Dict[DevCard, int] = {
     DevCard.KNIGHT: 14,
     DevCard.VICTORY_POINT: 5,
@@ -129,8 +134,8 @@ PORT_COUNTS: Dict[PortType, int] = {
     PortType.ORE_2_TO_1: 1,
 }
 
+
 def cost_to_dict(cost: ResourceCost) -> Dict[Resource, int]:
-    """Convert wood, brick, sheep, wheat, ore vector to a resource to count dict."""
     return {
         Resource.WOOD: cost[0],
         Resource.BRICK: cost[1],
@@ -139,14 +144,13 @@ def cost_to_dict(cost: ResourceCost) -> Dict[Resource, int]:
         Resource.ORE: cost[4],
     }
 
+
 def empty_hand() -> Dict[Resource, int]:
-    """Create a zero count resource hand dict for collectable resources."""
     return {r: 0 for r in COLLECTABLE_RESOURCES}
 
 
 @dataclass(frozen=True)
 class GameConfig:
-    """Central place for rules, expand for later."""
     num_players: int = NUM_PLAYERS_DEFAULT
     victory_points_target: int = VICTORY_POINTS_TARGET
     robber_dice_value: int = ROBBER_DICE_VALUE
