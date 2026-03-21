@@ -1,22 +1,9 @@
-"""
-Rollout collection manager.
-
-This file manages:
-- multiple parallel Catan environments
-- per-environment hidden states
-- trajectory collection for PPO
-- active-player self-play style sampling
-
-This is the single-process version.
-A distributed wrapper will call into this manager from workers.
-"""
-
 import copy
 import random
 import torch
 
 from environment.catan_env import CatanEnv
-from core.constants import PlayerId
+from core.constants import ActionType, PlayerId
 
 
 class RolloutManager:
@@ -40,17 +27,11 @@ class RolloutManager:
         self.reset()
 
     def _initialize_policy_assignments(self):
-        """
-        For each environment, shuffle player-policy assignment.
-
-        policy 0 is always the learning policy we care about.
-        The remaining policies are opponents from the current pool.
-        """
         self.policy_maps = []
         self.active_player_ids = []
 
         for _ in range(self.num_envs):
-            order = [PlayerId.White, PlayerId.Blue, PlayerId.Orange, PlayerId.Red]
+            order = [PlayerId.WHITE, PlayerId.BLUE, PlayerId.ORANGE, PlayerId.RED]
             random.shuffle(order)
 
             policy_map = {}
@@ -61,9 +42,6 @@ class RolloutManager:
             self.active_player_ids.append(order[0])
 
     def reset(self):
-        """
-        Reset rollout buffers and env-local state.
-        """
         self.observations = [[] for _ in range(self.num_envs)]
         self.hidden_states = [[] for _ in range(self.num_envs)]
         self.rewards = [[] for _ in range(self.num_envs)]
@@ -84,7 +62,7 @@ class RolloutManager:
 
             self.done_masks[env_idx].append(1.0)
 
-            for player_id in [PlayerId.White, PlayerId.Blue, PlayerId.Orange, PlayerId.Red]:
+            for player_id in [PlayerId.WHITE, PlayerId.BLUE, PlayerId.ORANGE, PlayerId.RED]:
                 self.current_hidden_states[env_idx][player_id] = self._zero_hidden_state()
 
             if current_player == self.active_player_ids[env_idx]:
@@ -100,26 +78,9 @@ class RolloutManager:
         return (h, c)
 
     def update_policy(self, state_dict, policy_id=0):
-        """
-        Update one or all policy copies with new weights.
-        """
         self.policies[policy_id].load_state_dict(state_dict)
 
     def gather_rollouts(self):
-        """
-        Collect one rollout batch from all environments.
-
-        Returns:
-            (
-                observations,
-                hidden_states,
-                rewards,
-                actions,
-                action_masks,
-                action_log_probs,
-                done_masks,
-            )
-        """
         for policy in self.policies:
             policy.eval()
 
@@ -133,7 +94,7 @@ class RolloutManager:
 
                 cumulative_rewards = {
                     player_id: 0.0
-                    for player_id in [PlayerId.White, PlayerId.Blue, PlayerId.Orange, PlayerId.Red]
+                    for player_id in [PlayerId.WHITE, PlayerId.BLUE, PlayerId.ORANGE, PlayerId.RED]
                 }
 
                 done_since_last_active_turn = False
@@ -146,10 +107,9 @@ class RolloutManager:
                     hidden_state = self.current_hidden_states[env_idx][current_player]
 
                     action_mask = self._build_action_mask(env)
-
                     policy = self.policy_maps[env_idx][current_player]
 
-                    values, action_dict, action_log_prob, next_hidden_state, _ = policy.act(
+                    _, action_dict, action_log_prob, next_hidden_state, _ = policy.act(
                         obs=obs,
                         action_masks=action_mask,
                         hidden_state=hidden_state,
@@ -164,9 +124,7 @@ class RolloutManager:
                     next_obs, reward, done, _ = env.step(env_action)
                     next_obs = self._obs_to_model_input(next_obs)
 
-                    for player_id in cumulative_rewards:
-                        if player_id == current_player:
-                            cumulative_rewards[player_id] += float(reward)
+                    cumulative_rewards[current_player] += float(reward)
 
                     done_mask_tensor = 1.0 - torch.tensor(
                         done,
@@ -234,9 +192,6 @@ class RolloutManager:
         return result
 
     def _after_rollouts(self):
-        """
-        Keep final observation/hidden state and clear the rest.
-        """
         for env_idx in range(self.num_envs):
             self.observations[env_idx] = [self.observations[env_idx][-1]]
             self.hidden_states[env_idx] = [self.hidden_states[env_idx][-1]]
@@ -248,14 +203,8 @@ class RolloutManager:
             self.action_log_probs[env_idx] = []
 
     def _obs_to_model_input(self, obs):
-        """
-        Convert env observation dict into model-ready tensors.
-
-        This keeps the training code isolated from the raw env format.
-        """
         device = self.device
 
-        # placeholder/simple tensorization
         model_obs = {
             "tile_features": torch.tensor(
                 self._extract_tile_features(obs),
@@ -292,12 +241,6 @@ class RolloutManager:
         return model_obs
 
     def _extract_tile_features(self, obs):
-        """
-        Turn board tile dicts into fixed-size numeric features.
-
-        Current shape:
-            (19, 16)
-        """
         tile_features = []
 
         for tile in obs["board"]["tiles"]:
@@ -318,17 +261,10 @@ class RolloutManager:
         return tile_features
 
     def _extract_current_player_features(self, obs):
-        """
-        Build current player feature vector.
-
-        Current size:
-            32
-        """
         player = obs["player"]
         resources = player["resources"]
 
         vec = [
-            float(resources.get(PlayerId, 0)) if False else 0.0,  # kept intentionally dead/simple
             float(resources.get(0, 0)),
             float(resources.get(1, 0)),
             float(resources.get(2, 0)),
@@ -347,14 +283,8 @@ class RolloutManager:
         return vec[:32]
 
     def _extract_other_player_features(self, obs, offset):
-        """
-        Build one opponent feature vector.
-
-        Current size:
-            24
-        """
         current_player = obs["game"]["current_player"]
-        order = [PlayerId.White, PlayerId.Blue, PlayerId.Orange, PlayerId.Red]
+        order = [PlayerId.WHITE, PlayerId.BLUE, PlayerId.ORANGE, PlayerId.RED]
 
         try:
             idx = order.index(current_player)
@@ -378,9 +308,6 @@ class RolloutManager:
         return vec[:24]
 
     def _build_action_mask(self, env):
-        """
-        Convert legal actions into per-head masks.
-        """
         legal_actions = env.get_legal_actions()
 
         action_type_mask = torch.zeros(1, 9, dtype=torch.float32, device=self.device)
@@ -394,13 +321,13 @@ class RolloutManager:
             action_type = action["type"]
             action_type_mask[0, int(action_type)] = 1.0
 
-            if action_type.name == "BuildSettlement":
+            if action_type == ActionType.BUILD_SETTLEMENT:
                 settlement_mask[0, action["vertex_id"]] = 1.0
-            elif action_type.name == "BuildRoad":
+            elif action_type == ActionType.BUILD_ROAD:
                 road_mask[0, action["connection_id"]] = 1.0
-            elif action_type.name == "BuildCity":
+            elif action_type == ActionType.BUILD_CITY:
                 city_mask[0, action["vertex_id"]] = 1.0
-            elif action_type.name == "MoveRobber":
+            elif action_type == ActionType.MOVE_ROBBER:
                 robber_mask[0, action["tile_id"]] = 1.0
 
         return {
@@ -413,49 +340,45 @@ class RolloutManager:
         }
 
     def _decode_action(self, env, action_dict):
-        """
-        Convert network action heads into one env action dict.
-
-        This is the current simple decoder.
-        """
-        action_type_idx = int(action_dict["action_type"].squeeze().cpu().item())
         legal_actions = env.get_legal_actions()
+        if len(legal_actions) == 0:
+            return None
 
-        # try to pick a compatible legal action based on predicted type
-        candidates = [a for a in legal_actions if int(a["type"]) == action_type_idx]
+        action_type_idx = int(action_dict["action_type"].squeeze().cpu().item())
+        candidates = [action for action in legal_actions if int(action["type"]) == action_type_idx]
 
         if len(candidates) == 0:
             return legal_actions[-1]
 
         chosen = candidates[0]
-        action_name = chosen["type"].name
+        action_type = chosen["type"]
 
-        if action_name == "BuildSettlement":
+        if action_type == ActionType.BUILD_SETTLEMENT:
             vertex_id = int(action_dict["settlement"].squeeze().cpu().item())
-            for c in candidates:
-                if c.get("vertex_id") == vertex_id:
-                    return c
+            for candidate in candidates:
+                if candidate.get("vertex_id") == vertex_id:
+                    return candidate
             return chosen
 
-        if action_name == "BuildRoad":
+        if action_type == ActionType.BUILD_ROAD:
             connection_id = int(action_dict["road"].squeeze().cpu().item())
-            for c in candidates:
-                if c.get("connection_id") == connection_id:
-                    return c
+            for candidate in candidates:
+                if candidate.get("connection_id") == connection_id:
+                    return candidate
             return chosen
 
-        if action_name == "BuildCity":
+        if action_type == ActionType.BUILD_CITY:
             vertex_id = int(action_dict["city"].squeeze().cpu().item())
-            for c in candidates:
-                if c.get("vertex_id") == vertex_id:
-                    return c
+            for candidate in candidates:
+                if candidate.get("vertex_id") == vertex_id:
+                    return candidate
             return chosen
 
-        if action_name == "MoveRobber":
+        if action_type == ActionType.MOVE_ROBBER:
             tile_id = int(action_dict["robber"].squeeze().cpu().item())
-            for c in candidates:
-                if c.get("tile_id") == tile_id:
-                    return c
+            for candidate in candidates:
+                if candidate.get("tile_id") == tile_id:
+                    return candidate
             return chosen
 
         return chosen
