@@ -11,14 +11,24 @@ class DualBatchProcessor:
     - gameplay policy
     - trade policy
 
-    This version keeps things simple and returns stacked tensors
-    for PPO-style training.
+    Improvements in this version:
+    - normalized returns for more stable critics
+    - clipped advantages to reduce spikes
     """
 
-    def __init__(self, device: str = "cpu", gamma: float = 0.99, gae_lambda: float = 0.95):
+    def __init__(
+        self,
+        device: str = "cpu",
+        gamma: float = 0.99,
+        gae_lambda: float = 0.95,
+        normalize_returns: bool = True,
+        advantage_clip: float = 5.0,
+    ):
         self.device = device
         self.gamma = gamma
         self.gae_lambda = gae_lambda
+        self.normalize_returns = normalize_returns
+        self.advantage_clip = advantage_clip
 
     def process_gameplay_rollouts(self, rollouts: List[dict]) -> Dict[str, torch.Tensor]:
         if len(rollouts) == 0:
@@ -123,5 +133,10 @@ class DualBatchProcessor:
             returns[t] = advantages[t] + values[t]
             next_value = values[t]
 
+        advantages = torch.clamp(advantages, -self.advantage_clip, self.advantage_clip)
         advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
+
+        if self.normalize_returns:
+            returns = (returns - returns.mean()) / (returns.std() + 1e-8)
+
         return returns, advantages

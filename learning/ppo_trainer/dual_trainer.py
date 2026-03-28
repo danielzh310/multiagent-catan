@@ -12,10 +12,11 @@ class DualTrainer:
     - gameplay policy
     - trade policy
 
-    Improvements in this version:
-    - lower and annealed entropy coefficients
-    - Huber value loss for more stable critics
-    - optional value-loss clipping
+    Tuned to avoid overcorrecting the trade side:
+    - moderate entropy annealing
+    - Huber value loss
+    - value clipping
+    - lighter auxiliary weighting
     """
 
     def __init__(
@@ -27,10 +28,10 @@ class DualTrainer:
         clip_param: float = 0.2,
         value_loss_coef: float = 0.5,
         gameplay_entropy_coef_start: float = 0.008,
-        gameplay_entropy_coef_end: float = 0.001,
+        gameplay_entropy_coef_end: float = 0.0015,
         trade_entropy_coef_start: float = 0.0005,
         trade_entropy_coef_end: float = 0.00005,
-        tom_loss_coef: float = 0.1,
+        tom_loss_coef: float = 0.02,
         max_grad_norm: float = 0.5,
         value_clip_param: float = 0.2,
         use_value_clipping: bool = True,
@@ -67,9 +68,6 @@ class DualTrainer:
         )
 
     def set_progress(self, progress: float) -> None:
-        """
-        progress should move from 0.0 to 1.0 during training
-        """
         self.current_progress = max(0.0, min(1.0, float(progress)))
 
     def _interp(self, start: float, end: float) -> float:
@@ -93,9 +91,6 @@ class DualTrainer:
         old_values: torch.Tensor,
         returns: torch.Tensor,
     ) -> torch.Tensor:
-        """
-        Uses clipped value loss when enabled to reduce critic instability.
-        """
         if not self.use_value_clipping:
             return nn.functional.smooth_l1_loss(predicted_values, returns)
 
@@ -115,8 +110,7 @@ class DualTrainer:
             reduction="none",
         )
 
-        value_loss = torch.max(value_loss_unclipped, value_loss_clipped).mean()
-        return value_loss
+        return torch.max(value_loss_unclipped, value_loss_clipped).mean()
 
     def train_gameplay_step(self, batch: Dict[str, torch.Tensor]) -> Dict[str, float]:
         if not batch:
@@ -144,7 +138,6 @@ class DualTrainer:
         entropy = dist.entropy().mean()
 
         ratio = torch.exp(new_log_probs - old_log_probs)
-
         surr1 = ratio * advantages
         surr2 = torch.clamp(ratio, 1.0 - self.clip_param, 1.0 + self.clip_param) * advantages
         policy_loss = -torch.min(surr1, surr2).mean()
@@ -153,7 +146,6 @@ class DualTrainer:
         value_loss = self._compute_value_loss(values, old_values, returns)
 
         entropy_coef = self.current_gameplay_entropy_coef()
-
         total_loss = policy_loss + self.value_loss_coef * value_loss - entropy_coef * entropy
 
         self.gameplay_optimizer.zero_grad()
@@ -203,7 +195,6 @@ class DualTrainer:
         )
 
         ratio = torch.exp(new_log_probs - old_log_probs)
-
         surr1 = ratio * advantages
         surr2 = torch.clamp(ratio, 1.0 - self.clip_param, 1.0 + self.clip_param) * advantages
         policy_loss = -torch.min(surr1, surr2).mean()
@@ -216,7 +207,6 @@ class DualTrainer:
             tom_loss = self.trade_model.tom_head.compute_loss(tom_outputs, tom_targets)
 
         entropy_coef = self.current_trade_entropy_coef()
-
         total_loss = (
             policy_loss
             + self.value_loss_coef * value_loss

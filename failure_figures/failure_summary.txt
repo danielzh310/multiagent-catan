@@ -1,0 +1,15 @@
+Parsed updates: 200
+Update range: 0 to 199
+Mean trade reward: 0.003516
+Min trade reward: 0.000600
+Max trade reward: 0.007000
+First trade entropy: 2.995300
+Last trade entropy: 2.994200
+Min trade entropy: 2.958100
+Max trade entropy: 2.995600
+Mean trade value loss: 0.431913
+Min trade value loss: 0.370200
+Max trade value loss: 0.466700
+Mean trade skip rate: 0.640531
+Mean trade propose rate: 0.159834
+Mean trade accept rate: 0.039578

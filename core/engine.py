@@ -85,12 +85,10 @@ class CatanEngine:
                 player.resources[resource] += self.random.randint(0, 1)
 
     def _resource_total(self, player_id: PlayerId) -> int:
-        player = self.players[player_id]
-        return sum(int(v) for v in player.resources.values())
+        return sum(int(v) for v in self.players[player_id].resources.values())
 
     def _resource_diversity(self, player_id: PlayerId) -> int:
-        player = self.players[player_id]
-        return sum(1 for v in player.resources.values() if int(v) > 0)
+        return sum(1 for v in self.players[player_id].resources.values() if int(v) > 0)
 
     def _trade_value(self, trade_vector: Dict[Resource, int]) -> int:
         return sum(int(v) for v in trade_vector.values())
@@ -111,20 +109,20 @@ class CatanEngine:
         if action_type == "build_settlement":
             player.n_settlements += 1
             player.bonus_vp += 1
-            reward += 0.25
+            reward += 0.20
 
         elif action_type == "build_city":
             if player.n_settlements > 0:
                 player.n_settlements -= 1
                 player.n_cities += 1
                 player.bonus_vp += 1
-                reward += 0.35
+                reward += 0.28
             else:
-                reward -= 0.02
+                reward -= 0.01
 
         elif action_type == "build_road":
             player.n_roads += 1
-            reward += 0.05
+            reward += 0.04
 
         elif action_type == "end_turn":
             self.phase_router.complete_end_turn_phase(self)
@@ -134,15 +132,15 @@ class CatanEngine:
 
         elif action_type == "end_main_action":
             self.phase_router.complete_main_action_phase(self)
-            return reward - 0.005
+            return reward - 0.004
 
         self._check_winner()
 
         after_vp = self._vp(player_id)
         after_diversity = self._resource_diversity(player_id)
 
-        reward += 0.20 * max(after_vp - before_vp, 0)
-        reward += 0.01 * max(after_diversity - before_diversity, 0)
+        reward += 0.18 * max(after_vp - before_vp, 0)
+        reward += 0.008 * max(after_diversity - before_diversity, 0)
 
         if self.phase_router.get_phase() == TurnPhase.MAIN_ACTION:
             self.phase_router.complete_main_action_phase(self)
@@ -160,34 +158,33 @@ class CatanEngine:
 
         if action_type == "skip_trade":
             self.phase_router.complete_trade_propose_phase(self)
-            return reward - 0.003
+            return reward - 0.004
 
         if action_type != "propose_trade":
             self.phase_router.complete_trade_propose_phase(self)
             return reward - 0.01
 
         player_id = self.get_current_player_id()
-
         target = action.get("target")
         offer = action.get("offer")
         request = action.get("request")
 
         if target is None or offer is None or request is None:
             self.phase_router.complete_trade_propose_phase(self)
-            return reward - 0.02
+            return reward - 0.01
 
         offer_value = self._trade_value(offer)
         request_value = self._trade_value(request)
 
         if offer_value <= 0 or request_value <= 0:
             self.phase_router.complete_trade_propose_phase(self)
-            return reward - 0.02
+            return reward - 0.01
 
-        diversity_bonus = 0.0
         proposer_div_before = self._resource_diversity(player_id)
-        requested_types = sum(1 for v in request.values() if int(v) > 0)
-        if proposer_div_before < 3:
-            diversity_bonus += 0.01 * requested_types
+        target_div_before = self._resource_diversity(target)
+
+        request_types = sum(1 for v in request.values() if int(v) > 0)
+        offer_types = sum(1 for v in offer.values() if int(v) > 0)
 
         success = self.trade_manager.submit_trade(
             players=self.players,
@@ -201,11 +198,17 @@ class CatanEngine:
 
         if success:
             reward += 0.015
-            reward += 0.004 * min(request_value, 3)
-            reward += diversity_bonus
+            reward += 0.003 * min(request_value, 3)
+
+            if proposer_div_before < 3:
+                reward += 0.004 * request_types
+
+            if target_div_before < 3:
+                reward += 0.002 * offer_types
+
             self.phase_router.set_phase(TurnPhase.TRADE_RESPOND)
         else:
-            reward -= 0.02
+            reward -= 0.01
             self.phase_router.complete_trade_propose_phase(self)
 
         return reward
@@ -253,17 +256,17 @@ class CatanEngine:
         proposer_after_vp = self._vp(proposer)
 
         if response.response_type == "accept" and responded:
-            reward += 0.08
-            reward += 0.015 * max(after_diversity - before_diversity, 0)
-            reward += 0.008 * max(after_total - before_total, 0)
-            reward += 0.08 * max(after_vp - before_vp, 0)
+            reward += 0.06
+            reward += 0.012 * max(after_diversity - before_diversity, 0)
+            reward += 0.005 * max(after_total - before_total, 0)
+            reward += 0.05 * max(after_vp - before_vp, 0)
 
             proposer_gain = 0.0
-            proposer_gain += 0.015 * max(proposer_after_diversity - proposer_before_diversity, 0)
-            proposer_gain += 0.008 * max(proposer_after_total - proposer_before_total, 0)
-            proposer_gain += 0.08 * max(proposer_after_vp - proposer_before_vp, 0)
+            proposer_gain += 0.010 * max(proposer_after_diversity - proposer_before_diversity, 0)
+            proposer_gain += 0.004 * max(proposer_after_total - proposer_before_total, 0)
+            proposer_gain += 0.04 * max(proposer_after_vp - proposer_before_vp, 0)
 
-            reward += 0.25 * proposer_gain
+            reward += 0.20 * proposer_gain
 
         elif response.response_type == "counter" and responded:
             reward += 0.03
@@ -272,7 +275,7 @@ class CatanEngine:
             reward -= 0.003
 
         else:
-            reward -= 0.01
+            reward -= 0.008
 
         self._check_winner()
         self.phase_router.complete_trade_respond_phase(self)
@@ -329,8 +332,7 @@ class CatanEngine:
         done = self.winner is not None
 
         if done:
-            winner = self.winner
-            if winner == self.get_current_player_id():
+            if self.winner == self.get_current_player_id():
                 reward += 1.0
             else:
                 reward -= 1.0
