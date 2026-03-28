@@ -12,7 +12,10 @@ class DualTrainer:
     - gameplay policy
     - trade policy
 
-    Each policy has its own optimizer and loss computation.
+    Improvements in this version:
+    - lower and annealed entropy coefficients
+    - Huber value loss for more stable critics
+    - optional value-loss clipping
     """
 
     def __init__(
@@ -23,9 +26,14 @@ class DualTrainer:
         trade_lr: float = 3e-4,
         clip_param: float = 0.2,
         value_loss_coef: float = 0.5,
-        entropy_coef: float = 0.01,
+        gameplay_entropy_coef_start: float = 0.008,
+        gameplay_entropy_coef_end: float = 0.001,
+        trade_entropy_coef_start: float = 0.0005,
+        trade_entropy_coef_end: float = 0.00005,
         tom_loss_coef: float = 0.1,
         max_grad_norm: float = 0.5,
+        value_clip_param: float = 0.2,
+        use_value_clipping: bool = True,
         device: str = "cpu",
     ):
         self.gameplay_model = gameplay_model
@@ -33,10 +41,21 @@ class DualTrainer:
 
         self.clip_param = clip_param
         self.value_loss_coef = value_loss_coef
-        self.entropy_coef = entropy_coef
+
+        self.gameplay_entropy_coef_start = gameplay_entropy_coef_start
+        self.gameplay_entropy_coef_end = gameplay_entropy_coef_end
+
+        self.trade_entropy_coef_start = trade_entropy_coef_start
+        self.trade_entropy_coef_end = trade_entropy_coef_end
+
         self.tom_loss_coef = tom_loss_coef
         self.max_grad_norm = max_grad_norm
+
+        self.value_clip_param = value_clip_param
+        self.use_value_clipping = use_value_clipping
+
         self.device = device
+        self.current_progress = 0.0
 
         self.gameplay_optimizer = torch.optim.Adam(
             self.gameplay_model.parameters(),
@@ -47,12 +66,65 @@ class DualTrainer:
             lr=trade_lr,
         )
 
+    def set_progress(self, progress: float) -> None:
+        """
+        progress should move from 0.0 to 1.0 during training
+        """
+        self.current_progress = max(0.0, min(1.0, float(progress)))
+
+    def _interp(self, start: float, end: float) -> float:
+        return start + (end - start) * self.current_progress
+
+    def current_gameplay_entropy_coef(self) -> float:
+        return self._interp(
+            self.gameplay_entropy_coef_start,
+            self.gameplay_entropy_coef_end,
+        )
+
+    def current_trade_entropy_coef(self) -> float:
+        return self._interp(
+            self.trade_entropy_coef_start,
+            self.trade_entropy_coef_end,
+        )
+
+    def _compute_value_loss(
+        self,
+        predicted_values: torch.Tensor,
+        old_values: torch.Tensor,
+        returns: torch.Tensor,
+    ) -> torch.Tensor:
+        """
+        Uses clipped value loss when enabled to reduce critic instability.
+        """
+        if not self.use_value_clipping:
+            return nn.functional.smooth_l1_loss(predicted_values, returns)
+
+        value_pred_clipped = old_values + (predicted_values - old_values).clamp(
+            -self.value_clip_param,
+            self.value_clip_param,
+        )
+
+        value_loss_unclipped = nn.functional.smooth_l1_loss(
+            predicted_values,
+            returns,
+            reduction="none",
+        )
+        value_loss_clipped = nn.functional.smooth_l1_loss(
+            value_pred_clipped,
+            returns,
+            reduction="none",
+        )
+
+        value_loss = torch.max(value_loss_unclipped, value_loss_clipped).mean()
+        return value_loss
+
     def train_gameplay_step(self, batch: Dict[str, torch.Tensor]) -> Dict[str, float]:
         if not batch:
             return {
                 "gameplay_policy_loss": 0.0,
                 "gameplay_value_loss": 0.0,
                 "gameplay_entropy": 0.0,
+                "gameplay_entropy_coef": self.current_gameplay_entropy_coef(),
                 "gameplay_total_loss": 0.0,
             }
 
@@ -61,6 +133,7 @@ class DualTrainer:
         returns = batch["returns"]
         advantages = batch["advantages"]
         old_log_probs = batch["log_probs"]
+        old_values = batch["values"]
 
         logits, values = self.gameplay_model.forward(obs)
 
@@ -77,9 +150,11 @@ class DualTrainer:
         policy_loss = -torch.min(surr1, surr2).mean()
 
         values = values.squeeze(-1)
-        value_loss = nn.functional.mse_loss(values, returns)
+        value_loss = self._compute_value_loss(values, old_values, returns)
 
-        total_loss = policy_loss + self.value_loss_coef * value_loss - self.entropy_coef * entropy
+        entropy_coef = self.current_gameplay_entropy_coef()
+
+        total_loss = policy_loss + self.value_loss_coef * value_loss - entropy_coef * entropy
 
         self.gameplay_optimizer.zero_grad()
         total_loss.backward()
@@ -90,6 +165,7 @@ class DualTrainer:
             "gameplay_policy_loss": float(policy_loss.item()),
             "gameplay_value_loss": float(value_loss.item()),
             "gameplay_entropy": float(entropy.item()),
+            "gameplay_entropy_coef": float(entropy_coef),
             "gameplay_total_loss": float(total_loss.item()),
         }
 
@@ -103,6 +179,7 @@ class DualTrainer:
                 "trade_policy_loss": 0.0,
                 "trade_value_loss": 0.0,
                 "trade_entropy": 0.0,
+                "trade_entropy_coef": self.current_trade_entropy_coef(),
                 "trade_tom_loss": 0.0,
                 "trade_total_loss": 0.0,
             }
@@ -112,6 +189,7 @@ class DualTrainer:
         returns = batch["returns"]
         advantages = batch["advantages"]
         old_log_probs = batch["log_probs"]
+        old_values = batch["values"]
 
         logits, values, tom_outputs = self.trade_model.forward(obs)
 
@@ -131,16 +209,18 @@ class DualTrainer:
         policy_loss = -torch.min(surr1, surr2).mean()
 
         values = values.squeeze(-1)
-        value_loss = nn.functional.mse_loss(values, returns)
+        value_loss = self._compute_value_loss(values, old_values, returns)
 
         tom_loss = torch.tensor(0.0, device=self.device)
         if tom_targets is not None:
             tom_loss = self.trade_model.tom_head.compute_loss(tom_outputs, tom_targets)
 
+        entropy_coef = self.current_trade_entropy_coef()
+
         total_loss = (
             policy_loss
             + self.value_loss_coef * value_loss
-            - self.entropy_coef * entropy
+            - entropy_coef * entropy
             + self.tom_loss_coef * tom_loss
         )
 
@@ -153,6 +233,7 @@ class DualTrainer:
             "trade_policy_loss": float(policy_loss.item()),
             "trade_value_loss": float(value_loss.item()),
             "trade_entropy": float(entropy.item() if torch.is_tensor(entropy) else entropy),
+            "trade_entropy_coef": float(entropy_coef),
             "trade_tom_loss": float(tom_loss.item()),
             "trade_total_loss": float(total_loss.item()),
         }

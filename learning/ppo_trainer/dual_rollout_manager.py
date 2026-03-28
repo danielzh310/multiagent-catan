@@ -177,7 +177,56 @@ class DualRolloutManager:
             return env.reset()
         return env.get_observation()
 
-    def collect(self) -> Tuple[list, list]:
+    def _build_rollout_stats(self, gameplay_storage, trade_storage):
+        stats = {
+            "gameplay_rollouts": len(gameplay_storage),
+            "trade_rollouts": len(trade_storage),
+            "gameplay_reward_mean": 0.0,
+            "trade_reward_mean": 0.0,
+            "trade_propose_count": 0,
+            "trade_accept_count": 0,
+            "trade_reject_count": 0,
+            "trade_counter_count": 0,
+            "trade_skip_count": 0,
+            "gameplay_action_counts": {
+                "build_road": 0,
+                "build_settlement": 0,
+                "build_city": 0,
+                "end_main_action": 0,
+                "end_turn": 0,
+            },
+        }
+
+        if len(gameplay_storage) > 0:
+            stats["gameplay_reward_mean"] = sum(item["reward"] for item in gameplay_storage) / len(gameplay_storage)
+
+            for item in gameplay_storage:
+                env_action = item.get("env_action", {})
+                action_type = env_action.get("type")
+                if action_type in stats["gameplay_action_counts"]:
+                    stats["gameplay_action_counts"][action_type] += 1
+
+        if len(trade_storage) > 0:
+            stats["trade_reward_mean"] = sum(item["reward"] for item in trade_storage) / len(trade_storage)
+
+            for item in trade_storage:
+                env_action = item.get("env_action", {})
+                action_type = env_action.get("type")
+
+                if action_type == "propose_trade":
+                    stats["trade_propose_count"] += 1
+                elif action_type == "accept_trade":
+                    stats["trade_accept_count"] += 1
+                elif action_type == "reject_trade":
+                    stats["trade_reject_count"] += 1
+                elif action_type == "counter_trade":
+                    stats["trade_counter_count"] += 1
+                elif action_type == "skip_trade":
+                    stats["trade_skip_count"] += 1
+
+        return stats
+
+    def collect(self) -> Tuple[list, list, dict]:
         self.gameplay_storage = []
         self.trade_storage = []
 
@@ -203,6 +252,7 @@ class DualRolloutManager:
                     self.gameplay_storage.append({
                         "obs": self._clone_tensor_dict(obs),
                         "action": self._clone_tensor_dict(action_dict),
+                        "env_action": env_action,
                         "reward": float(reward),
                         "value": self._clone_tensor_dict(value),
                         "log_prob": self._clone_tensor_dict(log_prob),
@@ -225,6 +275,7 @@ class DualRolloutManager:
                     self.trade_storage.append({
                         "obs": self._clone_tensor_dict(obs),
                         "action": self._clone_tensor_dict(action_dict),
+                        "env_action": env_action,
                         "reward": float(reward),
                         "value": self._clone_tensor_dict(value),
                         "log_prob": self._clone_tensor_dict(log_prob),
@@ -240,5 +291,6 @@ class DualRolloutManager:
 
         gameplay_out = self._clone_tensor_dict(self.gameplay_storage)
         trade_out = self._clone_tensor_dict(self.trade_storage)
+        rollout_stats = self._build_rollout_stats(gameplay_out, trade_out)
 
-        return gameplay_out, trade_out
+        return gameplay_out, trade_out, rollout_stats
