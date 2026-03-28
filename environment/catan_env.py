@@ -1,174 +1,208 @@
-import copy
+from __future__ import annotations
 
-from core.constants import ActionType
+from typing import Dict, List, Optional
+
+from core.constants import PlayerId, Resource
 from core.engine import CatanEngine
+from core.phase_router import ControllerType, TurnPhase
 
 
 class CatanEnv:
-    def __init__(self, seed=None, victory_target=10):
-        self.seed = seed
-        self.victory_target = victory_target
-        self.engine = CatanEngine(seed=seed, victory_target=victory_target)
+    """
+    Full-game environment with two decision streams:
+    - gameplay decisions
+    - trade decisions
 
-    def reset(self):
+    The environment keeps phase information explicit so the
+    training loop can route control to the correct model.
+    """
+
+    def __init__(self, seed: Optional[int] = None):
+        self.engine = CatanEngine(seed=seed)
+
+    def reset(self) -> dict:
         self.engine.reset()
+        self.engine.phase_router.begin_turn(self.engine)
         return self.get_observation()
 
-    def step(self, action):
-        current_player = self.engine.get_current_player_id()
-        reward, done, info = self.engine.apply_action(action, current_player)
-        observation = self.get_observation()
-        return observation, reward, done, info
+    def step(self, action: Optional[dict]):
+        return self.engine.step(action)
 
-    def get_current_player_id(self):
+    def get_observation(self) -> dict:
+        obs = self.engine.get_observation()
+        decision = self.engine.phase_router.get_controller(self.engine)
+
+        obs["controller"] = {
+            "phase": decision.phase,
+            "controller": decision.controller,
+            "acting_player": decision.acting_player,
+            "target_player": decision.target_player,
+        }
+
+        obs["legal_actions"] = self.get_legal_actions()
+        return obs
+
+    def get_current_player_id(self) -> PlayerId:
         return self.engine.get_current_player_id()
 
-    def get_legal_actions(self, player_id=None):
-        return self.engine.get_legal_actions(player_id)
+    def get_phase(self) -> TurnPhase:
+        return self.engine.phase_router.get_phase()
 
-    def get_observation(self, player_id=None):
-        if player_id is None:
-            player_id = self.engine.get_current_player_id()
+    def get_controller_type(self) -> ControllerType:
+        decision = self.engine.phase_router.get_controller(self.engine)
+        return decision.controller
 
+    def get_trade_history(self) -> dict:
+        return self.engine.trade_history.build_sequence_tensor_dict()
+
+    def get_pending_trade(self):
+        return self.engine.trade_manager.get_pending_trade()
+
+    def get_legal_actions(self) -> List[dict]:
+        phase = self.engine.phase_router.get_phase()
+        current_player = self.engine.get_current_player_id()
+
+        if self.engine.winner is not None:
+            return []
+
+        if phase == TurnPhase.ROLL:
+            return [{"type": "roll"}]
+
+        if phase == TurnPhase.MAIN_ACTION:
+            return self._get_legal_gameplay_actions(current_player)
+
+        if phase == TurnPhase.TRADE_PROPOSE:
+            return self._get_legal_trade_proposals(current_player)
+
+        if phase == TurnPhase.TRADE_RESPOND:
+            return self._get_legal_trade_responses(current_player)
+
+        if phase == TurnPhase.END_TURN:
+            return [{"type": "end_turn"}]
+
+        return []
+
+    def _get_legal_gameplay_actions(self, player_id: PlayerId) -> List[dict]:
         player = self.engine.players[player_id]
+        actions = []
 
-        observation = {
-            "game": {
-                "turn_number": self.engine.turn_number,
-                "current_player": self.engine.get_current_player_id(),
-                "dice": self.engine.current_dice,
-                "winner": self.engine.winner,
-                "initial_placement_phase": self.engine.initial_placement_phase,
-                "robber_pending": self.engine.robber_pending,
-            },
-            "player": {
-                "player_id": player_id,
-                "resources": dict(player.resources),
-                "victory_points": player.victory_points,
-                "roads": list(player.roads),
-                "dev_cards": list(player.dev_cards),
-                "dev_victory_points": player.dev_victory_points,
-            },
-            "players": self._build_players_view(),
-            "board": {
-                "tiles": self._build_tile_view(),
-                "vertices": self._build_vertex_view(),
-                "connections": self._build_connection_view(),
-                "ports": self._build_port_view(),
-            },
-            "legal_actions": self.get_legal_actions(player_id),
+        actions.append({"type": "build_road"})
+        actions.append({"type": "build_settlement"})
+
+        if player.n_settlements > 0:
+            actions.append({"type": "build_city"})
+
+        actions.append({"type": "end_main_action"})
+        return actions
+
+    def _get_legal_trade_proposals(self, player_id: PlayerId) -> List[dict]:
+        actions = [{"type": "skip_trade"}]
+
+        player_ids = list(self.engine.players.keys())
+        targets = self.engine.trade_manager.legal_trade_targets(player_id, player_ids)
+
+        trade_templates = self._default_trade_templates()
+
+        for target in targets:
+            for offer, request in trade_templates:
+                proposer_state = self.engine.players[player_id]
+                if self.engine.trade_manager.can_player_afford(proposer_state, offer):
+                    actions.append({
+                        "type": "propose_trade",
+                        "target": target,
+                        "offer": offer,
+                        "request": request,
+                    })
+
+        return actions
+
+    def _get_legal_trade_responses(self, player_id: PlayerId) -> List[dict]:
+        pending = self.engine.trade_manager.get_pending_trade()
+        if pending is None:
+            return []
+
+        actions = [
+            {"type": "reject_trade", "response_type": "reject"},
+            {"type": "accept_trade", "response_type": "accept"},
+        ]
+
+        response_templates = self._default_trade_templates()
+
+        responder_state = self.engine.players[player_id]
+        for counter_offer, counter_request in response_templates:
+            if self.engine.trade_manager.can_player_afford(responder_state, counter_offer):
+                actions.append({
+                    "type": "counter_trade",
+                    "response_type": "counter",
+                    "counter_offer": counter_offer,
+                    "counter_request": counter_request,
+                })
+
+        return actions
+
+    def _default_trade_templates(self):
+        """
+        Small starter set of trade templates.
+
+        This will later be replaced by a richer enumerator over all legal
+        trade vectors, but this is enough to wire the two-model stack.
+        """
+        singles = [
+            {Resource.WOOD: 1, Resource.BRICK: 0, Resource.SHEEP: 0, Resource.WHEAT: 0, Resource.ORE: 0},
+            {Resource.WOOD: 0, Resource.BRICK: 1, Resource.SHEEP: 0, Resource.WHEAT: 0, Resource.ORE: 0},
+            {Resource.WOOD: 0, Resource.BRICK: 0, Resource.SHEEP: 1, Resource.WHEAT: 0, Resource.ORE: 0},
+            {Resource.WOOD: 0, Resource.BRICK: 0, Resource.SHEEP: 0, Resource.WHEAT: 1, Resource.ORE: 0},
+            {Resource.WOOD: 0, Resource.BRICK: 0, Resource.SHEEP: 0, Resource.WHEAT: 0, Resource.ORE: 1},
+        ]
+
+        templates = []
+        for offer in singles:
+            for request in singles:
+                if offer != request:
+                    templates.append((offer, request))
+
+        return templates
+
+    def build_gameplay_observation(self) -> dict:
+        """
+        Observation intended for the main gameplay model.
+        """
+        obs = self.get_observation()
+        current_player = self.get_current_player_id()
+
+        return {
+            "turn_number": obs["game"]["turn_number"],
+            "phase": obs["game"]["phase"],
+            "current_player": current_player,
+            "self_state": obs["player"],
+            "all_players": obs["players"],
+            "trade_history": obs["trade_history"],
+            "legal_actions": obs["legal_actions"],
         }
 
-        return observation
+    def build_trade_observation(self) -> dict:
+        """
+        Observation intended for the trade model.
+        """
+        obs = self.get_observation()
+        current_player = self.get_current_player_id()
 
-    def _build_players_view(self):
-        players_view = {}
-
-        for player_id, player in self.engine.players.items():
-            players_view[player_id] = {
-                "player_id": player_id,
-                "resources": dict(player.resources),
-                "victory_points": player.victory_points,
-                "roads": list(player.roads),
-                "dev_card_count": len(player.dev_cards),
-                "dev_victory_points": player.dev_victory_points,
-                "building_count": len(player.buildings),
-            }
-
-        return players_view
-
-    def _build_tile_view(self):
-        tiles = []
-
-        for tile in self.engine.board.tiles:
-            tiles.append({
-                "id": tile.id,
-                "resource": tile.resource,
-                "number": tile.number,
-                "has_robber": tile.has_robber,
-                "vertex_ids": [vertex.id for vertex in tile.vertices],
-            })
-
-        return tiles
-
-    def _build_vertex_view(self):
-        vertices = []
-
-        for vertex in self.engine.board.vertices:
-            if vertex.building is None:
-                building_type = None
-                owner = None
-            else:
-                building_type = vertex.building.type
-                owner = vertex.building.owner
-
-            vertices.append({
-                "id": vertex.id,
-                "building_type": building_type,
-                "owner": owner,
-                "neighbor_ids": [neighbor.id for neighbor in vertex.neighbors],
-                "tile_ids": [tile.id for tile in vertex.tiles],
-                "edge_ids": [edge.id for edge in vertex.edges],
-            })
-
-        return vertices
-
-    def _build_connection_view(self):
-        connections = []
-
-        for connection in self.engine.board.connections:
-            connections.append({
-                "id": connection.id,
-                "v1": connection.v1.id,
-                "v2": connection.v2.id,
-                "owner": connection.owner,
-            })
-
-        return connections
-
-    def _build_port_view(self):
-        ports = []
-
-        for port in self.engine.board.ports:
-            ports.append({
-                "id": port.id,
-                "resource": port.resource,
-                "exchange_rate": port.exchange_rate,
-            })
-
-        return ports
-
-    def get_action_mask(self, player_id=None):
-        if player_id is None:
-            player_id = self.engine.get_current_player_id()
-
-        legal_actions = self.engine.get_legal_actions(player_id)
-
-        mask = {
-            ActionType.BUILD_SETTLEMENT: 0,
-            ActionType.BUILD_ROAD: 0,
-            ActionType.BUILD_CITY: 0,
-            ActionType.BUY_DEV_CARD: 0,
-            ActionType.MOVE_ROBBER: 0,
-            ActionType.END_TURN: 0,
+        return {
+            "turn_number": obs["game"]["turn_number"],
+            "phase": obs["game"]["phase"],
+            "current_player": current_player,
+            "self_state": obs["player"],
+            "all_players": obs["players"],
+            "pending_trade": obs["trade"],
+            "trade_history": obs["trade_history"],
+            "legal_actions": obs["legal_actions"],
         }
 
-        for action in legal_actions:
-            mask[action["type"]] = 1
+    def get_active_model_name(self) -> str:
+        controller = self.get_controller_type()
 
-        return mask
-
-    def clone_state(self):
-        return copy.deepcopy(self.engine)
-
-    def restore_state(self, engine_state):
-        self.engine = copy.deepcopy(engine_state)
-
-    def render(self):
-        return self.get_observation()
-
-    def sample_random_action(self, player_id=None):
-        legal_actions = self.get_legal_actions(player_id)
-        if not legal_actions:
-            return None
-        return legal_actions[0]
+        if controller == ControllerType.GAMEPLAY:
+            return "gameplay"
+        if controller == ControllerType.TRADE:
+            return "trade"
+        return "none"

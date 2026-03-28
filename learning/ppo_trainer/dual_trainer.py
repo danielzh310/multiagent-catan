@@ -1,0 +1,172 @@
+from __future__ import annotations
+
+from typing import Dict, Optional
+
+import torch
+import torch.nn as nn
+
+
+class DualTrainer:
+    """
+    Joint PPO-style trainer for:
+    - gameplay policy
+    - trade policy
+
+    Each policy has its own optimizer and loss computation.
+    """
+
+    def __init__(
+        self,
+        gameplay_model,
+        trade_model,
+        gameplay_lr: float = 3e-4,
+        trade_lr: float = 3e-4,
+        clip_param: float = 0.2,
+        value_loss_coef: float = 0.5,
+        entropy_coef: float = 0.01,
+        tom_loss_coef: float = 0.1,
+        max_grad_norm: float = 0.5,
+        device: str = "cpu",
+    ):
+        self.gameplay_model = gameplay_model
+        self.trade_model = trade_model
+
+        self.clip_param = clip_param
+        self.value_loss_coef = value_loss_coef
+        self.entropy_coef = entropy_coef
+        self.tom_loss_coef = tom_loss_coef
+        self.max_grad_norm = max_grad_norm
+        self.device = device
+
+        self.gameplay_optimizer = torch.optim.Adam(
+            self.gameplay_model.parameters(),
+            lr=gameplay_lr,
+        )
+        self.trade_optimizer = torch.optim.Adam(
+            self.trade_model.parameters(),
+            lr=trade_lr,
+        )
+
+    def train_gameplay_step(self, batch: Dict[str, torch.Tensor]) -> Dict[str, float]:
+        if not batch:
+            return {
+                "gameplay_policy_loss": 0.0,
+                "gameplay_value_loss": 0.0,
+                "gameplay_entropy": 0.0,
+                "gameplay_total_loss": 0.0,
+            }
+
+        obs = {"flat": batch["obs"]}
+        actions = {"action_type": batch["actions"]}
+        returns = batch["returns"]
+        advantages = batch["advantages"]
+        old_log_probs = batch["log_probs"]
+
+        logits, values = self.gameplay_model.forward(obs)
+
+        probs = torch.softmax(logits, dim=-1)
+        dist = torch.distributions.Categorical(probs)
+
+        new_log_probs = dist.log_prob(actions["action_type"])
+        entropy = dist.entropy().mean()
+
+        ratio = torch.exp(new_log_probs - old_log_probs)
+
+        surr1 = ratio * advantages
+        surr2 = torch.clamp(ratio, 1.0 - self.clip_param, 1.0 + self.clip_param) * advantages
+        policy_loss = -torch.min(surr1, surr2).mean()
+
+        values = values.squeeze(-1)
+        value_loss = nn.functional.mse_loss(values, returns)
+
+        total_loss = policy_loss + self.value_loss_coef * value_loss - self.entropy_coef * entropy
+
+        self.gameplay_optimizer.zero_grad()
+        total_loss.backward()
+        nn.utils.clip_grad_norm_(self.gameplay_model.parameters(), self.max_grad_norm)
+        self.gameplay_optimizer.step()
+
+        return {
+            "gameplay_policy_loss": float(policy_loss.item()),
+            "gameplay_value_loss": float(value_loss.item()),
+            "gameplay_entropy": float(entropy.item()),
+            "gameplay_total_loss": float(total_loss.item()),
+        }
+
+    def train_trade_step(
+        self,
+        batch: Dict[str, torch.Tensor],
+        tom_targets: Optional[Dict[str, torch.Tensor]] = None,
+    ) -> Dict[str, float]:
+        if not batch:
+            return {
+                "trade_policy_loss": 0.0,
+                "trade_value_loss": 0.0,
+                "trade_entropy": 0.0,
+                "trade_tom_loss": 0.0,
+                "trade_total_loss": 0.0,
+            }
+
+        obs = batch["obs"]
+        actions = batch["actions"]
+        returns = batch["returns"]
+        advantages = batch["advantages"]
+        old_log_probs = batch["log_probs"]
+
+        logits, values, tom_outputs = self.trade_model.forward(obs)
+
+        log_prob_dict, entropy = self.trade_model.action_heads.evaluate_actions(logits, actions)
+
+        new_log_probs = (
+            log_prob_dict["action_type"]
+            + log_prob_dict["target"]
+            + log_prob_dict["offer"].sum(dim=-1)
+            + log_prob_dict["request"].sum(dim=-1)
+        )
+
+        ratio = torch.exp(new_log_probs - old_log_probs)
+
+        surr1 = ratio * advantages
+        surr2 = torch.clamp(ratio, 1.0 - self.clip_param, 1.0 + self.clip_param) * advantages
+        policy_loss = -torch.min(surr1, surr2).mean()
+
+        values = values.squeeze(-1)
+        value_loss = nn.functional.mse_loss(values, returns)
+
+        tom_loss = torch.tensor(0.0, device=self.device)
+        if tom_targets is not None:
+            tom_loss = self.trade_model.tom_head.compute_loss(tom_outputs, tom_targets)
+
+        total_loss = (
+            policy_loss
+            + self.value_loss_coef * value_loss
+            - self.entropy_coef * entropy
+            + self.tom_loss_coef * tom_loss
+        )
+
+        self.trade_optimizer.zero_grad()
+        total_loss.backward()
+        nn.utils.clip_grad_norm_(self.trade_model.parameters(), self.max_grad_norm)
+        self.trade_optimizer.step()
+
+        return {
+            "trade_policy_loss": float(policy_loss.item()),
+            "trade_value_loss": float(value_loss.item()),
+            "trade_entropy": float(entropy.item() if torch.is_tensor(entropy) else entropy),
+            "trade_tom_loss": float(tom_loss.item()),
+            "trade_total_loss": float(total_loss.item()),
+        }
+
+    def train_joint_step(
+        self,
+        gameplay_batch: Dict[str, torch.Tensor],
+        trade_batch: Dict[str, torch.Tensor],
+        tom_targets: Optional[Dict[str, torch.Tensor]] = None,
+    ) -> Dict[str, float]:
+        gameplay_metrics = self.train_gameplay_step(gameplay_batch)
+        trade_metrics = self.train_trade_step(trade_batch, tom_targets=tom_targets)
+
+        out = {}
+        out.update(gameplay_metrics)
+        out.update(trade_metrics)
+        return out
