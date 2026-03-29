@@ -1,0 +1,774 @@
+=== GAME RESULT ===
+winner=0
+victory_points={<PlayerId.WHITE: 0>: 0, <PlayerId.BLUE: 1>: 0, <PlayerId.ORANGE: 2>: 0, <PlayerId.RED: 3>: 0}
+total_steps=181
+done=True
+(myenv) [ec2-user@ip-172-31-94-200 multiagent-catan]$ python3 play_checkpoint.py --checkpoint checkpoints/unified_best_score_4371.pt --device cpu --deterministic
+step=0 phase=ROLL player=0 action=auto reward=0.000 done=False
+step=1 phase=MAIN_ACTION player=0
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=2 phase=TRADE_PROPOSE player=0
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.ORANGE: 2>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.020 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=3 phase=TRADE_RESPOND player=0
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=4 phase=END_TURN player=0
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=5 phase=ROLL player=1 action=auto reward=0.000 done=False
+step=6 phase=MAIN_ACTION player=1
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=7 phase=TRADE_PROPOSE player=1
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.ORANGE: 2>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=8 phase=TRADE_RESPOND player=1
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=9 phase=END_TURN player=1
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=10 phase=ROLL player=2 action=auto reward=0.000 done=False
+step=11 phase=MAIN_ACTION player=2
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=12 phase=TRADE_PROPOSE player=2
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.BLUE: 1>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=13 phase=TRADE_RESPOND player=2
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=14 phase=END_TURN player=2
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=15 phase=ROLL player=3 action=auto reward=0.000 done=False
+step=16 phase=MAIN_ACTION player=3
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=17 phase=TRADE_PROPOSE player=3
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.BLUE: 1>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=18 phase=TRADE_RESPOND player=3
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=19 phase=END_TURN player=3
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=20 phase=ROLL player=0 action=auto reward=0.000 done=False
+step=21 phase=MAIN_ACTION player=0
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=22 phase=TRADE_PROPOSE player=0
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.ORANGE: 2>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=23 phase=TRADE_RESPOND player=0
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=24 phase=END_TURN player=0
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=25 phase=ROLL player=1 action=auto reward=0.000 done=False
+step=26 phase=MAIN_ACTION player=1
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=27 phase=TRADE_PROPOSE player=1
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.ORANGE: 2>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=28 phase=TRADE_RESPOND player=1
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=29 phase=END_TURN player=1
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=30 phase=ROLL player=2 action=auto reward=0.000 done=False
+step=31 phase=MAIN_ACTION player=2
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=32 phase=TRADE_PROPOSE player=2
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.BLUE: 1>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=33 phase=TRADE_RESPOND player=2
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=34 phase=END_TURN player=2
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=35 phase=ROLL player=3 action=auto reward=0.000 done=False
+step=36 phase=MAIN_ACTION player=3
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=37 phase=TRADE_PROPOSE player=3
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.BLUE: 1>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=38 phase=TRADE_RESPOND player=3
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=39 phase=END_TURN player=3
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=40 phase=ROLL player=0 action=auto reward=0.000 done=False
+step=41 phase=MAIN_ACTION player=0
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=42 phase=TRADE_PROPOSE player=0
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.ORANGE: 2>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=43 phase=TRADE_RESPOND player=0
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=44 phase=END_TURN player=0
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=45 phase=ROLL player=1 action=auto reward=0.000 done=False
+step=46 phase=MAIN_ACTION player=1
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=47 phase=TRADE_PROPOSE player=1
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.ORANGE: 2>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=48 phase=TRADE_RESPOND player=1
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=49 phase=END_TURN player=1
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=50 phase=ROLL player=2 action=auto reward=0.000 done=False
+step=51 phase=MAIN_ACTION player=2
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=52 phase=TRADE_PROPOSE player=2
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.BLUE: 1>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=53 phase=TRADE_RESPOND player=2
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=54 phase=END_TURN player=2
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=55 phase=ROLL player=3 action=auto reward=0.000 done=False
+step=56 phase=MAIN_ACTION player=3
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=57 phase=TRADE_PROPOSE player=3
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.BLUE: 1>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=58 phase=TRADE_RESPOND player=3
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=59 phase=END_TURN player=3
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=60 phase=ROLL player=0 action=auto reward=0.000 done=False
+step=61 phase=MAIN_ACTION player=0
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=62 phase=TRADE_PROPOSE player=0
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.ORANGE: 2>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=63 phase=TRADE_RESPOND player=0
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=64 phase=END_TURN player=0
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=65 phase=ROLL player=1 action=auto reward=0.000 done=False
+step=66 phase=MAIN_ACTION player=1
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=67 phase=TRADE_PROPOSE player=1
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.ORANGE: 2>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=68 phase=TRADE_RESPOND player=1
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=69 phase=END_TURN player=1
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=70 phase=ROLL player=2 action=auto reward=0.000 done=False
+step=71 phase=MAIN_ACTION player=2
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=72 phase=TRADE_PROPOSE player=2
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.BLUE: 1>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=73 phase=TRADE_RESPOND player=2
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=74 phase=END_TURN player=2
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=75 phase=ROLL player=3 action=auto reward=0.000 done=False
+step=76 phase=MAIN_ACTION player=3
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=77 phase=TRADE_PROPOSE player=3
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.BLUE: 1>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=78 phase=TRADE_RESPOND player=3
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=79 phase=END_TURN player=3
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=80 phase=ROLL player=0 action=auto reward=0.000 done=False
+step=81 phase=MAIN_ACTION player=0
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=82 phase=TRADE_PROPOSE player=0
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.ORANGE: 2>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=83 phase=TRADE_RESPOND player=0
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=84 phase=END_TURN player=0
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=85 phase=ROLL player=1 action=auto reward=0.000 done=False
+step=86 phase=MAIN_ACTION player=1
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=87 phase=TRADE_PROPOSE player=1
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.ORANGE: 2>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=88 phase=TRADE_RESPOND player=1
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=89 phase=END_TURN player=1
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=90 phase=ROLL player=2 action=auto reward=0.000 done=False
+step=91 phase=MAIN_ACTION player=2
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=92 phase=TRADE_PROPOSE player=2
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.BLUE: 1>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=93 phase=TRADE_RESPOND player=2
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=94 phase=END_TURN player=2
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=95 phase=ROLL player=3 action=auto reward=0.000 done=False
+step=96 phase=MAIN_ACTION player=3
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=97 phase=TRADE_PROPOSE player=3
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.BLUE: 1>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=98 phase=TRADE_RESPOND player=3
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=99 phase=END_TURN player=3
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=100 phase=ROLL player=0 action=auto reward=0.000 done=False
+step=101 phase=MAIN_ACTION player=0
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=102 phase=TRADE_PROPOSE player=0
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.ORANGE: 2>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=103 phase=TRADE_RESPOND player=0
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=104 phase=END_TURN player=0
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=105 phase=ROLL player=1 action=auto reward=0.000 done=False
+step=106 phase=MAIN_ACTION player=1
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=107 phase=TRADE_PROPOSE player=1
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.ORANGE: 2>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=108 phase=TRADE_RESPOND player=1
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=109 phase=END_TURN player=1
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=110 phase=ROLL player=2 action=auto reward=0.000 done=False
+step=111 phase=MAIN_ACTION player=2
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=112 phase=TRADE_PROPOSE player=2
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.BLUE: 1>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=113 phase=TRADE_RESPOND player=2
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=114 phase=END_TURN player=2
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=115 phase=ROLL player=3 action=auto reward=0.000 done=False
+step=116 phase=MAIN_ACTION player=3
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=117 phase=TRADE_PROPOSE player=3
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.BLUE: 1>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=118 phase=TRADE_RESPOND player=3
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=119 phase=END_TURN player=3
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=120 phase=ROLL player=0 action=auto reward=0.000 done=False
+step=121 phase=MAIN_ACTION player=0
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=122 phase=TRADE_PROPOSE player=0
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.ORANGE: 2>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=123 phase=TRADE_RESPOND player=0
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=124 phase=END_TURN player=0
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=125 phase=ROLL player=1 action=auto reward=0.000 done=False
+step=126 phase=MAIN_ACTION player=1
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=127 phase=TRADE_PROPOSE player=1
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.ORANGE: 2>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=128 phase=TRADE_RESPOND player=1
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=129 phase=END_TURN player=1
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=130 phase=ROLL player=2 action=auto reward=0.000 done=False
+step=131 phase=MAIN_ACTION player=2
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=132 phase=TRADE_PROPOSE player=2
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.BLUE: 1>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=133 phase=TRADE_RESPOND player=2
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=134 phase=END_TURN player=2
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=135 phase=ROLL player=3 action=auto reward=0.000 done=False
+step=136 phase=MAIN_ACTION player=3
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=137 phase=TRADE_PROPOSE player=3
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.BLUE: 1>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=138 phase=TRADE_RESPOND player=3
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=139 phase=END_TURN player=3
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=140 phase=ROLL player=0 action=auto reward=0.000 done=False
+step=141 phase=MAIN_ACTION player=0
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=142 phase=TRADE_PROPOSE player=0
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.ORANGE: 2>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=143 phase=TRADE_RESPOND player=0
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=144 phase=END_TURN player=0
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=145 phase=ROLL player=1 action=auto reward=0.000 done=False
+step=146 phase=MAIN_ACTION player=1
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=147 phase=TRADE_PROPOSE player=1
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.ORANGE: 2>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=148 phase=TRADE_RESPOND player=1
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=149 phase=END_TURN player=1
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=150 phase=ROLL player=2 action=auto reward=0.000 done=False
+step=151 phase=MAIN_ACTION player=2
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=152 phase=TRADE_PROPOSE player=2
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.BLUE: 1>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=153 phase=TRADE_RESPOND player=2
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=154 phase=END_TURN player=2
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=155 phase=ROLL player=3 action=auto reward=0.000 done=False
+step=156 phase=MAIN_ACTION player=3
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=157 phase=TRADE_PROPOSE player=3
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.BLUE: 1>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=158 phase=TRADE_RESPOND player=3
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=159 phase=END_TURN player=3
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=160 phase=ROLL player=0 action=auto reward=0.000 done=False
+step=161 phase=MAIN_ACTION player=0
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=162 phase=TRADE_PROPOSE player=0
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.ORANGE: 2>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=163 phase=TRADE_RESPOND player=0
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=164 phase=END_TURN player=0
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=165 phase=ROLL player=1 action=auto reward=0.000 done=False
+step=166 phase=MAIN_ACTION player=1
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=167 phase=TRADE_PROPOSE player=1
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.ORANGE: 2>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=168 phase=TRADE_RESPOND player=1
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=169 phase=END_TURN player=1
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=170 phase=ROLL player=2 action=auto reward=0.000 done=False
+step=171 phase=MAIN_ACTION player=2
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=172 phase=TRADE_PROPOSE player=2
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.BLUE: 1>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=173 phase=TRADE_RESPOND player=2
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=174 phase=END_TURN player=2
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=175 phase=ROLL player=3 action=auto reward=0.000 done=False
+step=176 phase=MAIN_ACTION player=3
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=0.380 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=177 phase=TRADE_PROPOSE player=3
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'propose_trade', 'target': <PlayerId.BLUE: 1>, 'offer': {<Resource.WOOD: 0>: 1, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+ result: reward=0.018 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=178 phase=TRADE_RESPOND player=3
+ action_dict={action_type:[0], target:[1], offer:[0], request:[1]}
+ env_action={'type': 'reject_trade', 'response_type': 'reject'}
+ result: reward=-0.003 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=179 phase=END_TURN player=3
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'end_turn'}
+ result: reward=0.000 done=False player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+step=180 phase=ROLL player=0 action=auto reward=0.000 done=False
+step=181 phase=MAIN_ACTION player=0
+ action_dict={gameplay_action:[1]}
+ env_action={'type': 'build_settlement'}
+ result: reward=1.380 done=True player_vp={PlayerId.WHITE:0, PlayerId.BLUE:0, PlayerId.ORANGE:0, PlayerId.RED:0}
+
+
+=== GAME RESULT ===
+winner=0
+victory_points={<PlayerId.WHITE: 0>: 0, <PlayerId.BLUE: 1>: 0, <PlayerId.ORANGE: 2>: 0, <PlayerId.RED: 3>: 0}
+total_steps=182
+done=True
