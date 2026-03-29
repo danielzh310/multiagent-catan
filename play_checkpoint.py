@@ -130,6 +130,32 @@ def main():
     print(f"total_steps={stats['total_steps']}")
     print(f"done={stats['done']}")
 
+    # Save textual log in gameplay/ folder
+    import os
+    checkpoint_name = os.path.splitext(os.path.basename(args.checkpoint))[0]
+    out_path = os.path.join("gameplay", f"gameplay_{checkpoint_name}_steps{stats['total_steps']}.txt")
+
+    with open(out_path, "w", encoding="utf-8") as f:
+        f.write("=== GAME RESULT ===\n")
+        f.write(f"winner={stats['winner']}\n")
+        f.write(f"victory_points={stats['victory_points']}\n")
+        f.write(f"total_steps={stats['total_steps']}\n")
+        f.write(f"done={stats['done']}\n\n")
+        f.write("=== STEPS ===\n")
+        for step in stats["report"]:
+            f.write(f"step={step['step']} phase={step['phase']} reward={step.get('reward')} done={step.get('done')}\n")
+            if "env_action" in step:
+                f.write(f"  env_action={step['env_action']}\n")
+            if "action_dict" in step:
+                f.write(f"  action_dict={step['action_dict']}\n")
+            if "value" in step:
+                f.write(f"  value={step['value']}\n")
+            if "tom" in step and step['tom'] is not None:
+                f.write(f"  tom={step['tom']}\n")
+            f.write("\n")
+
+    print(f"Saved detailed game log to {out_path}")
+
 
 if __name__ == "__main__":
     main()

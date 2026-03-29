@@ -1,0 +1,939 @@
+=== GAME RESULT ===
+winner=0
+victory_points={<PlayerId.WHITE: 0>: 0, <PlayerId.BLUE: 1>: 0, <PlayerId.ORANGE: 2>: 0, <PlayerId.RED: 3>: 0}
+total_steps=180
+done=True
+
+=== STEPS ===
+step=0 phase=ROLL reward=0.0 done=False
+
+step=1 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=2 phase=TRADE_PROPOSE reward=-0.01 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.BLUE: 1>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=3 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=4 phase=ROLL reward=0.0 done=False
+
+step=5 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=6 phase=TRADE_PROPOSE reward=-0.01 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.WHITE: 0>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=7 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=8 phase=ROLL reward=0.0 done=False
+
+step=9 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=10 phase=TRADE_PROPOSE reward=0.018 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.WHITE: 0>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=11 phase=TRADE_RESPOND reward=0.06 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=12 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=13 phase=ROLL reward=0.0 done=False
+
+step=14 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=15 phase=TRADE_PROPOSE reward=0.018 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.WHITE: 0>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=16 phase=TRADE_RESPOND reward=0.06 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=17 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=18 phase=ROLL reward=0.0 done=False
+
+step=19 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=20 phase=TRADE_PROPOSE reward=0.018 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.BLUE: 1>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=21 phase=TRADE_RESPOND reward=0.06 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=22 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=23 phase=ROLL reward=0.0 done=False
+
+step=24 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=25 phase=TRADE_PROPOSE reward=0.018 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.WHITE: 0>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=26 phase=TRADE_RESPOND reward=0.06 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=27 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=28 phase=ROLL reward=0.0 done=False
+
+step=29 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=30 phase=TRADE_PROPOSE reward=0.018 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.WHITE: 0>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=31 phase=TRADE_RESPOND reward=0.06 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=32 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=33 phase=ROLL reward=0.0 done=False
+
+step=34 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=35 phase=TRADE_PROPOSE reward=0.018 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.WHITE: 0>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=36 phase=TRADE_RESPOND reward=0.06 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=37 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=38 phase=ROLL reward=0.0 done=False
+
+step=39 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=40 phase=TRADE_PROPOSE reward=0.018 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.BLUE: 1>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=41 phase=TRADE_RESPOND reward=0.06 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=42 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=43 phase=ROLL reward=0.0 done=False
+
+step=44 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=45 phase=TRADE_PROPOSE reward=0.018 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.WHITE: 0>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=46 phase=TRADE_RESPOND reward=0.06 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=47 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=48 phase=ROLL reward=0.0 done=False
+
+step=49 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=50 phase=TRADE_PROPOSE reward=0.018 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.WHITE: 0>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=51 phase=TRADE_RESPOND reward=0.06 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=52 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=53 phase=ROLL reward=0.0 done=False
+
+step=54 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=55 phase=TRADE_PROPOSE reward=0.018 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.WHITE: 0>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=56 phase=TRADE_RESPOND reward=0.06 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=57 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=58 phase=ROLL reward=0.0 done=False
+
+step=59 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=60 phase=TRADE_PROPOSE reward=0.018 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.BLUE: 1>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=61 phase=TRADE_RESPOND reward=0.06 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=62 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=63 phase=ROLL reward=0.0 done=False
+
+step=64 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=65 phase=TRADE_PROPOSE reward=0.018 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.WHITE: 0>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=66 phase=TRADE_RESPOND reward=0.06 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=67 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=68 phase=ROLL reward=0.0 done=False
+
+step=69 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=70 phase=TRADE_PROPOSE reward=0.018 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.WHITE: 0>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=71 phase=TRADE_RESPOND reward=0.06 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=72 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=73 phase=ROLL reward=0.0 done=False
+
+step=74 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=75 phase=TRADE_PROPOSE reward=0.018 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.WHITE: 0>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=76 phase=TRADE_RESPOND reward=0.06 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=77 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=78 phase=ROLL reward=0.0 done=False
+
+step=79 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=80 phase=TRADE_PROPOSE reward=0.018 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.BLUE: 1>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=81 phase=TRADE_RESPOND reward=0.06 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=82 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=83 phase=ROLL reward=0.0 done=False
+
+step=84 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=85 phase=TRADE_PROPOSE reward=0.018 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.WHITE: 0>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=86 phase=TRADE_RESPOND reward=0.06 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=87 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=88 phase=ROLL reward=0.0 done=False
+
+step=89 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=90 phase=TRADE_PROPOSE reward=0.018 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.WHITE: 0>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=91 phase=TRADE_RESPOND reward=0.06 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=92 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=93 phase=ROLL reward=0.0 done=False
+
+step=94 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=95 phase=TRADE_PROPOSE reward=0.018 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.WHITE: 0>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=96 phase=TRADE_RESPOND reward=0.06 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=97 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=98 phase=ROLL reward=0.0 done=False
+
+step=99 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=100 phase=TRADE_PROPOSE reward=0.018 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.BLUE: 1>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=101 phase=TRADE_RESPOND reward=0.06 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=102 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=103 phase=ROLL reward=0.0 done=False
+
+step=104 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=105 phase=TRADE_PROPOSE reward=0.018 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.WHITE: 0>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=106 phase=TRADE_RESPOND reward=0.06 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=107 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=108 phase=ROLL reward=0.0 done=False
+
+step=109 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=110 phase=TRADE_PROPOSE reward=0.018 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.WHITE: 0>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=111 phase=TRADE_RESPOND reward=0.06 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=112 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=113 phase=ROLL reward=0.0 done=False
+
+step=114 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=115 phase=TRADE_PROPOSE reward=0.018 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.WHITE: 0>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=116 phase=TRADE_RESPOND reward=0.06 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=117 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=118 phase=ROLL reward=0.0 done=False
+
+step=119 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=120 phase=TRADE_PROPOSE reward=0.018 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.BLUE: 1>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=121 phase=TRADE_RESPOND reward=0.06 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=122 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=123 phase=ROLL reward=0.0 done=False
+
+step=124 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=125 phase=TRADE_PROPOSE reward=0.018 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.WHITE: 0>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=126 phase=TRADE_RESPOND reward=0.06 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=127 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=128 phase=ROLL reward=0.0 done=False
+
+step=129 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=130 phase=TRADE_PROPOSE reward=0.018 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.WHITE: 0>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=131 phase=TRADE_RESPOND reward=0.06 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=132 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=133 phase=ROLL reward=0.0 done=False
+
+step=134 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=135 phase=TRADE_PROPOSE reward=0.018 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.WHITE: 0>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=136 phase=TRADE_RESPOND reward=0.06 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=137 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=138 phase=ROLL reward=0.0 done=False
+
+step=139 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=140 phase=TRADE_PROPOSE reward=0.018 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.BLUE: 1>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=141 phase=TRADE_RESPOND reward=0.06 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=142 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=143 phase=ROLL reward=0.0 done=False
+
+step=144 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=145 phase=TRADE_PROPOSE reward=0.018 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.WHITE: 0>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=146 phase=TRADE_RESPOND reward=0.06 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=147 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=148 phase=ROLL reward=0.0 done=False
+
+step=149 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=150 phase=TRADE_PROPOSE reward=0.018 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.WHITE: 0>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=151 phase=TRADE_RESPOND reward=0.06 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=152 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=153 phase=ROLL reward=0.0 done=False
+
+step=154 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=155 phase=TRADE_PROPOSE reward=0.018 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.WHITE: 0>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=156 phase=TRADE_RESPOND reward=0.06 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=157 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=158 phase=ROLL reward=0.0 done=False
+
+step=159 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=160 phase=TRADE_PROPOSE reward=0.018 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.BLUE: 1>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=161 phase=TRADE_RESPOND reward=0.06 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=162 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=163 phase=ROLL reward=0.0 done=False
+
+step=164 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=165 phase=TRADE_PROPOSE reward=0.018 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.WHITE: 0>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=166 phase=TRADE_RESPOND reward=0.06 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=167 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=168 phase=ROLL reward=0.0 done=False
+
+step=169 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=170 phase=TRADE_PROPOSE reward=0.018 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.WHITE: 0>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=171 phase=TRADE_RESPOND reward=0.06 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=172 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=173 phase=ROLL reward=0.0 done=False
+
+step=174 phase=MAIN_ACTION reward=0.38 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=175 phase=TRADE_PROPOSE reward=0.018 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.WHITE: 0>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=176 phase=TRADE_RESPOND reward=0.06 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [0], 'offer': [1], 'request': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=177 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
+step=178 phase=ROLL reward=0.0 done=False
+
+step=179 phase=MAIN_ACTION reward=1.38 done=True
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [1]}
+  value=0.2492019236087799
+  tom={'need_pred': [[0.09868975728750229, 0.41636040806770325, 0.10243383049964905, 0.12308302521705627, 0.2594330608844757]]}
+
