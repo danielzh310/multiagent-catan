@@ -19,20 +19,25 @@ class UnifiedPPOTrainer:
         self,
         policy: UnifiedPolicy,
         device: str = "cpu",
-        lr: float = 1e-4,
-        gamma_start: float = 0.92,
+        lr: float = 7.5e-5,
+        gamma_start: float = 0.94,
         gamma_end: float = 0.995,
         gae_lambda: float = 0.95,
-        clip_param: float = 0.15,
-        value_clip_param: float = 0.20,
-        value_loss_coef: float = 0.25,
-        entropy_coef_start: float = 8e-4,
-        entropy_coef_end: float = 2.5e-4,
-        entropy_hold_fraction: float = 0.40,
-        tom_loss_coef: float = 0.08,
-        max_grad_norm: float = 0.30,
-        ppo_epochs: int = 4,
-        mini_batch_size: int = 256,
+        clip_param: float = 0.12,
+        value_clip_param: float = 0.15,
+        value_loss_coef: float = 0.18,
+        entropy_coef_start: float = 1.2e-3,
+        entropy_coef_end: float = 4.0e-4,
+        entropy_hold_fraction: float = 0.60,
+        gameplay_entropy_floor: float = 0.35,
+        trade_entropy_floor: float = 0.55,
+        gameplay_entropy_floor_coef: float = 0.010,
+        trade_entropy_floor_coef: float = 0.016,
+        tom_loss_coef_start: float = 0.02,
+        tom_loss_coef_end: float = 0.08,
+        max_grad_norm: float = 0.25,
+        ppo_epochs: int = 3,
+        mini_batch_size: int = 192,
     ):
         self.policy = policy.to(device)
         self.device = device
@@ -42,13 +47,23 @@ class UnifiedPPOTrainer:
         self.clip_param = clip_param
         self.value_clip_param = value_clip_param
         self.value_loss_coef = value_loss_coef
+
         self.entropy_coef_start = entropy_coef_start
         self.entropy_coef_end = entropy_coef_end
         self.entropy_hold_fraction = entropy_hold_fraction
-        self.tom_loss_coef = tom_loss_coef
+
+        self.gameplay_entropy_floor = gameplay_entropy_floor
+        self.trade_entropy_floor = trade_entropy_floor
+        self.gameplay_entropy_floor_coef = gameplay_entropy_floor_coef
+        self.trade_entropy_floor_coef = trade_entropy_floor_coef
+
+        self.tom_loss_coef_start = tom_loss_coef_start
+        self.tom_loss_coef_end = tom_loss_coef_end
+
         self.max_grad_norm = max_grad_norm
         self.ppo_epochs = ppo_epochs
         self.mini_batch_size = mini_batch_size
+
         self.optimizer = torch.optim.Adam(self.policy.parameters(), lr=lr)
         self.progress = 0.0
 
@@ -65,6 +80,9 @@ class UnifiedPPOTrainer:
         scaled = (self.progress - self.entropy_hold_fraction) / max(1.0 - self.entropy_hold_fraction, 1e-8)
         scaled = max(0.0, min(1.0, scaled))
         return self.entropy_coef_start + (self.entropy_coef_end - self.entropy_coef_start) * scaled
+
+    def tom_loss_coef(self) -> float:
+        return self.tom_loss_coef_start + (self.tom_loss_coef_end - self.tom_loss_coef_start) * self.progress
 
     def _stack_obs(self, storage: List[Dict]) -> Dict[str, torch.Tensor]:
         return {
@@ -89,6 +107,7 @@ class UnifiedPPOTrainer:
             returns[t] = advantages[t] + values[t]
             next_value = values[t]
 
+        returns = (returns - returns.mean()) / (returns.std() + 1e-8)
         advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
         return returns, advantages
 
@@ -150,13 +169,15 @@ class UnifiedPPOTrainer:
             need_mask = None
         else:
             actions = {
-                "action_type": torch.cat([storage[i]["action"]["action_type"] for i in idxs], dim=0).to(self.device),
+                "engage_trade": torch.cat([storage[i]["action"]["engage_trade"] for i in idxs], dim=0).to(self.device),
+                "trade_response": torch.cat([storage[i]["action"]["trade_response"] for i in idxs], dim=0).to(self.device),
                 "target": torch.cat([storage[i]["action"]["target"] for i in idxs], dim=0).to(self.device),
                 "offer": torch.cat([storage[i]["action"]["offer"] for i in idxs], dim=0).to(self.device),
                 "request": torch.cat([storage[i]["action"]["request"] for i in idxs], dim=0).to(self.device),
             }
             old_log_prob = (
-                torch.cat([storage[i]["log_prob"]["action_type"] for i in idxs], dim=0).to(self.device)
+                torch.cat([storage[i]["log_prob"]["engage_trade"] for i in idxs], dim=0).to(self.device)
+                + torch.cat([storage[i]["log_prob"]["trade_response"] for i in idxs], dim=0).to(self.device)
                 + torch.cat([storage[i]["log_prob"]["target"] for i in idxs], dim=0).to(self.device)
                 + torch.cat([storage[i]["log_prob"]["offer"] for i in idxs], dim=0).to(self.device)
                 + torch.cat([storage[i]["log_prob"]["request"] for i in idxs], dim=0).to(self.device)
@@ -216,7 +237,8 @@ class UnifiedPPOTrainer:
                     mb_actions = {"gameplay_action": actions["gameplay_action"][mb]}
                 else:
                     mb_actions = {
-                        "action_type": actions["action_type"][mb],
+                        "engage_trade": actions["engage_trade"][mb],
+                        "trade_response": actions["trade_response"][mb],
                         "target": actions["target"][mb],
                         "offer": actions["offer"][mb],
                         "request": actions["request"][mb],
@@ -232,7 +254,8 @@ class UnifiedPPOTrainer:
                     new_log_prob = log_prob_dict["gameplay_action"]
                 else:
                     new_log_prob = (
-                        log_prob_dict["action_type"]
+                        log_prob_dict["engage_trade"]
+                        + log_prob_dict["trade_response"]
                         + log_prob_dict["target"]
                         + log_prob_dict["offer"]
                         + log_prob_dict["request"]
@@ -261,14 +284,21 @@ class UnifiedPPOTrainer:
                         mb_need_targets,
                         mb_need_mask,
                     )
+                    entropy_floor_penalty = self.trade_entropy_floor_coef * torch.relu(
+                        torch.tensor(self.trade_entropy_floor, device=self.device) - entropy
+                    )
                 else:
                     tom_loss = torch.tensor(0.0, device=self.device)
+                    entropy_floor_penalty = self.gameplay_entropy_floor_coef * torch.relu(
+                        torch.tensor(self.gameplay_entropy_floor, device=self.device) - entropy
+                    )
 
                 total_mb_loss = (
                     policy_loss
                     + self.value_loss_coef * value_loss
                     - self.entropy_coef() * entropy
-                    + self.tom_loss_coef * tom_loss
+                    + entropy_floor_penalty
+                    + self.tom_loss_coef() * tom_loss
                 )
 
                 self.optimizer.zero_grad()
@@ -301,6 +331,7 @@ class UnifiedPPOTrainer:
                 "total_loss": 0.0,
                 "entropy_coef": self.entropy_coef(),
                 "gamma": self.gamma(),
+                "tom_loss_coef": self.tom_loss_coef(),
             }
 
         obs = self._stack_obs(storage)
@@ -321,7 +352,7 @@ class UnifiedPPOTrainer:
             + tr["policy_loss"]
             + self.value_loss_coef * (gp["value_loss"] + tr["value_loss"])
             - self.entropy_coef() * 0.5 * (gp["entropy"] + tr["entropy"])
-            + self.tom_loss_coef * tr["tom_loss"]
+            + self.tom_loss_coef() * tr["tom_loss"]
         )
 
         return {
@@ -335,6 +366,7 @@ class UnifiedPPOTrainer:
             "total_loss": float(total_loss),
             "entropy_coef": float(self.entropy_coef()),
             "gamma": float(self.gamma()),
+            "tom_loss_coef": float(self.tom_loss_coef()),
         }
 
 
@@ -398,9 +430,19 @@ def compute_rollout_stats(storage: List[Dict]) -> Dict[str, float]:
 def apply_shaped_rewards(
     storage: List[Dict],
     reward_shaper: RewardShaper,
+    progress: float,
+    trade_curriculum_fraction: float = 0.55,
+    trade_reward_scale_start: float = 0.35,
+    trade_reward_scale_end: float = 1.00,
 ) -> List[Dict]:
     shaped_storage = []
     consecutive_skips = 0
+
+    if progress <= trade_curriculum_fraction:
+        scaled = progress / max(trade_curriculum_fraction, 1e-8)
+        curriculum_scale = trade_reward_scale_start + (trade_reward_scale_end - trade_reward_scale_start) * scaled
+    else:
+        curriculum_scale = trade_reward_scale_end
 
     for item in storage:
         new_item = dict(item)
@@ -419,6 +461,7 @@ def apply_shaped_rewards(
                 reward_signal=float(item["reward"]),
                 consecutive_skips=consecutive_skips,
                 tom_loss=0.0,
+                curriculum_scale=curriculum_scale,
             )
             new_item["reward"] = shaped_reward
         else:
@@ -465,7 +508,7 @@ def train(args: argparse.Namespace) -> None:
         trainer.set_progress(progress)
 
         raw_storage = rollout_manager.collect(policy=policy, steps=args.rollout_steps)
-        storage = apply_shaped_rewards(raw_storage, reward_shaper)
+        storage = apply_shaped_rewards(raw_storage, reward_shaper, progress=progress)
 
         stats = compute_rollout_stats(storage)
         metrics = trainer.update(storage)
@@ -482,9 +525,10 @@ def train(args: argparse.Namespace) -> None:
 
         trade_score = (
             stats["trade_reward_mean"]
-            + 0.015 * stats["trade_propose_rate"]
-            + 0.020 * stats["trade_accept_rate"]
-            - 0.020 * stats["trade_skip_rate"]
+            + 0.020 * stats["trade_propose_rate"]
+            + 0.030 * stats["trade_accept_rate"]
+            + 0.020 * stats["trade_counter_rate"]
+            - 0.025 * stats["trade_skip_rate"]
         )
 
         print(f"\nUpdate {update}")
@@ -525,6 +569,7 @@ def train(args: argparse.Namespace) -> None:
             f"ppo total    | loss={metrics['total_loss']:.4f} "
             f"entropy_coef={metrics['entropy_coef']:.6f} "
             f"gamma={metrics['gamma']:.5f} "
+            f"tom_coef={metrics['tom_loss_coef']:.5f} "
             f"trade_score={trade_score:.4f}"
         )
 

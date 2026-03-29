@@ -61,6 +61,12 @@ class UnifiedRolloutManager:
     def _decode_trade(self, action_dict: Dict[str, torch.Tensor], env: CatanEnv) -> dict:
         phase = env.get_phase()
 
+        engage = int(action_dict["engage_trade"].item())
+        response = int(action_dict["trade_response"].item())
+
+        if engage == 0:
+            return {"type": "skip_trade"}
+
         if phase == TurnPhase.TRADE_PROPOSE:
             players = [PlayerId.WHITE, PlayerId.BLUE, PlayerId.ORANGE, PlayerId.RED]
             current_player = env.get_current_player_id()
@@ -71,30 +77,24 @@ class UnifiedRolloutManager:
             target_idx = int(action_dict["target"].item()) % len(legal_targets)
             target = legal_targets[target_idx]
 
-            action_idx = int(action_dict["action_type"].item())
             offer_idx = int(action_dict["offer"].item())
             request_idx = int(action_dict["request"].item())
 
-            if action_idx == 0:
-                return {
-                    "type": "propose_trade",
-                    "target": target,
-                    "offer": self._one_hot_trade_vector(offer_idx),
-                    "request": self._one_hot_trade_vector(request_idx),
-                }
-
-            return {"type": "skip_trade"}
+            return {
+                "type": "propose_trade",
+                "target": target,
+                "offer": self._one_hot_trade_vector(offer_idx),
+                "request": self._one_hot_trade_vector(request_idx),
+            }
 
         if phase == TurnPhase.TRADE_RESPOND:
-            action_idx = int(action_dict["action_type"].item())
-
-            if action_idx == 1:
+            if response == 0:
                 return {"type": "accept_trade", "response_type": "accept"}
 
-            if action_idx == 2:
+            if response == 1:
                 return {"type": "reject_trade", "response_type": "reject"}
 
-            if action_idx == 3:
+            if response == 2:
                 offer_idx = int(action_dict["offer"].item())
                 request_idx = int(action_dict["request"].item())
                 return {

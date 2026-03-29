@@ -10,18 +10,23 @@ from core.constants import Resource
 class RewardWeights:
     win_reward: float = 1.0
     lose_reward: float = -1.0
-    vp_delta_weight: float = 0.20
-    diversity_weight: float = 0.01
-    build_progress_weight: float = 0.02
-    trade_accept_bonus: float = 0.035
-    trade_propose_bonus: float = 0.008
-    trade_counter_bonus: float = 0.004
-    trade_reject_penalty: float = -0.006
-    trade_skip_penalty: float = -0.015
-    repeated_skip_penalty: float = -0.010
-    tom_weight: float = 0.03
-    reward_clip_min: float = -0.05
-    reward_clip_max: float = 0.05
+
+    vp_delta_weight: float = 0.16
+    diversity_weight: float = 0.008
+    build_progress_weight: float = 0.015
+
+    trade_accept_bonus: float = 0.045
+    trade_propose_bonus: float = 0.012
+    trade_counter_bonus: float = 0.018
+    trade_reject_penalty: float = -0.004
+    trade_skip_penalty: float = -0.020
+    repeated_skip_penalty: float = -0.012
+
+    trade_long_term_scale: float = 0.60
+    tom_weight: float = 0.025
+
+    reward_clip_min: float = -0.04
+    reward_clip_max: float = 0.04
 
 
 def resource_diversity(resources: Dict[Resource, int]) -> int:
@@ -83,8 +88,9 @@ class RewardShaper:
         reward_signal: float,
         consecutive_skips: int = 0,
         tom_loss: float = 0.0,
+        curriculum_scale: float = 1.0,
     ) -> float:
-        reward = float(reward_signal)
+        reward = self.weights.trade_long_term_scale * float(reward_signal)
 
         if action_type == "propose_trade":
             reward += self.weights.trade_propose_bonus
@@ -100,4 +106,6 @@ class RewardShaper:
                 reward += self.weights.repeated_skip_penalty * float(consecutive_skips - 1)
 
         reward -= self.weights.tom_weight * float(tom_loss)
+
+        reward *= float(curriculum_scale)
         return self._clip(float(reward))
