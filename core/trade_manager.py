@@ -6,6 +6,8 @@ from typing import Dict, List, Optional
 from core.constants import PlayerId, Resource
 from core.trade_history import TradeEvent, TradeHistory, normalize_trade_vector
 
+MAX_COUNTER_TRADES = 3
+
 
 @dataclass
 class TradeProposal:
@@ -15,6 +17,7 @@ class TradeProposal:
     request: Dict[Resource, int]
     turn_number: int
     phase_index: int
+    counter_count: int = 0
 
 
 @dataclass
@@ -165,6 +168,12 @@ class TradeManager:
             return True
 
         if response.response_type == "counter":
+            if proposal.counter_count >= MAX_COUNTER_TRADES:
+                # Exceeded allowable counter proposals, treat as reject for fairness
+                self._record_trade_event(players, proposal, response, accepted=False, executed=False)
+                self.pending_trade = None
+                return False
+
             counter_offer = normalize_trade_vector(response.counter_offer)
             counter_request = normalize_trade_vector(response.counter_request)
 
@@ -186,6 +195,7 @@ class TradeManager:
                 request=counter_request,
                 turn_number=proposal.turn_number,
                 phase_index=proposal.phase_index,
+                counter_count=proposal.counter_count + 1,
             )
             return True
 

@@ -43,6 +43,12 @@ class AgentState:
     buildings: List[object] = field(default_factory=list)
     roads: List[int] = field(default_factory=list)
 
+    revealed_vp_cards: int = 0
+
+    n_settlements: int = 0
+    n_cities: int = 0
+    n_roads: int = 0
+
     bonus_vp: int = 0
     dev_victory_points: int = 0
     victory_points: int = 0
@@ -112,12 +118,18 @@ class AgentState:
         raise ValueError(f"Dev card {card} not found in hand.")
 
     def num_settlements(self) -> int:
+        if self.n_settlements is not None:
+            return int(self.n_settlements)
         return sum(1 for building in self.buildings if getattr(building, "type", None).name == "SETTLEMENT")
 
     def num_cities(self) -> int:
+        if self.n_cities is not None:
+            return int(self.n_cities)
         return sum(1 for building in self.buildings if getattr(building, "type", None).name == "CITY")
 
     def num_roads(self) -> int:
+        if self.n_roads is not None:
+            return int(self.n_roads)
         return len(self.roads)
 
     def piece_vp(self) -> int:
@@ -136,7 +148,7 @@ class AgentState:
             "resources": {resource.name: self.resources.get(resource, 0) for resource in COLLECTABLE_RESOURCES},
             "dev_cards": [card.name for card in self.dev_cards],
             "roads": list(self.roads),
-            "num_buildings": len(self.buildings),
+            "num_buildings": self.num_settlements() + self.num_cities(),
             "num_settlements": self.num_settlements(),
             "num_cities": self.num_cities(),
             "bonus_vp": self.bonus_vp,

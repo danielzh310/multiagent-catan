@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Dict, List, Optional
 
-from core.constants import PlayerId, Resource
+from core.constants import PlayerId, Resource, COST_BUILD_ROAD, COST_BUILD_SETTLEMENT, COST_BUILD_CITY
 from core.engine import CatanEngine
 from core.phase_router import ControllerType, TurnPhase
 
@@ -26,7 +26,19 @@ class CatanEnv:
         return self.get_observation()
 
     def step(self, action: Optional[dict]):
-        return self.engine.step(action)
+        obs, reward, done, info = self.engine.step(action)
+        
+        # Wrap engine observation with controller and legal_actions
+        decision = self.engine.phase_router.get_controller(self.engine)
+        obs["controller"] = {
+            "phase": decision.phase,
+            "controller": decision.controller,
+            "acting_player": decision.acting_player,
+            "target_player": decision.target_player,
+        }
+        obs["legal_actions"] = self.get_legal_actions()
+        
+        return obs, reward, done, info
 
     def get_observation(self) -> dict:
         obs = self.engine.get_observation()
@@ -86,10 +98,16 @@ class CatanEnv:
         player = self.engine.players[player_id]
         actions = []
 
-        actions.append({"type": "build_road"})
-        actions.append({"type": "build_settlement"})
+        # build_road: need at least one settlement and road cap
+        if player.n_settlements > 0 and player.n_roads < 15 and player.can_pay_cost(COST_BUILD_ROAD):
+            actions.append({"type": "build_road"})
 
-        if player.n_settlements > 0:
+        # build_settlement: 5 max, 1 road after first settlement
+        if player.n_settlements < 5 and player.can_pay_cost(COST_BUILD_SETTLEMENT) and (player.n_settlements == 0 or player.n_roads > 0):
+            actions.append({"type": "build_settlement"})
+
+        # build_city: convert existing settlement
+        if player.n_settlements > 0 and player.n_cities < 4 and player.can_pay_cost(COST_BUILD_CITY):
             actions.append({"type": "build_city"})
 
         actions.append({"type": "end_main_action"})

@@ -25,11 +25,84 @@ class UnifiedRolloutManager:
         return "auto"
 
     def _build_obs(self, env: CatanEnv) -> Dict[str, torch.Tensor]:
-        z = lambda shape: torch.zeros(shape, dtype=torch.float32, device=self.device)
+        raw = env.get_observation()
+        player = raw["player"]
+        other_players = [v for k, v in raw["players"].items() if k != raw["game"]["current_player"]]
+
+        def to_vec(state: dict) -> List[float]:
+            resources = state.get("resources", {})
+            roads_val = state.get("roads", 0)
+            if isinstance(roads_val, list):
+                roads_val = len(roads_val)
+
+            dev_cards_val = state.get("dev_cards", 0)
+            if isinstance(dev_cards_val, list):
+                dev_cards_val = len(dev_cards_val)
+
+            vec = [
+                float(resources.get("WOOD", 0)),
+                float(resources.get("BRICK", 0)),
+                float(resources.get("SHEEP", 0)),
+                float(resources.get("WHEAT", 0)),
+                float(resources.get("ORE", 0)),
+                float(state.get("victory_points", 0)),
+                float(state.get("num_settlements", 0)),
+                float(state.get("num_cities", 0)),
+                float(roads_val),
+                float(state.get("bonus_vp", 0)),
+                float(state.get("dev_victory_points", 0)),
+                float(dev_cards_val),
+            ]
+            vec += [0.0] * (64 - len(vec))
+            return vec[:64]
+
+        self_vec = torch.tensor([to_vec(player)], dtype=torch.float32, device=self.device)
+
+        # Opponents aggregated
+        op_vec = [0.0] * 64
+        if other_players:
+            nums = len(other_players)
+            sum_vec = [0.0] * 64
+            for opp in other_players:
+                opp_v = to_vec(opp)
+                for i in range(64):
+                    sum_vec[i] += opp_v[i]
+            op_vec = [x / nums for x in sum_vec]
+
+        board_vec = torch.zeros((1, 64), dtype=torch.float32, device=self.device)
+        # include basic turn info + trade info
+        board_vec[0, 0:3] = torch.tensor([
+            float(raw["game"].get("turn_number", 0)),
+            float(env.get_current_player_id()),
+            float(env.get_phase().value),
+        ], dtype=torch.float32, device=self.device)
+
+        # include pending trade state so policy can see negotiation progress
+        pending_trade = raw.get("trade")
+        if pending_trade is not None:
+            board_vec[0, 3] = 1.0  # has_pending_trade flag
+            board_vec[0, 4] = float(pending_trade.counter_count)
+            
+            # offer vector (5 resources: WOOD, BRICK, SHEEP, WHEAT, ORE)
+            offer = pending_trade.offer
+            board_vec[0, 5] = float(offer.get(Resource.WOOD, 0))
+            board_vec[0, 6] = float(offer.get(Resource.BRICK, 0))
+            board_vec[0, 7] = float(offer.get(Resource.SHEEP, 0))
+            board_vec[0, 8] = float(offer.get(Resource.WHEAT, 0))
+            board_vec[0, 9] = float(offer.get(Resource.ORE, 0))
+            
+            # request vector (5 resources)
+            request = pending_trade.request
+            board_vec[0, 10] = float(request.get(Resource.WOOD, 0))
+            board_vec[0, 11] = float(request.get(Resource.BRICK, 0))
+            board_vec[0, 12] = float(request.get(Resource.SHEEP, 0))
+            board_vec[0, 13] = float(request.get(Resource.WHEAT, 0))
+            board_vec[0, 14] = float(request.get(Resource.ORE, 0))
+
         return {
-            "board": z((1, 64)),
-            "self": z((1, 64)),
-            "opponent": z((1, 64)),
+            "board": board_vec,
+            "self": self_vec,
+            "opponent": torch.tensor([op_vec], dtype=torch.float32, device=self.device),
         }
 
     def _one_hot_trade_vector(self, idx: int) -> Dict[Resource, int]:
