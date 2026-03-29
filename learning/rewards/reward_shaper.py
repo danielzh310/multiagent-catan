@@ -13,8 +13,13 @@ class RewardWeights:
     vp_delta_weight: float = 0.20
     diversity_weight: float = 0.01
     build_progress_weight: float = 0.02
-    trade_weight: float = 1.0
-    tom_weight: float = 0.05
+    trade_accept_bonus: float = 0.035
+    trade_propose_bonus: float = 0.008
+    trade_counter_bonus: float = 0.004
+    trade_reject_penalty: float = -0.006
+    trade_skip_penalty: float = -0.015
+    repeated_skip_penalty: float = -0.010
+    tom_weight: float = 0.03
 
 
 def resource_diversity(resources: Dict[Resource, int]) -> int:
@@ -39,14 +44,12 @@ class RewardShaper:
     def __init__(self, weights: RewardWeights | None = None):
         self.weights = weights or RewardWeights()
 
-    def step_reward(
+    def gameplay_step_reward(
         self,
         prev_vp: float,
         curr_vp: float,
         prev_resources: Dict[Resource, int],
         curr_resources: Dict[Resource, int],
-        trade_reward: float = 0.0,
-        tom_loss: float = 0.0,
         won: bool = False,
         lost: bool = False,
     ) -> float:
@@ -67,7 +70,30 @@ class RewardShaper:
         curr_prog = estimate_build_progress(curr_resources)
         reward += self.weights.build_progress_weight * (curr_prog - prev_prog)
 
-        reward += self.weights.trade_weight * trade_reward
+        return float(reward)
+
+    def trade_step_reward(
+        self,
+        action_type: str,
+        reward_signal: float,
+        consecutive_skips: int = 0,
+        tom_loss: float = 0.0,
+    ) -> float:
+        reward = float(reward_signal)
+
+        if action_type == "propose_trade":
+            reward += self.weights.trade_propose_bonus
+        elif action_type == "accept_trade":
+            reward += self.weights.trade_accept_bonus
+        elif action_type == "counter_trade":
+            reward += self.weights.trade_counter_bonus
+        elif action_type == "reject_trade":
+            reward += self.weights.trade_reject_penalty
+        elif action_type == "skip_trade":
+            reward += self.weights.trade_skip_penalty
+            if consecutive_skips >= 2:
+                reward += self.weights.repeated_skip_penalty * float(consecutive_skips - 1)
+
         reward -= self.weights.tom_weight * float(tom_loss)
 
         return float(reward)

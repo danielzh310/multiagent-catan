@@ -2,12 +2,13 @@ from __future__ import annotations
 
 import argparse
 import os
-from collections import deque
+from collections import defaultdict, deque
 from typing import Dict, List
 
 import torch
 
 from learning.league.league_manager import LeagueManager
+from learning.rewards.reward_shaper import RewardShaper
 from learning.trade.trade_labeler import build_batch_need_targets
 from learning.unified.unified_policy import UnifiedPolicy
 from learning.unified.unified_rollout_manager import UnifiedRolloutManager
@@ -24,9 +25,10 @@ class UnifiedPPOTrainer:
         gae_lambda: float = 0.95,
         clip_param: float = 0.2,
         value_loss_coef: float = 0.5,
-        entropy_coef_start: float = 5e-4,
-        entropy_coef_end: float = 5e-5,
-        tom_loss_coef: float = 0.05,
+        entropy_coef_start: float = 8e-4,
+        entropy_coef_end: float = 2.5e-4,
+        entropy_hold_fraction: float = 0.35,
+        tom_loss_coef: float = 0.08,
         max_grad_norm: float = 0.5,
     ):
         self.policy = policy.to(device)
@@ -38,6 +40,7 @@ class UnifiedPPOTrainer:
         self.value_loss_coef = value_loss_coef
         self.entropy_coef_start = entropy_coef_start
         self.entropy_coef_end = entropy_coef_end
+        self.entropy_hold_fraction = entropy_hold_fraction
         self.tom_loss_coef = tom_loss_coef
         self.max_grad_norm = max_grad_norm
         self.optimizer = torch.optim.Adam(self.policy.parameters(), lr=lr)
@@ -50,7 +53,12 @@ class UnifiedPPOTrainer:
         return self.gamma_start + (self.gamma_end - self.gamma_start) * self.progress
 
     def entropy_coef(self) -> float:
-        return self.entropy_coef_start + (self.entropy_coef_end - self.entropy_coef_start) * self.progress
+        if self.progress <= self.entropy_hold_fraction:
+            return self.entropy_coef_start
+
+        scaled = (self.progress - self.entropy_hold_fraction) / max(1.0 - self.entropy_hold_fraction, 1e-8)
+        scaled = max(0.0, min(1.0, scaled))
+        return self.entropy_coef_start + (self.entropy_coef_end - self.entropy_coef_start) * scaled
 
     def _stack_obs(self, storage: List[Dict]) -> Dict[str, torch.Tensor]:
         return {
@@ -84,7 +92,6 @@ class UnifiedPPOTrainer:
         obs: Dict[str, torch.Tensor],
         returns: torch.Tensor,
         advantages: torch.Tensor,
-        values: torch.Tensor,
         phase_name: str,
     ) -> Dict[str, torch.Tensor] | None:
         idxs = [i for i, x in enumerate(storage) if x["phase"] == phase_name]
@@ -184,7 +191,6 @@ class UnifiedPPOTrainer:
             "value_loss": value_loss,
             "entropy": entropy,
             "tom_loss": tom_loss,
-            "count": torch.tensor(float(len(idxs)), device=self.device),
         }
 
     def update(self, storage: List[Dict]) -> Dict[str, float]:
@@ -209,8 +215,8 @@ class UnifiedPPOTrainer:
 
         returns, advantages = self._compute_returns_advantages(rewards, values, dones)
 
-        gp = self._phase_metrics(storage, obs, returns, advantages, values, "gameplay")
-        tr = self._phase_metrics(storage, obs, returns, advantages, values, "trade")
+        gp = self._phase_metrics(storage, obs, returns, advantages, "gameplay")
+        tr = self._phase_metrics(storage, obs, returns, advantages, "trade")
 
         zero = torch.tensor(0.0, device=self.device)
 
@@ -253,9 +259,9 @@ class UnifiedPPOTrainer:
         }
 
 
-def save_checkpoint(policy: UnifiedPolicy, save_dir: str, step: int) -> str:
+def save_checkpoint(policy: UnifiedPolicy, save_dir: str, step: int, prefix: str = "unified_checkpoint") -> str:
     os.makedirs(save_dir, exist_ok=True)
-    path = os.path.join(save_dir, f"unified_checkpoint_{step}.pt")
+    path = os.path.join(save_dir, f"{prefix}_{step}.pt")
     torch.save({"policy": policy.state_dict(), "step": step}, path)
     return path
 
@@ -290,6 +296,8 @@ def compute_rollout_stats(storage: List[Dict]) -> Dict[str, float]:
         elif action_type == "skip_trade":
             counts["skip"] += 1
 
+    total_trade_actions = max(sum(counts.values()), 1)
+
     return {
         "gameplay_rollouts": len(gameplay_rewards),
         "trade_rollouts": len(trade_rewards),
@@ -300,7 +308,46 @@ def compute_rollout_stats(storage: List[Dict]) -> Dict[str, float]:
         "trade_reject_count": counts["reject"],
         "trade_counter_count": counts["counter"],
         "trade_skip_count": counts["skip"],
+        "trade_propose_rate": counts["propose"] / total_trade_actions,
+        "trade_accept_rate": counts["accept"] / total_trade_actions,
+        "trade_reject_rate": counts["reject"] / total_trade_actions,
+        "trade_counter_rate": counts["counter"] / total_trade_actions,
+        "trade_skip_rate": counts["skip"] / total_trade_actions,
     }
+
+
+def apply_shaped_rewards(
+    storage: List[Dict],
+    reward_shaper: RewardShaper,
+) -> List[Dict]:
+    shaped_storage = []
+    consecutive_skips = 0
+
+    for item in storage:
+        new_item = dict(item)
+
+        if item["phase"] == "trade":
+            env_action = item.get("env_action", {})
+            action_type = env_action.get("type", "skip_trade")
+
+            if action_type == "skip_trade":
+                consecutive_skips += 1
+            else:
+                consecutive_skips = 0
+
+            shaped_reward = reward_shaper.trade_step_reward(
+                action_type=action_type,
+                reward_signal=float(item["reward"]),
+                consecutive_skips=consecutive_skips,
+                tom_loss=0.0,
+            )
+            new_item["reward"] = shaped_reward
+        else:
+            new_item["reward"] = float(item["reward"])
+
+        shaped_storage.append(new_item)
+
+    return shaped_storage
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
@@ -320,11 +367,15 @@ def train(args: argparse.Namespace) -> None:
     trainer = UnifiedPPOTrainer(policy=policy, device=device)
     rollout_manager = UnifiedRolloutManager(num_envs=args.num_envs, device=device)
     league = LeagueManager(checkpoint_dir=args.checkpoint_dir, frozen_ratio=0.2)
+    reward_shaper = RewardShaper()
 
     gameplay_reward_window = deque(maxlen=20)
     trade_reward_window = deque(maxlen=20)
     gameplay_entropy_window = deque(maxlen=20)
     trade_entropy_window = deque(maxlen=20)
+
+    best_trade_reward = float("-inf")
+    best_trade_update = -1
 
     print(f"Starting unified PPO training for {args.num_updates} updates")
 
@@ -332,7 +383,9 @@ def train(args: argparse.Namespace) -> None:
         progress = update / float(max(args.num_updates - 1, 1))
         trainer.set_progress(progress)
 
-        storage = rollout_manager.collect(policy=policy, steps=args.rollout_steps)
+        raw_storage = rollout_manager.collect(policy=policy, steps=args.rollout_steps)
+        storage = apply_shaped_rewards(raw_storage, reward_shaper)
+
         stats = compute_rollout_stats(storage)
         metrics = trainer.update(storage)
 
@@ -363,6 +416,13 @@ def train(args: argparse.Namespace) -> None:
             f"skip={stats['trade_skip_count']}"
         )
         print(
+            f"trade rates   | propose={stats['trade_propose_rate']:.3f} "
+            f"accept={stats['trade_accept_rate']:.3f} "
+            f"reject={stats['trade_reject_rate']:.3f} "
+            f"counter={stats['trade_counter_rate']:.3f} "
+            f"skip={stats['trade_skip_rate']:.3f}"
+        )
+        print(
             f"ppo gameplay | policy={metrics['gameplay_policy_loss']:.4f} "
             f"value={metrics['gameplay_value_loss']:.4f} "
             f"entropy={metrics['gameplay_entropy']:.4f} (avg={avg_gameplay_entropy:.4f})"
@@ -379,11 +439,18 @@ def train(args: argparse.Namespace) -> None:
             f"gamma={metrics['gamma']:.5f}"
         )
 
+        if stats["trade_reward_mean"] > best_trade_reward:
+            best_trade_reward = stats["trade_reward_mean"]
+            best_trade_update = update + 1
+            best_path = save_checkpoint(policy, args.checkpoint_dir, update + 1, prefix="unified_best_trade")
+            print(f"saved best-trade checkpoint -> {best_path}")
+
         if (update + 1) % 20 == 0:
             path = save_checkpoint(policy, args.checkpoint_dir, update + 1)
             league.maybe_add_checkpoint(path, update + 1)
             print(f"saved checkpoint -> {path}")
 
+    print(f"best trade reward checkpoint update: {best_trade_update} value={best_trade_reward:.6f}")
     print("training complete")
 
 
