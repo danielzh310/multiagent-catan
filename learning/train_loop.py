@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import argparse
 import os
-from collections import defaultdict, deque
+from collections import deque
 from typing import Dict, List
 
 import torch
@@ -19,17 +19,20 @@ class UnifiedPPOTrainer:
         self,
         policy: UnifiedPolicy,
         device: str = "cpu",
-        lr: float = 3e-4,
+        lr: float = 1e-4,
         gamma_start: float = 0.92,
         gamma_end: float = 0.995,
         gae_lambda: float = 0.95,
-        clip_param: float = 0.2,
-        value_loss_coef: float = 0.5,
+        clip_param: float = 0.15,
+        value_clip_param: float = 0.20,
+        value_loss_coef: float = 0.25,
         entropy_coef_start: float = 8e-4,
         entropy_coef_end: float = 2.5e-4,
-        entropy_hold_fraction: float = 0.35,
+        entropy_hold_fraction: float = 0.40,
         tom_loss_coef: float = 0.08,
-        max_grad_norm: float = 0.5,
+        max_grad_norm: float = 0.30,
+        ppo_epochs: int = 4,
+        mini_batch_size: int = 256,
     ):
         self.policy = policy.to(device)
         self.device = device
@@ -37,12 +40,15 @@ class UnifiedPPOTrainer:
         self.gamma_end = gamma_end
         self.gae_lambda = gae_lambda
         self.clip_param = clip_param
+        self.value_clip_param = value_clip_param
         self.value_loss_coef = value_loss_coef
         self.entropy_coef_start = entropy_coef_start
         self.entropy_coef_end = entropy_coef_end
         self.entropy_hold_fraction = entropy_hold_fraction
         self.tom_loss_coef = tom_loss_coef
         self.max_grad_norm = max_grad_norm
+        self.ppo_epochs = ppo_epochs
+        self.mini_batch_size = mini_batch_size
         self.optimizer = torch.optim.Adam(self.policy.parameters(), lr=lr)
         self.progress = 0.0
 
@@ -86,14 +92,42 @@ class UnifiedPPOTrainer:
         advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
         return returns, advantages
 
-    def _phase_metrics(
+    def _trade_targets(self, storage: List[Dict], idxs: List[int]):
+        trade_events = []
+        for i in idxs:
+            env_action = storage[i].get("env_action", {})
+            response_type = env_action.get("response_type", "")
+            offer = env_action.get("offer", None)
+            counter_request = env_action.get("counter_request", None)
+
+            if not response_type:
+                if storage[i]["reward"] > 0:
+                    response_type = "accept"
+                elif storage[i]["reward"] < 0:
+                    response_type = "reject"
+                else:
+                    response_type = ""
+
+            trade_events.append(
+                {
+                    "response_type": response_type,
+                    "offer": offer,
+                    "counter_request": counter_request,
+                }
+            )
+
+        need_targets, need_mask = build_batch_need_targets(trade_events)
+        return need_targets.to(self.device), need_mask.to(self.device)
+
+    def _phase_batch_tensors(
         self,
         storage: List[Dict],
         obs: Dict[str, torch.Tensor],
         returns: torch.Tensor,
         advantages: torch.Tensor,
+        old_values: torch.Tensor,
         phase_name: str,
-    ) -> Dict[str, torch.Tensor] | None:
+    ):
         idxs = [i for i, x in enumerate(storage) if x["phase"] == phase_name]
         if not idxs:
             return None
@@ -101,6 +135,7 @@ class UnifiedPPOTrainer:
         sub_obs = {k: v[idxs] for k, v in obs.items()}
         sub_returns = returns[idxs]
         sub_advantages = advantages[idxs]
+        sub_old_values = old_values[idxs]
 
         if phase_name == "gameplay":
             actions = {
@@ -111,6 +146,8 @@ class UnifiedPPOTrainer:
             old_log_prob = torch.cat(
                 [storage[i]["log_prob"]["gameplay_action"] for i in idxs], dim=0
             ).to(self.device)
+            need_targets = None
+            need_mask = None
         else:
             actions = {
                 "action_type": torch.cat([storage[i]["action"]["action_type"] for i in idxs], dim=0).to(self.device),
@@ -124,73 +161,131 @@ class UnifiedPPOTrainer:
                 + torch.cat([storage[i]["log_prob"]["offer"] for i in idxs], dim=0).to(self.device)
                 + torch.cat([storage[i]["log_prob"]["request"] for i in idxs], dim=0).to(self.device)
             )
-
-        log_prob_dict, entropy, new_values, tom_outputs = self.policy.evaluate_actions(
-            obs=sub_obs,
-            actions=actions,
-            phase=phase_name,
-        )
-
-        if phase_name == "gameplay":
-            new_log_prob = log_prob_dict["gameplay_action"]
-        else:
-            new_log_prob = (
-                log_prob_dict["action_type"]
-                + log_prob_dict["target"]
-                + log_prob_dict["offer"]
-                + log_prob_dict["request"]
-            )
-
-        ratio = torch.exp(new_log_prob - old_log_prob)
-        surr1 = ratio * sub_advantages
-        surr2 = torch.clamp(ratio, 1.0 - self.clip_param, 1.0 + self.clip_param) * sub_advantages
-        policy_loss = -torch.min(surr1, surr2).mean()
-
-        value_loss = torch.nn.functional.smooth_l1_loss(
-            new_values.squeeze(-1),
-            sub_returns,
-        )
-
-        if phase_name == "trade":
-            trade_events = []
-            for i in idxs:
-                env_action = storage[i].get("env_action", {})
-                response_type = env_action.get("response_type", "")
-                offer = env_action.get("offer", None)
-                counter_request = env_action.get("counter_request", None)
-
-                if not response_type:
-                    if storage[i]["reward"] > 0:
-                        response_type = "accept"
-                    elif storage[i]["reward"] < 0:
-                        response_type = "reject"
-                    else:
-                        response_type = ""
-
-                trade_events.append(
-                    {
-                        "response_type": response_type,
-                        "offer": offer,
-                        "counter_request": counter_request,
-                    }
-                )
-
-            need_targets, need_mask = build_batch_need_targets(trade_events)
-            need_targets = need_targets.to(self.device)
-            need_mask = need_mask.to(self.device)
-            tom_loss = self.policy.need_predictor.compute_loss(
-                tom_outputs["need_pred"],
-                need_targets,
-                need_mask,
-            )
-        else:
-            tom_loss = torch.tensor(0.0, device=self.device)
+            need_targets, need_mask = self._trade_targets(storage, idxs)
 
         return {
-            "policy_loss": policy_loss,
-            "value_loss": value_loss,
-            "entropy": entropy,
-            "tom_loss": tom_loss,
+            "idxs": idxs,
+            "obs": sub_obs,
+            "returns": sub_returns,
+            "advantages": sub_advantages,
+            "old_values": sub_old_values,
+            "actions": actions,
+            "old_log_prob": old_log_prob,
+            "need_targets": need_targets,
+            "need_mask": need_mask,
+        }
+
+    def _optimize_phase(self, phase_name: str, phase_batch: Dict | None):
+        zero_float = 0.0
+        if phase_batch is None:
+            return {
+                "policy_loss": zero_float,
+                "value_loss": zero_float,
+                "entropy": zero_float,
+                "tom_loss": zero_float,
+            }
+
+        obs = phase_batch["obs"]
+        returns = phase_batch["returns"]
+        advantages = phase_batch["advantages"]
+        old_values = phase_batch["old_values"]
+        actions = phase_batch["actions"]
+        old_log_prob = phase_batch["old_log_prob"]
+        need_targets = phase_batch["need_targets"]
+        need_mask = phase_batch["need_mask"]
+
+        n = returns.shape[0]
+        policy_losses = []
+        value_losses = []
+        entropies = []
+        tom_losses = []
+
+        for _ in range(self.ppo_epochs):
+            perm = torch.randperm(n, device=self.device)
+
+            for start in range(0, n, self.mini_batch_size):
+                mb = perm[start : start + self.mini_batch_size]
+
+                mb_obs = {k: v[mb] for k, v in obs.items()}
+                mb_returns = returns[mb]
+                mb_advantages = advantages[mb]
+                mb_old_values = old_values[mb]
+                mb_old_log_prob = old_log_prob[mb]
+
+                if phase_name == "gameplay":
+                    mb_actions = {"gameplay_action": actions["gameplay_action"][mb]}
+                else:
+                    mb_actions = {
+                        "action_type": actions["action_type"][mb],
+                        "target": actions["target"][mb],
+                        "offer": actions["offer"][mb],
+                        "request": actions["request"][mb],
+                    }
+
+                log_prob_dict, entropy, new_values, tom_outputs = self.policy.evaluate_actions(
+                    obs=mb_obs,
+                    actions=mb_actions,
+                    phase=phase_name,
+                )
+
+                if phase_name == "gameplay":
+                    new_log_prob = log_prob_dict["gameplay_action"]
+                else:
+                    new_log_prob = (
+                        log_prob_dict["action_type"]
+                        + log_prob_dict["target"]
+                        + log_prob_dict["offer"]
+                        + log_prob_dict["request"]
+                    )
+
+                ratio = torch.exp(new_log_prob - mb_old_log_prob)
+                surr1 = ratio * mb_advantages
+                surr2 = torch.clamp(ratio, 1.0 - self.clip_param, 1.0 + self.clip_param) * mb_advantages
+                policy_loss = -torch.min(surr1, surr2).mean()
+
+                value_pred = new_values.squeeze(-1)
+                value_pred_clipped = mb_old_values + (value_pred - mb_old_values).clamp(
+                    -self.value_clip_param,
+                    self.value_clip_param,
+                )
+
+                value_loss_unclipped = (value_pred - mb_returns).pow(2)
+                value_loss_clipped = (value_pred_clipped - mb_returns).pow(2)
+                value_loss = 0.5 * torch.max(value_loss_unclipped, value_loss_clipped).mean()
+
+                if phase_name == "trade":
+                    mb_need_targets = need_targets[mb]
+                    mb_need_mask = need_mask[mb]
+                    tom_loss = self.policy.need_predictor.compute_loss(
+                        tom_outputs["need_pred"],
+                        mb_need_targets,
+                        mb_need_mask,
+                    )
+                else:
+                    tom_loss = torch.tensor(0.0, device=self.device)
+
+                total_mb_loss = (
+                    policy_loss
+                    + self.value_loss_coef * value_loss
+                    - self.entropy_coef() * entropy
+                    + self.tom_loss_coef * tom_loss
+                )
+
+                self.optimizer.zero_grad()
+                total_mb_loss.backward()
+                torch.nn.utils.clip_grad_norm_(self.policy.parameters(), self.max_grad_norm)
+                self.optimizer.step()
+
+                policy_losses.append(float(policy_loss.item()))
+                value_losses.append(float(value_loss.item()))
+                entropies.append(float(entropy.item()))
+                tom_losses.append(float(tom_loss.item()))
+
+        return {
+            "policy_loss": float(sum(policy_losses) / max(len(policy_losses), 1)),
+            "value_loss": float(sum(value_losses) / max(len(value_losses), 1)),
+            "entropy": float(sum(entropies) / max(len(entropies), 1)),
+            "tom_loss": float(sum(tom_losses) / max(len(tom_losses), 1)),
         }
 
     def update(self, storage: List[Dict]) -> Dict[str, float]:
@@ -210,50 +305,34 @@ class UnifiedPPOTrainer:
 
         obs = self._stack_obs(storage)
         rewards = torch.tensor([x["reward"] for x in storage], dtype=torch.float32, device=self.device)
-        values = torch.cat([x["value"] for x in storage], dim=0).squeeze(-1).to(self.device)
+        old_values = torch.cat([x["value"] for x in storage], dim=0).squeeze(-1).to(self.device)
         dones = torch.tensor([x["done"] for x in storage], dtype=torch.float32, device=self.device)
 
-        returns, advantages = self._compute_returns_advantages(rewards, values, dones)
+        returns, advantages = self._compute_returns_advantages(rewards, old_values, dones)
 
-        gp = self._phase_metrics(storage, obs, returns, advantages, "gameplay")
-        tr = self._phase_metrics(storage, obs, returns, advantages, "trade")
+        gp_batch = self._phase_batch_tensors(storage, obs, returns, advantages, old_values, "gameplay")
+        tr_batch = self._phase_batch_tensors(storage, obs, returns, advantages, old_values, "trade")
 
-        zero = torch.tensor(0.0, device=self.device)
-
-        gp_policy_loss = gp["policy_loss"] if gp is not None else zero
-        gp_value_loss = gp["value_loss"] if gp is not None else zero
-        gp_entropy = gp["entropy"] if gp is not None else zero
-
-        tr_policy_loss = tr["policy_loss"] if tr is not None else zero
-        tr_value_loss = tr["value_loss"] if tr is not None else zero
-        tr_entropy = tr["entropy"] if tr is not None else zero
-        tom_loss = tr["tom_loss"] if tr is not None else zero
-
-        total_policy_loss = gp_policy_loss + tr_policy_loss
-        total_value_loss = gp_value_loss + tr_value_loss
-        total_entropy = 0.5 * (gp_entropy + tr_entropy)
+        gp = self._optimize_phase("gameplay", gp_batch)
+        tr = self._optimize_phase("trade", tr_batch)
 
         total_loss = (
-            total_policy_loss
-            + self.value_loss_coef * total_value_loss
-            - self.entropy_coef() * total_entropy
-            + self.tom_loss_coef * tom_loss
+            gp["policy_loss"]
+            + tr["policy_loss"]
+            + self.value_loss_coef * (gp["value_loss"] + tr["value_loss"])
+            - self.entropy_coef() * 0.5 * (gp["entropy"] + tr["entropy"])
+            + self.tom_loss_coef * tr["tom_loss"]
         )
 
-        self.optimizer.zero_grad()
-        total_loss.backward()
-        torch.nn.utils.clip_grad_norm_(self.policy.parameters(), self.max_grad_norm)
-        self.optimizer.step()
-
         return {
-            "gameplay_policy_loss": float(gp_policy_loss.item()),
-            "gameplay_value_loss": float(gp_value_loss.item()),
-            "gameplay_entropy": float(gp_entropy.item()),
-            "trade_policy_loss": float(tr_policy_loss.item()),
-            "trade_value_loss": float(tr_value_loss.item()),
-            "trade_entropy": float(tr_entropy.item()),
-            "tom_loss": float(tom_loss.item()),
-            "total_loss": float(total_loss.item()),
+            "gameplay_policy_loss": gp["policy_loss"],
+            "gameplay_value_loss": gp["value_loss"],
+            "gameplay_entropy": gp["entropy"],
+            "trade_policy_loss": tr["policy_loss"],
+            "trade_value_loss": tr["value_loss"],
+            "trade_entropy": tr["entropy"],
+            "tom_loss": tr["tom_loss"],
+            "total_loss": float(total_loss),
             "entropy_coef": float(self.entropy_coef()),
             "gamma": float(self.gamma()),
         }
@@ -376,6 +455,8 @@ def train(args: argparse.Namespace) -> None:
 
     best_trade_reward = float("-inf")
     best_trade_update = -1
+    best_trade_score = float("-inf")
+    best_trade_score_update = -1
 
     print(f"Starting unified PPO training for {args.num_updates} updates")
 
@@ -398,6 +479,13 @@ def train(args: argparse.Namespace) -> None:
         avg_trade_reward = sum(trade_reward_window) / len(trade_reward_window)
         avg_gameplay_entropy = sum(gameplay_entropy_window) / len(gameplay_entropy_window)
         avg_trade_entropy = sum(trade_entropy_window) / len(trade_entropy_window)
+
+        trade_score = (
+            stats["trade_reward_mean"]
+            + 0.015 * stats["trade_propose_rate"]
+            + 0.020 * stats["trade_accept_rate"]
+            - 0.020 * stats["trade_skip_rate"]
+        )
 
         print(f"\nUpdate {update}")
         print(
@@ -436,7 +524,8 @@ def train(args: argparse.Namespace) -> None:
         print(
             f"ppo total    | loss={metrics['total_loss']:.4f} "
             f"entropy_coef={metrics['entropy_coef']:.6f} "
-            f"gamma={metrics['gamma']:.5f}"
+            f"gamma={metrics['gamma']:.5f} "
+            f"trade_score={trade_score:.4f}"
         )
 
         if stats["trade_reward_mean"] > best_trade_reward:
@@ -445,12 +534,19 @@ def train(args: argparse.Namespace) -> None:
             best_path = save_checkpoint(policy, args.checkpoint_dir, update + 1, prefix="unified_best_trade")
             print(f"saved best-trade checkpoint -> {best_path}")
 
+        if trade_score > best_trade_score:
+            best_trade_score = trade_score
+            best_trade_score_update = update + 1
+            score_path = save_checkpoint(policy, args.checkpoint_dir, update + 1, prefix="unified_best_score")
+            print(f"saved best-score checkpoint -> {score_path}")
+
         if (update + 1) % 20 == 0:
             path = save_checkpoint(policy, args.checkpoint_dir, update + 1)
             league.maybe_add_checkpoint(path, update + 1)
             print(f"saved checkpoint -> {path}")
 
     print(f"best trade reward checkpoint update: {best_trade_update} value={best_trade_reward:.6f}")
+    print(f"best trade score checkpoint update: {best_trade_score_update} value={best_trade_score:.6f}")
     print("training complete")
 
 

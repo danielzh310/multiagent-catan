@@ -20,6 +20,8 @@ class RewardWeights:
     trade_skip_penalty: float = -0.015
     repeated_skip_penalty: float = -0.010
     tom_weight: float = 0.03
+    reward_clip_min: float = -0.05
+    reward_clip_max: float = 0.05
 
 
 def resource_diversity(resources: Dict[Resource, int]) -> int:
@@ -43,6 +45,9 @@ def estimate_build_progress(resources: Dict[Resource, int]) -> float:
 class RewardShaper:
     def __init__(self, weights: RewardWeights | None = None):
         self.weights = weights or RewardWeights()
+
+    def _clip(self, reward: float) -> float:
+        return float(max(self.weights.reward_clip_min, min(self.weights.reward_clip_max, reward)))
 
     def gameplay_step_reward(
         self,
@@ -70,7 +75,7 @@ class RewardShaper:
         curr_prog = estimate_build_progress(curr_resources)
         reward += self.weights.build_progress_weight * (curr_prog - prev_prog)
 
-        return float(reward)
+        return self._clip(float(reward))
 
     def trade_step_reward(
         self,
@@ -95,5 +100,4 @@ class RewardShaper:
                 reward += self.weights.repeated_skip_penalty * float(consecutive_skips - 1)
 
         reward -= self.weights.tom_weight * float(tom_loss)
-
-        return float(reward)
+        return self._clip(float(reward))
