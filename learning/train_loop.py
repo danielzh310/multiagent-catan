@@ -1,107 +1,38 @@
 from __future__ import annotations
 
 import argparse
+import os
 from collections import deque
-from dataclasses import dataclass
 from typing import Dict, List
 
 import torch
 
-from learning.dqn.epsilon_scheduler import EpsilonScheduler
-from learning.dqn.replay_buffer import ReplayBuffer
-from learning.gameplay.build_gameplay_q_model import build_gameplay_q_model
-from learning.hybrid.hybrid_checkpoint import HybridCheckpointManager
-from learning.hybrid.hybrid_rollout_manager import HybridRolloutManager
-from learning.trade.build_trade_model import build_trade_model
+from learning.league.league_manager import LeagueManager
+from learning.trade.trade_labeler import build_batch_need_targets
+from learning.unified.unified_policy import UnifiedPolicy
+from learning.unified.unified_rollout_manager import UnifiedRolloutManager
 
 
-STATE_DIM = 64
-NUM_GAMEPLAY_ACTIONS = 128
-
-
-@dataclass
-class TradeTrajectoryItem:
-    obs: Dict[str, torch.Tensor]
-    action: Dict[str, torch.Tensor]
-    reward: float
-    value: torch.Tensor
-    log_prob: Dict[str, torch.Tensor]
-    done: bool
-
-
-class TradeRolloutStorage:
-    def __init__(self, device: str = "cpu"):
-        self.device = device
-        self.data: List[TradeTrajectoryItem] = []
-
-    def reset(self) -> None:
-        self.data = []
-
-    def _clone_obs(self, obs: Dict[str, torch.Tensor]) -> Dict[str, torch.Tensor]:
-        out = {}
-        for k, v in obs.items():
-            if isinstance(v, dict):
-                out[k] = {kk: vv.detach().cpu().clone() for kk, vv in v.items()}
-            else:
-                out[k] = v.detach().cpu().clone()
-        return out
-
-    def add(
-        self,
-        obs: Dict[str, torch.Tensor],
-        action: Dict[str, torch.Tensor],
-        reward: float,
-        value: torch.Tensor,
-        log_prob: Dict[str, torch.Tensor],
-        done: bool,
-    ) -> None:
-        action_cpu = {}
-        for k, v in action.items():
-            if torch.is_tensor(v):
-                action_cpu[k] = v.detach().cpu().clone()
-            else:
-                action_cpu[k] = v
-
-        log_prob_cpu = {}
-        for k, v in log_prob.items():
-            if torch.is_tensor(v):
-                log_prob_cpu[k] = v.detach().cpu().clone()
-            else:
-                log_prob_cpu[k] = v
-
-        self.data.append(
-            TradeTrajectoryItem(
-                obs=self._clone_obs(obs),
-                action=action_cpu,
-                reward=float(reward),
-                value=value.detach().cpu().clone(),
-                log_prob=log_prob_cpu,
-                done=bool(done),
-            )
-        )
-
-    def __len__(self) -> int:
-        return len(self.data)
-
-
-class TradePPOTrainer:
+class UnifiedPPOTrainer:
     def __init__(
         self,
-        policy,
+        policy: UnifiedPolicy,
         device: str = "cpu",
         lr: float = 3e-4,
-        gamma: float = 0.99,
+        gamma_start: float = 0.92,
+        gamma_end: float = 0.995,
         gae_lambda: float = 0.95,
         clip_param: float = 0.2,
         value_loss_coef: float = 0.5,
         entropy_coef_start: float = 5e-4,
         entropy_coef_end: float = 5e-5,
-        tom_loss_coef: float = 0.02,
+        tom_loss_coef: float = 0.05,
         max_grad_norm: float = 0.5,
     ):
-        self.policy = policy
+        self.policy = policy.to(device)
         self.device = device
-        self.gamma = gamma
+        self.gamma_start = gamma_start
+        self.gamma_end = gamma_end
         self.gae_lambda = gae_lambda
         self.clip_param = clip_param
         self.value_loss_coef = value_loss_coef
@@ -109,63 +40,37 @@ class TradePPOTrainer:
         self.entropy_coef_end = entropy_coef_end
         self.tom_loss_coef = tom_loss_coef
         self.max_grad_norm = max_grad_norm
-
         self.optimizer = torch.optim.Adam(self.policy.parameters(), lr=lr)
         self.progress = 0.0
 
     def set_progress(self, progress: float) -> None:
         self.progress = max(0.0, min(1.0, float(progress)))
 
-    def entropy_coef(self) -> float:
-        return self.entropy_coef_start + (
-            self.entropy_coef_end - self.entropy_coef_start
-        ) * self.progress
+    def gamma(self) -> float:
+        return self.gamma_start + (self.gamma_end - self.gamma_start) * self.progress
 
-    def _stack_obs(self, items: List[TradeTrajectoryItem]):
+    def entropy_coef(self) -> float:
+        return self.entropy_coef_start + (self.entropy_coef_end - self.entropy_coef_start) * self.progress
+
+    def _stack_obs(self, storage: List[Dict]) -> Dict[str, torch.Tensor]:
         return {
-            "board": torch.cat([item.obs["board"] for item in items], dim=0).to(self.device),
-            "self": torch.cat([item.obs["self"] for item in items], dim=0).to(self.device),
-            "opponent": torch.cat([item.obs["opponent"] for item in items], dim=0).to(self.device),
-            "trade_history": {
-                "proposer_ids": torch.cat([item.obs["trade_history"]["proposer_ids"] for item in items], dim=0).to(self.device),
-                "target_ids": torch.cat([item.obs["trade_history"]["target_ids"] for item in items], dim=0).to(self.device),
-                "response_types": torch.cat([item.obs["trade_history"]["response_types"] for item in items], dim=0).to(self.device),
-                "offers": torch.cat([item.obs["trade_history"]["offers"] for item in items], dim=0).to(self.device),
-                "requests": torch.cat([item.obs["trade_history"]["requests"] for item in items], dim=0).to(self.device),
-                "accepted_flags": torch.cat([item.obs["trade_history"]["accepted_flags"] for item in items], dim=0).to(self.device),
-                "turn_numbers": torch.cat([item.obs["trade_history"]["turn_numbers"] for item in items], dim=0).to(self.device),
-            },
+            "board": torch.cat([x["obs"]["board"] for x in storage], dim=0).to(self.device),
+            "self": torch.cat([x["obs"]["self"] for x in storage], dim=0).to(self.device),
+            "opponent": torch.cat([x["obs"]["opponent"] for x in storage], dim=0).to(self.device),
         }
 
-    def _stack_action_field(self, items: List[TradeTrajectoryItem], field: str) -> torch.Tensor:
-        vals = [item.action[field] for item in items]
-        return torch.stack(vals).to(self.device)
-
-    def _stack_log_prob_sum(self, items: List[TradeTrajectoryItem]) -> torch.Tensor:
-        out = []
-        for item in items:
-            total = 0.0
-            for v in item.log_prob.values():
-                total = total + v.mean()
-            out.append(total)
-        return torch.stack(out).to(self.device)
-
-    def _compute_returns_advantages(
-        self,
-        rewards: torch.Tensor,
-        values: torch.Tensor,
-        dones: torch.Tensor,
-    ):
+    def _compute_returns_advantages(self, rewards: torch.Tensor, values: torch.Tensor, dones: torch.Tensor):
         returns = torch.zeros_like(rewards)
         advantages = torch.zeros_like(rewards)
 
         next_value = 0.0
         gae = 0.0
+        gamma = self.gamma()
 
         for t in reversed(range(len(rewards))):
             mask = 1.0 - dones[t]
-            delta = rewards[t] + self.gamma * next_value * mask - values[t]
-            gae = delta + self.gamma * self.gae_lambda * mask * gae
+            delta = rewards[t] + gamma * next_value * mask - values[t]
+            gae = delta + gamma * self.gae_lambda * mask * gae
             advantages[t] = gae
             returns[t] = advantages[t] + values[t]
             next_value = values[t]
@@ -173,69 +78,159 @@ class TradePPOTrainer:
         advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
         return returns, advantages
 
-    def update(self, storage: TradeRolloutStorage) -> Dict[str, float]:
+    def _phase_metrics(
+        self,
+        storage: List[Dict],
+        obs: Dict[str, torch.Tensor],
+        returns: torch.Tensor,
+        advantages: torch.Tensor,
+        values: torch.Tensor,
+        phase_name: str,
+    ) -> Dict[str, torch.Tensor] | None:
+        idxs = [i for i, x in enumerate(storage) if x["phase"] == phase_name]
+        if not idxs:
+            return None
+
+        sub_obs = {k: v[idxs] for k, v in obs.items()}
+        sub_returns = returns[idxs]
+        sub_advantages = advantages[idxs]
+
+        if phase_name == "gameplay":
+            actions = {
+                "gameplay_action": torch.cat(
+                    [storage[i]["action"]["gameplay_action"] for i in idxs], dim=0
+                ).to(self.device)
+            }
+            old_log_prob = torch.cat(
+                [storage[i]["log_prob"]["gameplay_action"] for i in idxs], dim=0
+            ).to(self.device)
+        else:
+            actions = {
+                "action_type": torch.cat([storage[i]["action"]["action_type"] for i in idxs], dim=0).to(self.device),
+                "target": torch.cat([storage[i]["action"]["target"] for i in idxs], dim=0).to(self.device),
+                "offer": torch.cat([storage[i]["action"]["offer"] for i in idxs], dim=0).to(self.device),
+                "request": torch.cat([storage[i]["action"]["request"] for i in idxs], dim=0).to(self.device),
+            }
+            old_log_prob = (
+                torch.cat([storage[i]["log_prob"]["action_type"] for i in idxs], dim=0).to(self.device)
+                + torch.cat([storage[i]["log_prob"]["target"] for i in idxs], dim=0).to(self.device)
+                + torch.cat([storage[i]["log_prob"]["offer"] for i in idxs], dim=0).to(self.device)
+                + torch.cat([storage[i]["log_prob"]["request"] for i in idxs], dim=0).to(self.device)
+            )
+
+        log_prob_dict, entropy, new_values, tom_outputs = self.policy.evaluate_actions(
+            obs=sub_obs,
+            actions=actions,
+            phase=phase_name,
+        )
+
+        if phase_name == "gameplay":
+            new_log_prob = log_prob_dict["gameplay_action"]
+        else:
+            new_log_prob = (
+                log_prob_dict["action_type"]
+                + log_prob_dict["target"]
+                + log_prob_dict["offer"]
+                + log_prob_dict["request"]
+            )
+
+        ratio = torch.exp(new_log_prob - old_log_prob)
+        surr1 = ratio * sub_advantages
+        surr2 = torch.clamp(ratio, 1.0 - self.clip_param, 1.0 + self.clip_param) * sub_advantages
+        policy_loss = -torch.min(surr1, surr2).mean()
+
+        value_loss = torch.nn.functional.smooth_l1_loss(
+            new_values.squeeze(-1),
+            sub_returns,
+        )
+
+        if phase_name == "trade":
+            trade_events = []
+            for i in idxs:
+                env_action = storage[i].get("env_action", {})
+                response_type = env_action.get("response_type", "")
+                offer = env_action.get("offer", None)
+                counter_request = env_action.get("counter_request", None)
+
+                if not response_type:
+                    if storage[i]["reward"] > 0:
+                        response_type = "accept"
+                    elif storage[i]["reward"] < 0:
+                        response_type = "reject"
+                    else:
+                        response_type = ""
+
+                trade_events.append(
+                    {
+                        "response_type": response_type,
+                        "offer": offer,
+                        "counter_request": counter_request,
+                    }
+                )
+
+            need_targets, need_mask = build_batch_need_targets(trade_events)
+            need_targets = need_targets.to(self.device)
+            need_mask = need_mask.to(self.device)
+            tom_loss = self.policy.need_predictor.compute_loss(
+                tom_outputs["need_pred"],
+                need_targets,
+                need_mask,
+            )
+        else:
+            tom_loss = torch.tensor(0.0, device=self.device)
+
+        return {
+            "policy_loss": policy_loss,
+            "value_loss": value_loss,
+            "entropy": entropy,
+            "tom_loss": tom_loss,
+            "count": torch.tensor(float(len(idxs)), device=self.device),
+        }
+
+    def update(self, storage: List[Dict]) -> Dict[str, float]:
         if len(storage) == 0:
             return {
+                "gameplay_policy_loss": 0.0,
+                "gameplay_value_loss": 0.0,
+                "gameplay_entropy": 0.0,
                 "trade_policy_loss": 0.0,
                 "trade_value_loss": 0.0,
                 "trade_entropy": 0.0,
-                "trade_entropy_coef": self.entropy_coef(),
-                "trade_tom_loss": 0.0,
-                "trade_total_loss": 0.0,
+                "tom_loss": 0.0,
+                "total_loss": 0.0,
+                "entropy_coef": self.entropy_coef(),
+                "gamma": self.gamma(),
             }
 
-        items = storage.data
-        obs = self._stack_obs(items)
-
-        actions = {
-            "action_type": self._stack_action_field(items, "action_type"),
-            "target": self._stack_action_field(items, "target"),
-            "offer": self._stack_action_field(items, "offer"),
-            "request": self._stack_action_field(items, "request"),
-        }
-
-        rewards = torch.tensor([x.reward for x in items], dtype=torch.float32, device=self.device)
-        values = torch.cat([x.value for x in items], dim=0).squeeze(-1).to(self.device)
-        dones = torch.tensor([x.done for x in items], dtype=torch.float32, device=self.device)
-        old_log_probs = self._stack_log_prob_sum(items)
+        obs = self._stack_obs(storage)
+        rewards = torch.tensor([x["reward"] for x in storage], dtype=torch.float32, device=self.device)
+        values = torch.cat([x["value"] for x in storage], dim=0).squeeze(-1).to(self.device)
+        dones = torch.tensor([x["done"] for x in storage], dtype=torch.float32, device=self.device)
 
         returns, advantages = self._compute_returns_advantages(rewards, values, dones)
 
-        logits, new_values, tom_outputs = self.policy.forward(obs)
-        log_prob_dict, entropy = self.policy.action_heads.evaluate_actions(logits, actions)
+        gp = self._phase_metrics(storage, obs, returns, advantages, values, "gameplay")
+        tr = self._phase_metrics(storage, obs, returns, advantages, values, "trade")
 
-        new_log_probs = (
-            log_prob_dict["action_type"]
-            + log_prob_dict["target"]
-            + log_prob_dict["offer"].sum(dim=-1)
-            + log_prob_dict["request"].sum(dim=-1)
-        )
+        zero = torch.tensor(0.0, device=self.device)
 
-        ratio = torch.exp(new_log_probs - old_log_probs)
-        surr1 = ratio * advantages
-        surr2 = torch.clamp(ratio, 1.0 - self.clip_param, 1.0 + self.clip_param) * advantages
-        policy_loss = -torch.min(surr1, surr2).mean()
+        gp_policy_loss = gp["policy_loss"] if gp is not None else zero
+        gp_value_loss = gp["value_loss"] if gp is not None else zero
+        gp_entropy = gp["entropy"] if gp is not None else zero
 
-        new_values = new_values.squeeze(-1)
-        value_loss = torch.nn.functional.smooth_l1_loss(new_values, returns)
+        tr_policy_loss = tr["policy_loss"] if tr is not None else zero
+        tr_value_loss = tr["value_loss"] if tr is not None else zero
+        tr_entropy = tr["entropy"] if tr is not None else zero
+        tom_loss = tr["tom_loss"] if tr is not None else zero
 
-        tom_loss = torch.tensor(0.0, device=self.device)
-        if hasattr(self.policy, "tom_head") and hasattr(self.policy.tom_head, "compute_loss"):
-            if isinstance(tom_outputs, dict):
-                zero_targets = {}
-                for k, v in tom_outputs.items():
-                    zero_targets[k] = torch.zeros_like(v)
-                computed = self.policy.tom_head.compute_loss(tom_outputs, zero_targets)
-                if torch.is_tensor(computed):
-                    tom_loss = computed
-                else:
-                    tom_loss = torch.tensor(float(computed), dtype=torch.float32, device=self.device)
+        total_policy_loss = gp_policy_loss + tr_policy_loss
+        total_value_loss = gp_value_loss + tr_value_loss
+        total_entropy = 0.5 * (gp_entropy + tr_entropy)
 
-        ent_coef = self.entropy_coef()
         total_loss = (
-            policy_loss
-            + self.value_loss_coef * value_loss
-            - ent_coef * entropy
+            total_policy_loss
+            + self.value_loss_coef * total_value_loss
+            - self.entropy_coef() * total_entropy
             + self.tom_loss_coef * tom_loss
         )
 
@@ -244,166 +239,149 @@ class TradePPOTrainer:
         torch.nn.utils.clip_grad_norm_(self.policy.parameters(), self.max_grad_norm)
         self.optimizer.step()
 
-        entropy_value = entropy.item() if torch.is_tensor(entropy) else float(entropy)
-
         return {
-            "trade_policy_loss": float(policy_loss.item()),
-            "trade_value_loss": float(value_loss.item()),
-            "trade_entropy": float(entropy_value),
-            "trade_entropy_coef": float(ent_coef),
-            "trade_tom_loss": float(tom_loss.item()),
-            "trade_total_loss": float(total_loss.item()),
+            "gameplay_policy_loss": float(gp_policy_loss.item()),
+            "gameplay_value_loss": float(gp_value_loss.item()),
+            "gameplay_entropy": float(gp_entropy.item()),
+            "trade_policy_loss": float(tr_policy_loss.item()),
+            "trade_value_loss": float(tr_value_loss.item()),
+            "trade_entropy": float(tr_entropy.item()),
+            "tom_loss": float(tom_loss.item()),
+            "total_loss": float(total_loss.item()),
+            "entropy_coef": float(self.entropy_coef()),
+            "gamma": float(self.gamma()),
         }
 
 
+def save_checkpoint(policy: UnifiedPolicy, save_dir: str, step: int) -> str:
+    os.makedirs(save_dir, exist_ok=True)
+    path = os.path.join(save_dir, f"unified_checkpoint_{step}.pt")
+    torch.save({"policy": policy.state_dict(), "step": step}, path)
+    return path
+
+
+def compute_rollout_stats(storage: List[Dict]) -> Dict[str, float]:
+    gameplay_rewards = [x["reward"] for x in storage if x["phase"] == "gameplay"]
+    trade_rewards = [x["reward"] for x in storage if x["phase"] == "trade"]
+
+    counts = {
+        "propose": 0,
+        "accept": 0,
+        "reject": 0,
+        "counter": 0,
+        "skip": 0,
+    }
+
+    for x in storage:
+        if x["phase"] != "trade":
+            continue
+
+        env_action = x.get("env_action", {})
+        action_type = env_action.get("type", "")
+
+        if action_type == "propose_trade":
+            counts["propose"] += 1
+        elif action_type == "accept_trade":
+            counts["accept"] += 1
+        elif action_type == "reject_trade":
+            counts["reject"] += 1
+        elif action_type == "counter_trade":
+            counts["counter"] += 1
+        elif action_type == "skip_trade":
+            counts["skip"] += 1
+
+    return {
+        "gameplay_rollouts": len(gameplay_rewards),
+        "trade_rollouts": len(trade_rewards),
+        "gameplay_reward_mean": float(sum(gameplay_rewards) / max(len(gameplay_rewards), 1)),
+        "trade_reward_mean": float(sum(trade_rewards) / max(len(trade_rewards), 1)),
+        "trade_propose_count": counts["propose"],
+        "trade_accept_count": counts["accept"],
+        "trade_reject_count": counts["reject"],
+        "trade_counter_count": counts["counter"],
+        "trade_skip_count": counts["skip"],
+    }
+
+
 def build_arg_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Hybrid DQN gameplay + PPO trade training loop")
+    parser = argparse.ArgumentParser(description="Unified PPO training loop")
     parser.add_argument("--num-updates", type=int, default=200)
     parser.add_argument("--num-envs", type=int, default=8)
     parser.add_argument("--rollout-steps", type=int, default=128)
     parser.add_argument("--device", type=str, default="cpu")
     parser.add_argument("--checkpoint-dir", type=str, default="./checkpoints")
-    parser.add_argument("--replay-capacity", type=int, default=100_000)
-    parser.add_argument("--dqn-batch-size", type=int, default=256)
-    parser.add_argument("--dqn-updates-per-iter", type=int, default=8)
-    parser.add_argument("--warmup-transitions", type=int, default=1000)
-    parser.add_argument("--seed", type=int, default=0)
     return parser
 
 
 def train(args: argparse.Namespace) -> None:
     device = args.device
 
-    dqn_config = {
-        "state_dim": STATE_DIM,
-        "num_actions": NUM_GAMEPLAY_ACTIONS,
-        "hidden_dim": 256,
-        "lr": 1e-3,
-        "gamma": 0.99,
-        "target_update_freq": 1000,
-        "device": device,
-    }
-
-    gameplay_trainer = build_gameplay_q_model(dqn_config)
-    trade_policy = build_trade_model(device=device)
-    trade_trainer = TradePPOTrainer(policy=trade_policy, device=device)
-
-    replay_buffer = ReplayBuffer(
-        capacity=args.replay_capacity,
-        device=device,
-        seed=args.seed,
-    )
-    epsilon_scheduler = EpsilonScheduler(
-        start_epsilon=1.0,
-        end_epsilon=0.05,
-        decay_steps=100_000,
-    )
-
-    env_config: Dict[str, object] = {}
-    rollout_manager = HybridRolloutManager(
-        num_envs=args.num_envs,
-        env_config=env_config,
-        device=device,
-    )
-    trade_storage = TradeRolloutStorage(device=device)
-    checkpoint_manager = HybridCheckpointManager(args.checkpoint_dir)
+    policy = UnifiedPolicy().to(device)
+    trainer = UnifiedPPOTrainer(policy=policy, device=device)
+    rollout_manager = UnifiedRolloutManager(num_envs=args.num_envs, device=device)
+    league = LeagueManager(checkpoint_dir=args.checkpoint_dir, frozen_ratio=0.2)
 
     gameplay_reward_window = deque(maxlen=20)
     trade_reward_window = deque(maxlen=20)
+    gameplay_entropy_window = deque(maxlen=20)
+    trade_entropy_window = deque(maxlen=20)
 
-    global_step = 0
-
-    print(f"Starting hybrid training for {args.num_updates} updates")
+    print(f"Starting unified PPO training for {args.num_updates} updates")
 
     for update in range(args.num_updates):
         progress = update / float(max(args.num_updates - 1, 1))
-        trade_trainer.set_progress(progress)
+        trainer.set_progress(progress)
 
-        epsilon = epsilon_scheduler.value(global_step)
+        storage = rollout_manager.collect(policy=policy, steps=args.rollout_steps)
+        stats = compute_rollout_stats(storage)
+        metrics = trainer.update(storage)
 
-        gameplay_transitions, trade_storage = rollout_manager.collect(
-            dqn_trainer=gameplay_trainer,
-            epsilon=epsilon,
-            trade_policy=trade_policy,
-            rollout_storage=trade_storage,
-            steps=args.rollout_steps,
-        )
-
-        gameplay_rollouts = len(gameplay_transitions)
-        trade_rollouts = len(trade_storage)
-
-        gameplay_reward_mean = 0.0
-        if gameplay_rollouts > 0:
-            gameplay_reward_mean = sum(x["reward"] for x in gameplay_transitions) / gameplay_rollouts
-
-        trade_reward_mean = 0.0
-        if trade_rollouts > 0:
-            trade_reward_mean = sum(x.reward for x in trade_storage.data) / trade_rollouts
-
-        gameplay_reward_window.append(gameplay_reward_mean)
-        trade_reward_window.append(trade_reward_mean)
-
-        for item in gameplay_transitions:
-            replay_buffer.add(
-                obs=item["obs"],
-                action=item["action"],
-                reward=item["reward"],
-                next_obs=item["next_obs"],
-                done=item["done"],
-                action_mask=item["action_mask"],
-                next_action_mask=item["next_action_mask"],
-            )
-            global_step += 1
-
-        dqn_metrics = {
-            "td_loss": 0.0,
-            "q_mean": 0.0,
-            "target_q_mean": 0.0,
-        }
-
-        if len(replay_buffer) >= max(args.warmup_transitions, args.dqn_batch_size):
-            batch_metrics = []
-            for _ in range(args.dqn_updates_per_iter):
-                batch = replay_buffer.sample(args.dqn_batch_size)
-                batch_metrics.append(gameplay_trainer.update(batch))
-
-            dqn_metrics = {
-                "td_loss": float(sum(x["td_loss"] for x in batch_metrics) / len(batch_metrics)),
-                "q_mean": float(sum(x["q_mean"] for x in batch_metrics) / len(batch_metrics)),
-                "target_q_mean": float(sum(x["target_q_mean"] for x in batch_metrics) / len(batch_metrics)),
-            }
-
-        trade_metrics = trade_trainer.update(trade_storage)
+        gameplay_reward_window.append(stats["gameplay_reward_mean"])
+        trade_reward_window.append(stats["trade_reward_mean"])
+        gameplay_entropy_window.append(metrics["gameplay_entropy"])
+        trade_entropy_window.append(metrics["trade_entropy"])
 
         avg_gameplay_reward = sum(gameplay_reward_window) / len(gameplay_reward_window)
         avg_trade_reward = sum(trade_reward_window) / len(trade_reward_window)
+        avg_gameplay_entropy = sum(gameplay_entropy_window) / len(gameplay_entropy_window)
+        avg_trade_entropy = sum(trade_entropy_window) / len(trade_entropy_window)
 
         print(f"\nUpdate {update}")
-        print(f"rollouts | gameplay={gameplay_rollouts} trade={trade_rollouts}")
         print(
-            f"reward   | gameplay={gameplay_reward_mean:.4f} (avg={avg_gameplay_reward:.4f}) "
-            f"trade={trade_reward_mean:.4f} (avg={avg_trade_reward:.4f})"
+            f"rollouts | gameplay={stats['gameplay_rollouts']} "
+            f"trade={stats['trade_rollouts']}"
         )
-        print(f"dqn      | epsilon={epsilon:.4f} td_loss={dqn_metrics['td_loss']:.4f} q_mean={dqn_metrics['q_mean']:.4f}")
         print(
-            f"trade    | policy={trade_metrics['trade_policy_loss']:.4f} "
-            f"value={trade_metrics['trade_value_loss']:.4f} "
-            f"entropy={trade_metrics['trade_entropy']:.4f} "
-            f"(coef={trade_metrics['trade_entropy_coef']:.6f}) "
-            f"tom={trade_metrics['trade_tom_loss']:.6f}"
+            f"reward   | gameplay={stats['gameplay_reward_mean']:.4f} (avg={avg_gameplay_reward:.4f}) "
+            f"trade={stats['trade_reward_mean']:.4f} (avg={avg_trade_reward:.4f})"
+        )
+        print(
+            f"trade actions | propose={stats['trade_propose_count']} "
+            f"accept={stats['trade_accept_count']} "
+            f"reject={stats['trade_reject_count']} "
+            f"counter={stats['trade_counter_count']} "
+            f"skip={stats['trade_skip_count']}"
+        )
+        print(
+            f"ppo gameplay | policy={metrics['gameplay_policy_loss']:.4f} "
+            f"value={metrics['gameplay_value_loss']:.4f} "
+            f"entropy={metrics['gameplay_entropy']:.4f} (avg={avg_gameplay_entropy:.4f})"
+        )
+        print(
+            f"ppo trade    | policy={metrics['trade_policy_loss']:.4f} "
+            f"value={metrics['trade_value_loss']:.4f} "
+            f"entropy={metrics['trade_entropy']:.4f} (avg={avg_trade_entropy:.4f}) "
+            f"tom={metrics['tom_loss']:.6f}"
+        )
+        print(
+            f"ppo total    | loss={metrics['total_loss']:.4f} "
+            f"entropy_coef={metrics['entropy_coef']:.6f} "
+            f"gamma={metrics['gamma']:.5f}"
         )
 
         if (update + 1) % 20 == 0:
-            path = checkpoint_manager.save(
-                step=update + 1,
-                dqn_trainer=gameplay_trainer,
-                trade_trainer=trade_trainer,
-                extra={
-                    "epsilon": epsilon,
-                    "global_step": global_step,
-                    "update": update + 1,
-                },
-            )
+            path = save_checkpoint(policy, args.checkpoint_dir, update + 1)
+            league.maybe_add_checkpoint(path, update + 1)
             print(f"saved checkpoint -> {path}")
 
     print("training complete")
