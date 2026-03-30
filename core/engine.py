@@ -469,7 +469,7 @@ class CatanEngine:
             player.update_victory_points()
 
         self._check_winner()
-        self.phase_router.complete_trade_respond_phase()
+        self.phase_router.complete_trade_respond_phase(self)
 
         return reward
 
