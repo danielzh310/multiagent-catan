@@ -70,15 +70,36 @@ class UnifiedRolloutManager:
             op_vec = [x / nums for x in sum_vec]
 
         board_vec = torch.zeros((1, 64), dtype=torch.float32, device=self.device)
-        board_vec[0, 0] = float(raw["game"].get("turn_number", 0))
+
+        game = raw.get("game", {})
+        board_vec[0, 0] = float(game.get("turn_number", 0))
         board_vec[0, 1] = float(int(env.get_current_player_id()))
         board_vec[0, 2] = float(env.get_phase().value)
-        board_vec[0, 3] = 1.0 if raw["game"].get("enable_trading", True) else 0.0
+        board_vec[0, 3] = 1.0 if game.get("enable_trading", True) else 0.0
+
+        last_roll = game.get("last_roll")
+        board_vec[0, 4] = float(last_roll if last_roll is not None else 0.0)
+
+        board_vec[0, 5] = 1.0 if game.get("robber_pending", False) else 0.0
 
         pending_trade = raw.get("trade")
         if pending_trade is not None:
-            board_vec[0, 4] = 1.0
-            board_vec[0, 5] = float(pending_trade.counter_count)
+            board_vec[0, 6] = 1.0
+            board_vec[0, 7] = float(pending_trade.counter_count)
+
+        robber_event = game.get("last_robber_event")
+        if robber_event is not None:
+            board_vec[0, 8] = 1.0 if robber_event.get("rolled_seven", False) else 0.0
+            board_vec[0, 9] = 1.0 if robber_event.get("stolen_from") is not None else 0.0
+
+            discarded = robber_event.get("discarded", {})
+            total_discarded = 0.0
+            for _, res_map in discarded.items():
+                total_discarded += float(sum(res_map.values()))
+            board_vec[0, 10] = total_discarded
+
+        legal_actions = raw.get("legal_actions", [])
+        board_vec[0, 11] = float(len(legal_actions))
 
         return {
             "board": board_vec,

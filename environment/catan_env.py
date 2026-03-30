@@ -68,6 +68,12 @@ class CatanEnv:
     def get_pending_trade(self):
         return self.engine.trade_manager.get_pending_trade()
 
+    def get_last_roll(self):
+        return self.engine.last_roll
+
+    def get_last_robber_event(self):
+        return self.engine.last_robber_event
+
     def get_legal_actions(self) -> List[dict]:
         phase = self.engine.phase_router.get_phase()
         current_player = self.engine.get_current_player_id()
@@ -186,6 +192,9 @@ class CatanEnv:
             "turn_number": obs["game"]["turn_number"],
             "phase": obs["game"]["phase"],
             "current_player": current_player,
+            "last_roll": obs["game"].get("last_roll"),
+            "robber_pending": obs["game"].get("robber_pending", False),
+            "last_robber_event": obs["game"].get("last_robber_event"),
             "self_state": obs["player"],
             "all_players": obs["players"],
             "trade_history": obs["trade_history"],
@@ -200,6 +209,9 @@ class CatanEnv:
             "turn_number": obs["game"]["turn_number"],
             "phase": obs["game"]["phase"],
             "current_player": current_player,
+            "last_roll": obs["game"].get("last_roll"),
+            "robber_pending": obs["game"].get("robber_pending", False),
+            "last_robber_event": obs["game"].get("last_robber_event"),
             "self_state": obs["player"],
             "all_players": obs["players"],
             "pending_trade": obs["trade"],

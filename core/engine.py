@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import random
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from core.constants import (
     PlayerId,
@@ -19,6 +19,16 @@ from core.phase_router import PhaseRouter, TurnPhase
 
 
 class CatanEngine:
+    """
+    Simplified but much more faithful Catan engine.
+
+    Key improvements over the earlier version:
+    - stores the most recent dice roll so logs can show it
+    - applies robber consequences when 7 is rolled
+    - makes resource production sparse instead of overly smooth
+    - updates VP/resource state explicitly after every state mutation
+    """
+
     def __init__(self, seed: Optional[int] = None, enable_trading: bool = True):
         self.random = random.Random(seed)
         self.enable_trading = enable_trading
@@ -42,6 +52,8 @@ class CatanEngine:
 
         self.initial_placement_phase = False
         self.robber_pending = False
+        self.last_roll: Optional[int] = None
+        self.last_robber_event: Optional[dict] = None
 
         self.trade_history = TradeHistory()
         self.trade_manager = TradeManager(self.trade_history)
@@ -49,23 +61,75 @@ class CatanEngine:
 
         self.winner: Optional[PlayerId] = None
 
+        # Each player gets a deterministic "production profile" over the five resources.
+        # This is still simplified, but it is much better than giving everyone smooth,
+        # almost guaranteed resources every turn.
+        self.production_map: Dict[PlayerId, Dict[int, List[Resource]]] = {}
+        self._init_production_map()
+
+    def _init_production_map(self) -> None:
+        """
+        A sparse, dice-value keyed resource production map.
+        This is a simplification of board geometry, but much more Catan-like than
+        the previous 'always distribute based on settlement count' approach.
+        """
+        self.production_map = {
+            PlayerId.WHITE: {
+                4: [Resource.WOOD],
+                5: [Resource.BRICK],
+                6: [Resource.SHEEP],
+                8: [Resource.WHEAT],
+                9: [Resource.ORE],
+                10: [Resource.WOOD],
+            },
+            PlayerId.BLUE: {
+                4: [Resource.BRICK],
+                5: [Resource.SHEEP],
+                6: [Resource.WHEAT],
+                8: [Resource.ORE],
+                9: [Resource.WOOD],
+                10: [Resource.BRICK],
+            },
+            PlayerId.ORANGE: {
+                4: [Resource.SHEEP],
+                5: [Resource.WHEAT],
+                6: [Resource.WOOD],
+                8: [Resource.BRICK],
+                9: [Resource.ORE],
+                10: [Resource.SHEEP],
+            },
+            PlayerId.RED: {
+                4: [Resource.WHEAT],
+                5: [Resource.ORE],
+                6: [Resource.BRICK],
+                8: [Resource.SHEEP],
+                9: [Resource.WOOD],
+                10: [Resource.WHEAT],
+            },
+        }
+
     def reset(self):
         for player in self.players.values():
             player.reset_for_new_game()
-            # simple nonzero start so gameplay can begin, but keep it consistent
+
+            # Small nonzero starting state so training can begin, but not so large
+            # that the economy becomes unrealistic immediately.
             player.resources = {
-                Resource.WOOD: 2,
-                Resource.BRICK: 2,
-                Resource.SHEEP: 2,
-                Resource.WHEAT: 2,
-                Resource.ORE: 1,
+                Resource.WOOD: 1,
+                Resource.BRICK: 1,
+                Resource.SHEEP: 1,
+                Resource.WHEAT: 1,
+                Resource.ORE: 0,
             }
             player.update_victory_points()
 
         self.current_player_idx = 0
         self.turn_number = 0
+
         self.initial_placement_phase = False
         self.robber_pending = False
+        self.last_roll = None
+        self.last_robber_event = None
 
         self.trade_manager.reset()
         self.phase_router.reset()
@@ -79,34 +143,6 @@ class CatanEngine:
         self.current_player_idx = (self.current_player_idx + 1) % len(self.player_order)
         if self.current_player_idx == 0:
             self.turn_number += 1
-
-    def step_roll_phase(self):
-        dice_value = roll_dice()
-
-        if dice_value == 7:
-            self.robber_pending = True
-        else:
-            self._distribute_resources(dice_value)
-
-        self.phase_router.complete_roll_phase(self)
-
-    def _distribute_resources(self, dice_value: int):
-        for player in self.players.values():
-            settlement_equiv = player.n_settlements + 2 * player.n_cities
-            if settlement_equiv > 0:
-                total_resources = max(1, (dice_value * settlement_equiv) // 6)
-
-                resource_order = [
-                    Resource.WOOD,
-                    Resource.BRICK,
-                    Resource.SHEEP,
-                    Resource.WHEAT,
-                    Resource.ORE,
-                ]
-
-                for i in range(total_resources):
-                    res = resource_order[(self.turn_number + i) % len(resource_order)]
-                    player.resources[res] += 1
 
     def _resource_total(self, player_id: PlayerId) -> int:
         return sum(int(v) for v in self.players[player_id].resources.values())
@@ -123,15 +159,140 @@ class CatanEngine:
     def _attempt_pay_cost(self, player: AgentState, cost: tuple) -> bool:
         if player.can_pay_cost(cost):
             player.pay_cost(cost)
+            player.update_victory_points()
             return True
         return False
 
     def _advance_after_main_action(self):
-        # gameplay-only debugging mode: skip trade phases entirely
         if self.enable_trading:
             self.phase_router.complete_main_action_phase(self)
         else:
             self.phase_router.set_phase(TurnPhase.END_TURN)
+
+    def step_roll_phase(self):
+        dice_value = roll_dice()
+        self.last_roll = dice_value
+        self.last_robber_event = None
+
+        if dice_value == 7:
+            self.robber_pending = True
+            self._apply_robber_effects()
+        else:
+            self.robber_pending = False
+            self._distribute_resources(dice_value)
+
+        self.phase_router.complete_roll_phase(self)
+
+    def _distribute_resources(self, dice_value: int):
+        """
+        Sparse, dice-keyed production.
+
+        Each player has a simplified production profile keyed by rolled number.
+        Settlements produce 1; cities produce 2.
+        No production on 7.
+        """
+        if dice_value == 7:
+            return
+
+        for player_id, player in self.players.items():
+            if player.n_settlements <= 0 and player.n_cities <= 0:
+                continue
+
+            produced_resources = self.production_map.get(player_id, {}).get(dice_value, [])
+            if not produced_resources:
+                continue
+
+            multiplier = int(player.n_settlements) + 2 * int(player.n_cities)
+            if multiplier <= 0:
+                continue
+
+            for resource in produced_resources:
+                player.resources[resource] += multiplier
+
+    def _discard_half_random(self, player: AgentState) -> Dict[Resource, int]:
+        """
+        On a 7, players with >7 cards discard half at random.
+        """
+        total = sum(int(v) for v in player.resources.values())
+        to_discard = total // 2
+        discarded = {
+            Resource.WOOD: 0,
+            Resource.BRICK: 0,
+            Resource.SHEEP: 0,
+            Resource.WHEAT: 0,
+            Resource.ORE: 0,
+        }
+
+        if to_discard <= 0:
+            return discarded
+
+        available_cards: List[Resource] = []
+        for resource, count in player.resources.items():
+            available_cards.extend([resource] * int(count))
+
+        self.random.shuffle(available_cards)
+        chosen = available_cards[:to_discard]
+
+        for resource in chosen:
+            player.resources[resource] -= 1
+            discarded[resource] += 1
+
+        return discarded
+
+    def _steal_one_random_resource(self, victim: AgentState, thief: AgentState) -> Optional[Resource]:
+        pool: List[Resource] = []
+        for resource, count in victim.resources.items():
+            pool.extend([resource] * int(count))
+
+        if not pool:
+            return None
+
+        stolen = self.random.choice(pool)
+        victim.resources[stolen] -= 1
+        thief.resources[stolen] += 1
+        return stolen
+
+    def _apply_robber_effects(self):
+        """
+        Simplified robber:
+        - everyone with >7 cards discards half
+        - current player steals one random resource from the richest opponent with cards
+        """
+        discarded_summary: Dict[str, Dict[str, int]] = {}
+
+        for player_id, player in self.players.items():
+            total_cards = sum(int(v) for v in player.resources.values())
+            if total_cards > 7:
+                discarded = self._discard_half_random(player)
+                discarded_summary[str(player_id)] = {k.name: v for k, v in discarded.items() if v > 0}
+
+        thief_id = self.get_current_player_id()
+        thief = self.players[thief_id]
+
+        candidates: List[Tuple[PlayerId, int]] = []
+        for pid, player in self.players.items():
+            if pid == thief_id:
+                continue
+            total = sum(int(v) for v in player.resources.values())
+            if total > 0:
+                candidates.append((pid, total))
+
+        stolen_from = None
+        stolen_resource = None
+
+        if candidates:
+            candidates.sort(key=lambda x: x[1], reverse=True)
+            victim_id = candidates[0][0]
+            victim = self.players[victim_id]
+            stolen_resource = self._steal_one_random_resource(victim, thief)
+            stolen_from = victim_id if stolen_resource is not None else None
+
+        self.last_robber_event = {
+            "rolled_seven": True,
+            "discarded": discarded_summary,
+            "stolen_from": str(stolen_from) if stolen_from is not None else None,
+            "stolen_resource": stolen_resource.name if stolen_resource is not None else None,
+        }
 
     def apply_gameplay_action(self, action: Optional[dict]) -> float:
         player_id = self.get_current_player_id()
@@ -308,7 +469,7 @@ class CatanEngine:
             player.update_victory_points()
 
         self._check_winner()
-        self.phase_router.complete_trade_respond_phase(self)
+        self.phase_router.complete_trade_respond_phase()
 
         return reward
 
@@ -331,6 +492,9 @@ class CatanEngine:
                 "current_player": current_player,
                 "phase": self.phase_router.get_phase(),
                 "enable_trading": self.enable_trading,
+                "last_roll": self.last_roll,
+                "robber_pending": self.robber_pending,
+                "last_robber_event": self.last_robber_event,
             },
             "player": self.players[current_player].as_dict(),
             "players": {
