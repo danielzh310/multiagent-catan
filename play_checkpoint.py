@@ -51,6 +51,8 @@ def format_board_state(env):
     lines.append("=== FINAL BOARD STATE ===")
     lines.append(f"phase={env.get_phase().name}")
     lines.append(f"current_player={env.get_current_player_id()}")
+    lines.append(f"last_roll={env.get_last_roll()}")
+    lines.append(f"last_robber_event={env.get_last_robber_event()}")
     lines.append("players:")
 
     for player in env.engine.player_order:
@@ -120,6 +122,8 @@ def run_single_unified_game(
 
         resources_before = snapshot_resources(env)
         vp_before = snapshot_vp(env)
+        obs_before = env.get_observation()
+        legal_before = obs_before.get("legal_actions", [])
 
         if phase_name == "auto":
             next_obs, reward, done, info = env.step(None)
@@ -148,12 +152,14 @@ def run_single_unified_game(
                     "step": total_steps,
                     "phase": phase.name,
                     "action": None,
+                    "legal_actions_before": legal_before,
                     "roll": last_roll,
                     "robber_event": robber_event,
                     "reward": reward,
                     "done": done,
                     "info": info,
-                    "vp": vp_after,
+                    "vp_before": vp_before,
+                    "vp_after": vp_after,
                     "resources_before": resources_before,
                     "resources_after": resources_after,
                     "resource_delta": resource_delta,
@@ -189,12 +195,15 @@ def run_single_unified_game(
 
         last_roll = next_obs["game"].get("last_roll")
         robber_event = next_obs["game"].get("last_robber_event")
+        setup_stage = next_obs["game"].get("initial_placement_stage")
+        setup_phase = next_obs["game"].get("initial_placement_phase")
 
         resources_after = snapshot_resources(env)
         vp_after = snapshot_vp(env)
         resource_delta = diff_resources(resources_before, resources_after)
 
         print(f"step={total_steps} phase={phase.name} player={current_player}")
+        print(f" legal_actions_before={legal_before}")
         print(f" env_action={env_action}")
         print(
             " action_dict={"
@@ -202,22 +211,28 @@ def run_single_unified_game(
             + "}"
         )
         print(f" roll={last_roll}")
+        print(f" setup_phase={setup_phase} setup_stage={setup_stage}")
         if robber_event is not None:
             print(f" robber_event={robber_event}")
         print(f" reward={reward:.3f} done={done}")
-        print(f" vp={vp_after}")
+        print(f" value={float(value.item()) if hasattr(value, 'item') else None}")
+        print(f" vp_before={vp_before}")
+        print(f" vp_after={vp_after}")
         if resource_delta:
             print(f" resource_delta={resource_delta}")
-        print(f" resources={resources_after}\n")
+        print(f" resources_after={resources_after}\n")
 
         report.append(
             {
                 "step": total_steps,
                 "phase": phase.name,
                 "player": str(current_player),
+                "legal_actions_before": legal_before,
                 "action_dict": {k: v.detach().cpu().numpy().tolist() for k, v in action_dict.items()},
                 "env_action": env_action,
                 "roll": last_roll,
+                "setup_phase": setup_phase,
+                "setup_stage": setup_stage,
                 "robber_event": robber_event,
                 "reward": reward,
                 "done": done,
@@ -234,16 +249,13 @@ def run_single_unified_game(
         total_steps += 1
 
     winner = env.engine.winner
-    final_board = format_board_state(env)
-    print("\n" + final_board)
-
     stats = {
         "winner": str(winner) if winner is not None else None,
         "victory_points": snapshot_vp(env),
         "total_steps": total_steps,
         "done": done,
         "report": report,
-        "final_board": final_board,
+        "final_board_state": format_board_state(env),
     }
     return stats
 
@@ -280,6 +292,7 @@ def main():
     print(f"victory_points={stats['victory_points']}")
     print(f"total_steps={stats['total_steps']}")
     print(f"done={stats['done']}")
+    print(stats["final_board_state"])
 
     os.makedirs("gameplay", exist_ok=True)
     checkpoint_name = os.path.splitext(os.path.basename(args.checkpoint))[0]
@@ -292,7 +305,8 @@ def main():
         f.write(f"victory_points={stats['victory_points']}\n")
         f.write(f"total_steps={stats['total_steps']}\n")
         f.write(f"done={stats['done']}\n\n")
-        f.write("=== STEPS ===\n")
+        f.write(stats["final_board_state"])
+        f.write("\n\n=== STEPS ===\n")
 
         for step in stats["report"]:
             f.write(
@@ -302,12 +316,18 @@ def main():
 
             if "player" in step:
                 f.write(f"  player={step['player']}\n")
+            if "legal_actions_before" in step:
+                f.write(f"  legal_actions_before={step['legal_actions_before']}\n")
             if "env_action" in step:
                 f.write(f"  env_action={step['env_action']}\n")
             if "action_dict" in step:
                 f.write(f"  action_dict={step['action_dict']}\n")
             if "roll" in step:
                 f.write(f"  roll={step['roll']}\n")
+            if "setup_phase" in step:
+                f.write(f"  setup_phase={step['setup_phase']}\n")
+            if "setup_stage" in step:
+                f.write(f"  setup_stage={step['setup_stage']}\n")
             if "robber_event" in step and step["robber_event"] is not None:
                 f.write(f"  robber_event={step['robber_event']}\n")
             if "value" in step:
@@ -325,9 +345,6 @@ def main():
             if "tom" in step and step["tom"] is not None:
                 f.write(f"  tom={step['tom']}\n")
             f.write("\n")
-
-        f.write("=== FINAL BOARD STATE ===\n")
-        f.write(stats["final_board"] + "\n")
 
     print(f"Saved detailed game log to {out_path}")
 

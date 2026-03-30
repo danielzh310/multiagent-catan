@@ -21,7 +21,6 @@ class CatanEnv:
 
     def reset(self) -> dict:
         self.engine.reset()
-        self.engine.phase_router.begin_turn(self.engine)
         return self.get_observation()
 
     def step(self, action: Optional[dict]):
@@ -124,7 +123,36 @@ class CatanEnv:
         if player.n_settlements > 0 and player.n_cities < 4 and player.can_pay_cost(COST_BUILD_CITY):
             actions.append({"type": "build_city"})
 
+        bank_trades = self._get_legal_bank_trades(player_id)
+        actions.extend(bank_trades)
+
         actions.append({"type": "end_main_action"})
+        return actions
+
+    def _get_legal_bank_trades(self, player_id: PlayerId) -> List[dict]:
+        player = self.engine.players[player_id]
+        actions = []
+
+        resources = [
+            Resource.WOOD,
+            Resource.BRICK,
+            Resource.SHEEP,
+            Resource.WHEAT,
+            Resource.ORE,
+        ]
+
+        for give in resources:
+            if player.resources.get(give, 0) < 4:
+                continue
+            for receive in resources:
+                if give == receive:
+                    continue
+                actions.append({
+                    "type": "bank_trade",
+                    "give": give,
+                    "receive": receive,
+                })
+
         return actions
 
     def _get_legal_trade_proposals(self, player_id: PlayerId) -> List[dict]:
@@ -197,6 +225,9 @@ class CatanEnv:
             "turn_number": obs["game"]["turn_number"],
             "phase": obs["game"]["phase"],
             "current_player": current_player,
+            "initial_placement_phase": obs["game"].get("initial_placement_phase", False),
+            "initial_placement_index": obs["game"].get("initial_placement_index", 0),
+            "initial_placement_stage": obs["game"].get("initial_placement_stage"),
             "last_roll": obs["game"].get("last_roll"),
             "robber_pending": obs["game"].get("robber_pending", False),
             "last_robber_event": obs["game"].get("last_robber_event"),
@@ -214,6 +245,9 @@ class CatanEnv:
             "turn_number": obs["game"]["turn_number"],
             "phase": obs["game"]["phase"],
             "current_player": current_player,
+            "initial_placement_phase": obs["game"].get("initial_placement_phase", False),
+            "initial_placement_index": obs["game"].get("initial_placement_index", 0),
+            "initial_placement_stage": obs["game"].get("initial_placement_stage"),
             "last_roll": obs["game"].get("last_roll"),
             "robber_pending": obs["game"].get("robber_pending", False),
             "last_robber_event": obs["game"].get("last_robber_event"),

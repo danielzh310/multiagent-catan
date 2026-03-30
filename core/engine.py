@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import random
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 from core.constants import (
     PlayerId,
@@ -19,16 +19,6 @@ from core.phase_router import PhaseRouter, TurnPhase
 
 
 class CatanEngine:
-    """
-    Simplified but much more faithful Catan engine.
-
-    Key improvements over the earlier version:
-    - stores the most recent dice roll so logs can show it
-    - applies robber consequences when 7 is rolled
-    - makes resource production sparse instead of overly smooth
-    - updates VP/resource state explicitly after every state mutation
-    """
-
     def __init__(self, seed: Optional[int] = None, enable_trading: bool = True):
         self.random = random.Random(seed)
         self.enable_trading = enable_trading
@@ -63,6 +53,7 @@ class CatanEngine:
             PlayerId.BLUE,
             PlayerId.WHITE,
         ]
+
         self.robber_pending = False
         self.last_roll: Optional[int] = None
         self.last_robber_event: Optional[dict] = None
@@ -73,18 +64,11 @@ class CatanEngine:
 
         self.winner: Optional[PlayerId] = None
 
-        # Each player gets a deterministic "production profile" over the five resources.
-        # This is still simplified, but it is much better than giving everyone smooth,
-        # almost guaranteed resources every turn.
+        # Still simplified relative to full board geometry, but sparse and dice-keyed.
         self.production_map: Dict[PlayerId, Dict[int, List[Resource]]] = {}
         self._init_production_map()
 
     def _init_production_map(self) -> None:
-        """
-        A sparse, dice-value keyed resource production map.
-        This is a simplification of board geometry, but much more Catan-like than
-        the previous 'always distribute based on settlement count' approach.
-        """
         self.production_map = {
             PlayerId.WHITE: {
                 4: [Resource.WOOD],
@@ -123,9 +107,6 @@ class CatanEngine:
     def reset(self):
         for player in self.players.values():
             player.reset_for_new_game()
-
-            # Small nonzero starting state so training can begin, but not so large
-            # that the economy becomes unrealistic immediately.
             player.resources = {
                 Resource.WOOD: 0,
                 Resource.BRICK: 0,
@@ -141,18 +122,20 @@ class CatanEngine:
         self.initial_placement_phase = True
         self.initial_placement_index = 0
         self.initial_placement_stage = "settlement"
+
         self.robber_pending = False
         self.last_roll = None
         self.last_robber_event = None
 
         self.trade_manager.reset()
         self.phase_router.reset()
+        self.phase_router.set_phase(TurnPhase.SETUP)
 
         self.winner = None
 
     def get_current_player_id(self) -> PlayerId:
         if self.initial_placement_phase:
-            idx = min(self.initial_placement_index, len(self.initial_placement_order)-1)
+            idx = min(self.initial_placement_index, len(self.initial_placement_order) - 1)
             return self.initial_placement_order[idx]
         return self.player_order[self.current_player_idx]
 
@@ -201,13 +184,6 @@ class CatanEngine:
         self.phase_router.complete_roll_phase(self)
 
     def _distribute_resources(self, dice_value: int):
-        """
-        Sparse, dice-keyed production.
-
-        Each player has a simplified production profile keyed by rolled number.
-        Settlements produce 1; cities produce 2.
-        No production on 7.
-        """
         if dice_value == 7:
             return
 
@@ -227,9 +203,6 @@ class CatanEngine:
                 player.resources[resource] += multiplier
 
     def _discard_half_random(self, player: AgentState) -> Dict[Resource, int]:
-        """
-        On a 7, players with >7 cards discard half at random.
-        """
         total = sum(int(v) for v in player.resources.values())
         to_discard = total // 2
         discarded = {
@@ -270,11 +243,6 @@ class CatanEngine:
         return stolen
 
     def _apply_robber_effects(self):
-        """
-        Simplified robber:
-        - everyone with >7 cards discards half
-        - current player steals one random resource from the richest opponent with cards
-        """
         discarded_summary: Dict[str, Dict[str, int]] = {}
 
         for player_id, player in self.players.items():
@@ -286,7 +254,7 @@ class CatanEngine:
         thief_id = self.get_current_player_id()
         thief = self.players[thief_id]
 
-        candidates: List[Tuple[PlayerId, int]] = []
+        candidates: List[tuple[PlayerId, int]] = []
         for pid, player in self.players.items():
             if pid == thief_id:
                 continue
@@ -312,9 +280,14 @@ class CatanEngine:
         }
 
     def _assign_initial_settlement_resources(self, player_id: PlayerId) -> None:
+        """
+        Simplified substitute for 'second settlement gets adjacent hex resources'.
+        Pull distinct resources from that player's sparse production profile.
+        """
         player = self.players[player_id]
-        profile = self.production_map.get(player_id, {})
         resources = []
+
+        profile = self.production_map.get(player_id, {})
         for resource_list in profile.values():
             for r in resource_list:
                 if r not in resources:
@@ -326,6 +299,21 @@ class CatanEngine:
 
         for r in resources:
             player.add_resource(r, 1)
+
+    def _apply_bank_trade(self, player_id: PlayerId, give: Resource, receive: Resource) -> float:
+        """
+        Basic 4:1 bank trade.
+        """
+        if give == receive:
+            return -0.02
+
+        player = self.players[player_id]
+        if player.resources.get(give, 0) < 4:
+            return -0.02
+
+        player.resources[give] -= 4
+        player.resources[receive] += 1
+        return 0.01
 
     def apply_gameplay_action(self, action: Optional[dict]) -> float:
         player_id = self.get_current_player_id()
@@ -349,7 +337,6 @@ class CatanEngine:
                     player.update_victory_points()
                     reward += 0.20
 
-                    # second settlement draws adjacent resources (classic Catan rule)
                     if player.n_settlements == 2:
                         self._assign_initial_settlement_resources(player_id)
                         reward += 0.15
@@ -367,7 +354,6 @@ class CatanEngine:
                 player.update_victory_points()
                 reward += 0.08
 
-                # finished one player’s SETUP pair
                 self.initial_placement_index += 1
                 self.initial_placement_stage = "settlement"
 
@@ -423,6 +409,14 @@ class CatanEngine:
                 player.n_roads += 1
                 player.update_victory_points()
                 reward += 0.04
+
+        elif action_type == "bank_trade":
+            give = action.get("give")
+            receive = action.get("receive")
+            if give is None or receive is None:
+                reward -= 0.02
+            else:
+                reward += self._apply_bank_trade(player_id, give, receive)
 
         elif action_type == "end_turn":
             self.phase_router.complete_end_turn_phase(self)
@@ -571,6 +565,9 @@ class CatanEngine:
                 "current_player": current_player,
                 "phase": self.phase_router.get_phase(),
                 "enable_trading": self.enable_trading,
+                "initial_placement_phase": self.initial_placement_phase,
+                "initial_placement_index": self.initial_placement_index,
+                "initial_placement_stage": self.initial_placement_stage,
                 "last_roll": self.last_roll,
                 "robber_pending": self.robber_pending,
                 "last_robber_event": self.last_robber_event,

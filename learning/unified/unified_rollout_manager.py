@@ -79,7 +79,6 @@ class UnifiedRolloutManager:
 
         last_roll = game.get("last_roll")
         board_vec[0, 4] = float(last_roll if last_roll is not None else 0.0)
-
         board_vec[0, 5] = 1.0 if game.get("robber_pending", False) else 0.0
 
         pending_trade = raw.get("trade")
@@ -100,6 +99,13 @@ class UnifiedRolloutManager:
 
         legal_actions = raw.get("legal_actions", [])
         board_vec[0, 11] = float(len(legal_actions))
+
+        board_vec[0, 12] = 1.0 if game.get("initial_placement_phase", False) else 0.0
+        board_vec[0, 13] = float(game.get("initial_placement_index", 0))
+
+        stage = game.get("initial_placement_stage")
+        board_vec[0, 14] = 1.0 if stage == "settlement" else 0.0
+        board_vec[0, 15] = 1.0 if stage == "road" else 0.0
 
         return {
             "board": board_vec,
@@ -122,13 +128,21 @@ class UnifiedRolloutManager:
 
     def _decode_gameplay(self, action_idx: int, env: CatanEnv) -> dict:
         legal_actions = env.get_legal_actions()
+        phase = env.get_phase()
 
-        if env.get_phase() == TurnPhase.END_TURN:
+        if phase == TurnPhase.END_TURN:
             return {"type": "end_turn"}
+
+        if phase == TurnPhase.SETUP:
+            setup_actions = [a for a in legal_actions if a["type"] in {"build_settlement", "build_road"}]
+            if not setup_actions:
+                return {"type": "build_settlement"}
+            mapped_idx = int(action_idx) % len(setup_actions)
+            return setup_actions[mapped_idx]
 
         gameplay_actions = [
             a for a in legal_actions
-            if a["type"] in {"build_road", "build_settlement", "build_city", "end_main_action"}
+            if a["type"] in {"build_road", "build_settlement", "build_city", "bank_trade", "end_main_action"}
         ]
 
         if not gameplay_actions:
