@@ -19,8 +19,9 @@ from core.phase_router import PhaseRouter, TurnPhase
 
 
 class CatanEngine:
-    def __init__(self, seed: Optional[int] = None):
+    def __init__(self, seed: Optional[int] = None, enable_trading: bool = True):
         self.random = random.Random(seed)
+        self.enable_trading = enable_trading
 
         self.players: Dict[PlayerId, AgentState] = {
             PlayerId.WHITE: AgentState(PlayerId.WHITE),
@@ -50,7 +51,8 @@ class CatanEngine:
 
     def reset(self):
         for player in self.players.values():
-            # Give each player starting resources to enable early game action
+            player.reset_for_new_game()
+            # simple nonzero start so gameplay can begin, but keep it consistent
             player.resources = {
                 Resource.WOOD: 2,
                 Resource.BRICK: 2,
@@ -58,17 +60,10 @@ class CatanEngine:
                 Resource.WHEAT: 2,
                 Resource.ORE: 1,
             }
-            player.n_settlements = 0
-            player.n_cities = 0
-            player.n_roads = 0
-            player.bonus_vp = 0
-            player.dev_victory_points = 0
-            player.victory_points = 0
-            player.revealed_vp_cards = 0
+            player.update_victory_points()
 
         self.current_player_idx = 0
         self.turn_number = 0
-
         self.initial_placement_phase = False
         self.robber_pending = False
 
@@ -96,18 +91,11 @@ class CatanEngine:
         self.phase_router.complete_roll_phase(self)
 
     def _distribute_resources(self, dice_value: int):
-        """
-        Distribute resources based on dice roll.
-        In a simplified model without full board geometry, players with settlements
-        receive resources proportional to dice value and settlement count.
-        """
         for player in self.players.values():
             settlement_equiv = player.n_settlements + 2 * player.n_cities
             if settlement_equiv > 0:
-                # Total resources to distribute this turn
-                total_resources = max(1, (dice_value * settlement_equiv) // 3)
-                
-                # Distribute evenly across resource types, biased toward lower resources
+                total_resources = max(1, (dice_value * settlement_equiv) // 6)
+
                 resource_order = [
                     Resource.WOOD,
                     Resource.BRICK,
@@ -115,9 +103,9 @@ class CatanEngine:
                     Resource.WHEAT,
                     Resource.ORE,
                 ]
-                
+
                 for i in range(total_resources):
-                    res = resource_order[i % len(resource_order)]
+                    res = resource_order[(self.turn_number + i) % len(resource_order)]
                     player.resources[res] += 1
 
     def _resource_total(self, player_id: PlayerId) -> int:
@@ -130,7 +118,7 @@ class CatanEngine:
         return sum(int(v) for v in trade_vector.values())
 
     def _vp(self, player_id: PlayerId) -> int:
-        return int(self.players[player_id].total_vp())
+        return int(self.players[player_id].update_victory_points())
 
     def _attempt_pay_cost(self, player: AgentState, cost: tuple) -> bool:
         if player.can_pay_cost(cost):
@@ -138,9 +126,19 @@ class CatanEngine:
             return True
         return False
 
-    def apply_gameplay_action(self, action: dict) -> float:
+    def _advance_after_main_action(self):
+        # gameplay-only debugging mode: skip trade phases entirely
+        if self.enable_trading:
+            self.phase_router.complete_main_action_phase(self)
+        else:
+            self.phase_router.set_phase(TurnPhase.END_TURN)
+
+    def apply_gameplay_action(self, action: Optional[dict]) -> float:
         player_id = self.get_current_player_id()
         player = self.players[player_id]
+
+        if action is None:
+            return -0.01
 
         action_type = action.get("type")
         reward = 0.0
@@ -154,13 +152,12 @@ class CatanEngine:
             elif not player.can_pay_cost(COST_BUILD_SETTLEMENT):
                 reward -= 0.10
             elif player.n_settlements > 0 and player.n_roads <= 0:
-                # requiring at least one road after the first settlement to mimic connectivity
                 reward -= 0.10
             else:
                 self._attempt_pay_cost(player, COST_BUILD_SETTLEMENT)
                 player.n_settlements += 1
-                player.bonus_vp += 1
-                reward += 0.35  # increased from 0.20 to reward building more aggressively
+                player.update_victory_points()
+                reward += 0.20
 
         elif action_type == "build_city":
             if player.n_settlements <= 0 or player.n_cities >= 4:
@@ -171,8 +168,8 @@ class CatanEngine:
                 self._attempt_pay_cost(player, COST_BUILD_CITY)
                 player.n_settlements -= 1
                 player.n_cities += 1
-                player.bonus_vp += 1
-                reward += 0.40  # increased from 0.28 to reward city upgrades more
+                player.update_victory_points()
+                reward += 0.24
 
         elif action_type == "build_road":
             if player.n_settlements <= 0:
@@ -184,7 +181,8 @@ class CatanEngine:
             else:
                 self._attempt_pay_cost(player, COST_BUILD_ROAD)
                 player.n_roads += 1
-                reward += 0.08  # increased from 0.04 to make road-building more attractive
+                player.update_victory_points()
+                reward += 0.04
 
         elif action_type == "end_turn":
             self.phase_router.complete_end_turn_phase(self)
@@ -193,23 +191,30 @@ class CatanEngine:
             return reward
 
         elif action_type == "end_main_action":
-            self.phase_router.complete_main_action_phase(self)
-            return reward - 0.004
+            self._advance_after_main_action()
+            return reward - 0.002
+
+        else:
+            return -0.02
 
         self._check_winner()
 
         after_vp = self._vp(player_id)
         after_diversity = self._resource_diversity(player_id)
 
-        reward += 0.18 * max(after_vp - before_vp, 0)
-        reward += 0.008 * max(after_diversity - before_diversity, 0)
+        reward += 0.12 * max(after_vp - before_vp, 0)
+        reward += 0.004 * max(after_diversity - before_diversity, 0)
 
         if self.phase_router.get_phase() == TurnPhase.MAIN_ACTION:
-            self.phase_router.complete_main_action_phase(self)
+            self._advance_after_main_action()
 
         return reward
 
     def apply_trade_proposal(self, action: Optional[dict]) -> float:
+        if not self.enable_trading:
+            self.phase_router.set_phase(TurnPhase.END_TURN)
+            return 0.0
+
         reward = 0.0
 
         if action is None:
@@ -242,12 +247,6 @@ class CatanEngine:
             self.phase_router.complete_trade_propose_phase(self)
             return reward - 0.01
 
-        proposer_div_before = self._resource_diversity(player_id)
-        target_div_before = self._resource_diversity(target)
-
-        request_types = sum(1 for v in request.values() if int(v) > 0)
-        offer_types = sum(1 for v in offer.values() if int(v) > 0)
-
         success = self.trade_manager.submit_trade(
             players=self.players,
             proposer=player_id,
@@ -259,15 +258,7 @@ class CatanEngine:
         )
 
         if success:
-            reward += 0.008  # reduced from 0.015 - trade proposals shouldn't be too attractive
-            reward += 0.002 * min(request_value, 3)
-
-            if proposer_div_before < 3:
-                reward += 0.002 * request_types
-
-            if target_div_before < 3:
-                reward += 0.001 * offer_types
-
+            reward += 0.006
             self.phase_router.set_phase(TurnPhase.TRADE_RESPOND)
         else:
             reward -= 0.01
@@ -276,6 +267,10 @@ class CatanEngine:
         return reward
 
     def apply_trade_response(self, action: Optional[dict]) -> float:
+        if not self.enable_trading:
+            self.phase_router.set_phase(TurnPhase.END_TURN)
+            return 0.0
+
         reward = 0.0
 
         pending = self.trade_manager.get_pending_trade()
@@ -284,15 +279,6 @@ class CatanEngine:
             return reward
 
         response_player = pending.target
-        proposer = pending.proposer
-
-        before_total = self._resource_total(response_player)
-        before_diversity = self._resource_diversity(response_player)
-        before_vp = self._vp(response_player)
-
-        proposer_before_total = self._resource_total(proposer)
-        proposer_before_diversity = self._resource_diversity(proposer)
-        proposer_before_vp = self._vp(proposer)
 
         if action is None:
             response = TradeResponse(response_type="reject")
@@ -309,34 +295,17 @@ class CatanEngine:
             response=response,
         )
 
-        after_total = self._resource_total(response_player)
-        after_diversity = self._resource_diversity(response_player)
-        after_vp = self._vp(response_player)
-
-        proposer_after_total = self._resource_total(proposer)
-        proposer_after_diversity = self._resource_diversity(proposer)
-        proposer_after_vp = self._vp(proposer)
-
         if response.response_type == "accept" and responded:
-            reward += 0.03  # reduced from 0.06 - make building stronger relative incentive
-            reward += 0.006 * max(after_diversity - before_diversity, 0)
-            reward += 0.003 * max(after_total - before_total, 0)
-            reward += 0.03 * max(after_vp - before_vp, 0)
-
-            proposer_gain = 0.0
-            proposer_gain += 0.005 * max(proposer_after_diversity - proposer_before_diversity, 0)
-            proposer_gain += 0.002 * max(proposer_after_total - proposer_before_total, 0)
-            proposer_gain += 0.02 * max(proposer_after_vp - proposer_before_vp, 0)
-
-            reward += 0.10 * proposer_gain  # reduced from 0.20 - less credit for beneficial trades
+            reward += 0.02
         elif response.response_type == "counter" and responded:
-            reward += 0.005
-
+            reward += 0.004
         elif response.response_type == "reject":
             reward -= 0.003
-
         else:
             reward -= 0.008
+
+        for player in self.players.values():
+            player.update_victory_points()
 
         self._check_winner()
         self.phase_router.complete_trade_respond_phase(self)
@@ -345,18 +314,23 @@ class CatanEngine:
 
     def _check_winner(self):
         for player_id, player in self.players.items():
-            if player.total_vp() >= VICTORY_POINTS_TARGET:
+            player.update_victory_points()
+            if player.victory_points >= VICTORY_POINTS_TARGET:
                 self.winner = player_id
                 return
 
     def get_observation(self) -> dict:
         current_player = self.get_current_player_id()
 
+        for player in self.players.values():
+            player.update_victory_points()
+
         return {
             "game": {
                 "turn_number": self.turn_number,
                 "current_player": current_player,
                 "phase": self.phase_router.get_phase(),
+                "enable_trading": self.enable_trading,
             },
             "player": self.players[current_player].as_dict(),
             "players": {

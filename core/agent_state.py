@@ -35,7 +35,6 @@ class AgentState:
     player_id: PlayerId
 
     resources: Dict[Resource, int] = field(default_factory=empty_hand)
-
     dev_cards: List[DevCard] = field(default_factory=list)
 
     played_dev_card_this_turn: bool = False
@@ -55,6 +54,20 @@ class AgentState:
 
     def reset_turn_flags(self) -> None:
         self.played_dev_card_this_turn = False
+
+    def reset_for_new_game(self) -> None:
+        self.resources = empty_hand()
+        self.dev_cards = []
+        self.played_dev_card_this_turn = False
+        self.buildings = []
+        self.roads = []
+        self.revealed_vp_cards = 0
+        self.n_settlements = 0
+        self.n_cities = 0
+        self.n_roads = 0
+        self.bonus_vp = 0
+        self.dev_victory_points = 0
+        self.victory_points = 0
 
     def add_resource(self, resource: Resource, amount: int = 1) -> None:
         if resource == Resource.DESERT:
@@ -118,31 +131,26 @@ class AgentState:
         raise ValueError(f"Dev card {card} not found in hand.")
 
     def num_settlements(self) -> int:
-        if self.n_settlements is not None:
-            return int(self.n_settlements)
-        return sum(1 for building in self.buildings if getattr(building, "type", None).name == "SETTLEMENT")
+        return int(self.n_settlements)
 
     def num_cities(self) -> int:
-        if self.n_cities is not None:
-            return int(self.n_cities)
-        return sum(1 for building in self.buildings if getattr(building, "type", None).name == "CITY")
+        return int(self.n_cities)
 
     def num_roads(self) -> int:
-        if self.n_roads is not None:
-            return int(self.n_roads)
-        return len(self.roads)
+        return int(self.n_roads)
 
     def piece_vp(self) -> int:
         return self.num_settlements() * VP_SETTLEMENT + self.num_cities() * VP_CITY
 
     def total_vp(self) -> int:
-        return self.piece_vp() + self.bonus_vp + self.dev_victory_points
+        return self.piece_vp() + int(self.bonus_vp) + int(self.dev_victory_points)
 
     def update_victory_points(self) -> int:
         self.victory_points = self.total_vp()
         return self.victory_points
 
     def as_dict(self) -> dict:
+        self.update_victory_points()
         return {
             "player_id": self.player_id.name,
             "resources": {resource.name: self.resources.get(resource, 0) for resource in COLLECTABLE_RESOURCES},
@@ -151,7 +159,8 @@ class AgentState:
             "num_buildings": self.num_settlements() + self.num_cities(),
             "num_settlements": self.num_settlements(),
             "num_cities": self.num_cities(),
-            "bonus_vp": self.bonus_vp,
-            "dev_victory_points": self.dev_victory_points,
-            "victory_points": self.total_vp(),
+            "num_roads": self.num_roads(),
+            "bonus_vp": int(self.bonus_vp),
+            "dev_victory_points": int(self.dev_victory_points),
+            "victory_points": int(self.victory_points),
         }

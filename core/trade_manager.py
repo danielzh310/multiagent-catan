@@ -28,12 +28,6 @@ class TradeResponse:
 
 
 class TradeManager:
-    """
-    Manages player-to-player trade proposals, responses, and execution.
-
-    This class is designed to sit inside the full game engine.
-    """
-
     def __init__(self, trade_history: Optional[TradeHistory] = None):
         self.trade_history = trade_history if trade_history is not None else TradeHistory()
         self.pending_trade: Optional[TradeProposal] = None
@@ -110,9 +104,6 @@ class TradeManager:
         return True
 
     def build_trade_response_targets(self, players, target_player: PlayerId) -> dict:
-        """
-        Returns structured context for the player who is responding.
-        """
         if self.pending_trade is None:
             return {
                 "has_pending_trade": False,
@@ -163,13 +154,15 @@ class TradeManager:
                 return False
 
             self._execute_trade(players, proposal.offer, proposal.request, proposal.proposer, proposal.target)
+            proposer_state.update_victory_points()
+            target_state.update_victory_points()
+
             self._record_trade_event(players, proposal, response, accepted=True, executed=True)
             self.pending_trade = None
             return True
 
         if response.response_type == "counter":
             if proposal.counter_count >= MAX_COUNTER_TRADES:
-                # Exceeded allowable counter proposals, treat as reject for fairness
                 self._record_trade_event(players, proposal, response, accepted=False, executed=False)
                 self.pending_trade = None
                 return False
@@ -230,6 +223,9 @@ class TradeManager:
     ) -> None:
         proposer_state = players[proposal.proposer]
         target_state = players[proposal.target]
+
+        proposer_state.update_victory_points()
+        target_state.update_victory_points()
 
         event = TradeEvent(
             turn_number=proposal.turn_number,

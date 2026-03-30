@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 from core.constants import PlayerId, Resource, COST_BUILD_ROAD, COST_BUILD_SETTLEMENT, COST_BUILD_CITY
 from core.engine import CatanEngine
@@ -13,12 +13,11 @@ class CatanEnv:
     - gameplay decisions
     - trade decisions
 
-    The environment keeps phase information explicit so the
-    training loop can route control to the correct model.
+    Supports gameplay-only debugging by setting enable_trading=False.
     """
 
-    def __init__(self, seed: Optional[int] = None):
-        self.engine = CatanEngine(seed=seed)
+    def __init__(self, seed: Optional[int] = None, enable_trading: bool = True):
+        self.engine = CatanEngine(seed=seed, enable_trading=enable_trading)
 
     def reset(self) -> dict:
         self.engine.reset()
@@ -27,8 +26,7 @@ class CatanEnv:
 
     def step(self, action: Optional[dict]):
         obs, reward, done, info = self.engine.step(action)
-        
-        # Wrap engine observation with controller and legal_actions
+
         decision = self.engine.phase_router.get_controller(self.engine)
         obs["controller"] = {
             "phase": decision.phase,
@@ -37,7 +35,7 @@ class CatanEnv:
             "target_player": decision.target_player,
         }
         obs["legal_actions"] = self.get_legal_actions()
-        
+
         return obs, reward, done, info
 
     def get_observation(self) -> dict:
@@ -84,9 +82,13 @@ class CatanEnv:
             return self._get_legal_gameplay_actions(current_player)
 
         if phase == TurnPhase.TRADE_PROPOSE:
+            if not self.engine.enable_trading:
+                return [{"type": "skip_trade"}]
             return self._get_legal_trade_proposals(current_player)
 
         if phase == TurnPhase.TRADE_RESPOND:
+            if not self.engine.enable_trading:
+                return [{"type": "reject_trade", "response_type": "reject"}]
             return self._get_legal_trade_responses(current_player)
 
         if phase == TurnPhase.END_TURN:
@@ -98,15 +100,16 @@ class CatanEnv:
         player = self.engine.players[player_id]
         actions = []
 
-        # build_road: need at least one settlement and road cap
         if player.n_settlements > 0 and player.n_roads < 15 and player.can_pay_cost(COST_BUILD_ROAD):
             actions.append({"type": "build_road"})
 
-        # build_settlement: 5 max, 1 road after first settlement
-        if player.n_settlements < 5 and player.can_pay_cost(COST_BUILD_SETTLEMENT) and (player.n_settlements == 0 or player.n_roads > 0):
+        if (
+            player.n_settlements < 5
+            and player.can_pay_cost(COST_BUILD_SETTLEMENT)
+            and (player.n_settlements == 0 or player.n_roads > 0)
+        ):
             actions.append({"type": "build_settlement"})
 
-        # build_city: convert existing settlement
         if player.n_settlements > 0 and player.n_cities < 4 and player.can_pay_cost(COST_BUILD_CITY):
             actions.append({"type": "build_city"})
 
@@ -144,9 +147,9 @@ class CatanEnv:
             {"type": "accept_trade", "response_type": "accept"},
         ]
 
+        responder_state = self.engine.players[player_id]
         response_templates = self._default_trade_templates()
 
-        responder_state = self.engine.players[player_id]
         for counter_offer, counter_request in response_templates:
             if self.engine.trade_manager.can_player_afford(responder_state, counter_offer):
                 actions.append({
@@ -159,12 +162,6 @@ class CatanEnv:
         return actions
 
     def _default_trade_templates(self):
-        """
-        Small starter set of trade templates.
-
-        This will later be replaced by a richer enumerator over all legal
-        trade vectors, but this is enough to wire the two-model stack.
-        """
         singles = [
             {Resource.WOOD: 1, Resource.BRICK: 0, Resource.SHEEP: 0, Resource.WHEAT: 0, Resource.ORE: 0},
             {Resource.WOOD: 0, Resource.BRICK: 1, Resource.SHEEP: 0, Resource.WHEAT: 0, Resource.ORE: 0},
@@ -182,9 +179,6 @@ class CatanEnv:
         return templates
 
     def build_gameplay_observation(self) -> dict:
-        """
-        Observation intended for the main gameplay model.
-        """
         obs = self.get_observation()
         current_player = self.get_current_player_id()
 
@@ -199,9 +193,6 @@ class CatanEnv:
         }
 
     def build_trade_observation(self) -> dict:
-        """
-        Observation intended for the trade model.
-        """
         obs = self.get_observation()
         current_player = self.get_current_player_id()
 

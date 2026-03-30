@@ -1,0 +1,1361 @@
+=== GAME RESULT ===
+winner=0
+victory_points={'0': 10, '1': 9, '2': 9, '3': 0}
+total_steps=200
+done=True
+
+=== STEPS ===
+step=0 phase=ROLL reward=0.0 done=False
+
+step=1 phase=MAIN_ACTION reward=0.32 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [70]}
+  value=-0.007633307948708534
+  vp={'0': 1, '1': 0, '2': 0, '3': 0}
+  resources={'0': {'WOOD': 1, 'BRICK': 1, 'SHEEP': 1, 'WHEAT': 1, 'ORE': 1}, '1': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 2, 'WHEAT': 2, 'ORE': 1}, '2': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 2, 'WHEAT': 2, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 2, 'WHEAT': 2, 'ORE': 1}}
+  tom={'need_pred': [[0.16750659048557281, 0.23609595000743866, 0.23055312037467957, 0.19484706223011017, 0.17099735140800476]]}
+
+step=2 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.RED: 3>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 1, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [2], 'request': [3]}
+  value=-0.10412561893463135
+  vp={'0': 1, '1': 0, '2': 0, '3': 0}
+  resources={'0': {'WOOD': 1, 'BRICK': 1, 'SHEEP': 1, 'WHEAT': 1, 'ORE': 1}, '1': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 2, 'WHEAT': 2, 'ORE': 1}, '2': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 2, 'WHEAT': 2, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 2, 'WHEAT': 2, 'ORE': 1}}
+  tom={'need_pred': [[0.16750659048557281, 0.23609595000743866, 0.23055312037467957, 0.19484706223011017, 0.17099735140800476]]}
+
+step=3 phase=TRADE_RESPOND reward=0.02 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [2], 'request': [3]}
+  value=-0.19724610447883606
+  vp={'0': 1, '1': 0, '2': 0, '3': 0}
+  resources={'0': {'WOOD': 1, 'BRICK': 1, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '1': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 2, 'WHEAT': 2, 'ORE': 1}, '2': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 2, 'WHEAT': 2, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 3, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.16750659048557281, 0.23609595000743866, 0.23055312037467957, 0.19484706223011017, 0.17099735140800476]]}
+
+step=4 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=-0.17886187136173248
+  vp={'0': 1, '1': 0, '2': 0, '3': 0}
+  resources={'0': {'WOOD': 1, 'BRICK': 1, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '1': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 2, 'WHEAT': 2, 'ORE': 1}, '2': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 2, 'WHEAT': 2, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 3, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.16684679687023163, 0.23708897829055786, 0.23112133145332336, 0.19448745250701904, 0.1704554706811905]]}
+
+step=5 phase=ROLL reward=0.0 done=False
+
+step=6 phase=MAIN_ACTION reward=0.32 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [70]}
+  value=0.012285241857171059
+  vp={'0': 1, '1': 1, '2': 0, '3': 0}
+  resources={'0': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '1': {'WOOD': 1, 'BRICK': 1, 'SHEEP': 1, 'WHEAT': 1, 'ORE': 1}, '2': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 2, 'WHEAT': 2, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 3, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.1665549874305725, 0.2352968156337738, 0.23075765371322632, 0.19644270837306976, 0.17094780504703522]]}
+
+step=7 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.RED: 3>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 1, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [2], 'request': [3]}
+  value=-0.08991280198097229
+  vp={'0': 1, '1': 1, '2': 0, '3': 0}
+  resources={'0': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '1': {'WOOD': 1, 'BRICK': 1, 'SHEEP': 1, 'WHEAT': 1, 'ORE': 1}, '2': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 2, 'WHEAT': 2, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 3, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.1665549874305725, 0.2352968156337738, 0.23075765371322632, 0.19644270837306976, 0.17094780504703522]]}
+
+step=8 phase=TRADE_RESPOND reward=0.02 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [2], 'request': [3]}
+  value=-0.19346337020397186
+  vp={'0': 1, '1': 1, '2': 0, '3': 0}
+  resources={'0': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '1': {'WOOD': 1, 'BRICK': 1, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '2': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 2, 'WHEAT': 2, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 4, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.1665549874305725, 0.2352968156337738, 0.23075765371322632, 0.19644270837306976, 0.17094780504703522]]}
+
+step=9 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=-0.17453590035438538
+  vp={'0': 1, '1': 1, '2': 0, '3': 0}
+  resources={'0': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '1': {'WOOD': 1, 'BRICK': 1, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '2': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 2, 'WHEAT': 2, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 4, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.16587761044502258, 0.23613710701465607, 0.231363445520401, 0.19606351852416992, 0.17055824398994446]]}
+
+step=10 phase=ROLL reward=0.0 done=False
+
+step=11 phase=MAIN_ACTION reward=0.32 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [70]}
+  value=0.035173505544662476
+  vp={'0': 1, '1': 1, '2': 1, '3': 0}
+  resources={'0': {'WOOD': 3, 'BRICK': 1, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '1': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '2': {'WOOD': 1, 'BRICK': 1, 'SHEEP': 1, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 4, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.1655552089214325, 0.23442968726158142, 0.23090946674346924, 0.19743569195270538, 0.1716698855161667]]}
+
+step=12 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.RED: 3>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 1, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [2], 'request': [3]}
+  value=-0.06544098258018494
+  vp={'0': 1, '1': 1, '2': 1, '3': 0}
+  resources={'0': {'WOOD': 3, 'BRICK': 1, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '1': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '2': {'WOOD': 1, 'BRICK': 1, 'SHEEP': 1, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 4, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.1655552089214325, 0.23442968726158142, 0.23090946674346924, 0.19743569195270538, 0.1716698855161667]]}
+
+step=13 phase=TRADE_RESPOND reward=-0.008 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [2], 'request': [3]}
+  value=-0.17872001230716705
+  vp={'0': 1, '1': 1, '2': 1, '3': 0}
+  resources={'0': {'WOOD': 3, 'BRICK': 1, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '1': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '2': {'WOOD': 1, 'BRICK': 1, 'SHEEP': 1, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 4, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.1655552089214325, 0.23442968726158142, 0.23090946674346924, 0.19743569195270538, 0.1716698855161667]]}
+
+step=14 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=-0.17601381242275238
+  vp={'0': 1, '1': 1, '2': 1, '3': 0}
+  resources={'0': {'WOOD': 3, 'BRICK': 1, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '1': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '2': {'WOOD': 1, 'BRICK': 1, 'SHEEP': 1, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 4, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.1655552089214325, 0.23442968726158142, 0.23090946674346924, 0.19743569195270538, 0.1716698855161667]]}
+
+step=15 phase=ROLL reward=0.0 done=False
+
+step=16 phase=MAIN_ACTION reward=-0.002 done=False
+  env_action={'type': 'end_main_action'}
+  action_dict={'gameplay_action': [70]}
+  value=0.02153869904577732
+  vp={'0': 1, '1': 1, '2': 1, '3': 0}
+  resources={'0': {'WOOD': 4, 'BRICK': 1, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '1': {'WOOD': 3, 'BRICK': 1, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '2': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 1, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 4, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.16678348183631897, 0.2323545515537262, 0.23043498396873474, 0.19812439382076263, 0.17230261862277985]]}
+
+step=17 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.BLUE: 1>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 1, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [1], 'offer': [2], 'request': [3]}
+  value=-0.03651990741491318
+  vp={'0': 1, '1': 1, '2': 1, '3': 0}
+  resources={'0': {'WOOD': 4, 'BRICK': 1, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '1': {'WOOD': 3, 'BRICK': 1, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '2': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 1, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 4, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.16678348183631897, 0.2323545515537262, 0.23043498396873474, 0.19812439382076263, 0.17230261862277985]]}
+
+step=18 phase=TRADE_RESPOND reward=0.02 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [2], 'request': [3]}
+  value=-0.1558067500591278
+  vp={'0': 1, '1': 1, '2': 1, '3': 0}
+  resources={'0': {'WOOD': 4, 'BRICK': 1, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '1': {'WOOD': 3, 'BRICK': 1, 'SHEEP': 1, 'WHEAT': 1, 'ORE': 1}, '2': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 1, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 3, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.16678348183631897, 0.2323545515537262, 0.23043498396873474, 0.19812439382076263, 0.17230261862277985]]}
+
+step=19 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=-0.12872529029846191
+  vp={'0': 1, '1': 1, '2': 1, '3': 0}
+  resources={'0': {'WOOD': 4, 'BRICK': 1, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '1': {'WOOD': 3, 'BRICK': 1, 'SHEEP': 1, 'WHEAT': 1, 'ORE': 1}, '2': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 1, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 3, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.16617918014526367, 0.2329271286725998, 0.23093774914741516, 0.19800017774105072, 0.17195573449134827]]}
+
+step=20 phase=ROLL reward=0.0 done=False
+
+step=21 phase=MAIN_ACTION reward=0.04 done=False
+  env_action={'type': 'build_road'}
+  action_dict={'gameplay_action': [70]}
+  value=-0.0049058981239795685
+  vp={'0': 1, '1': 1, '2': 1, '3': 0}
+  resources={'0': {'WOOD': 3, 'BRICK': 0, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '1': {'WOOD': 3, 'BRICK': 1, 'SHEEP': 1, 'WHEAT': 1, 'ORE': 1}, '2': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 1, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 3, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.16502349078655243, 0.2352605164051056, 0.23152080178260803, 0.1971004605293274, 0.17109467089176178]]}
+
+step=22 phase=TRADE_PROPOSE reward=-0.01 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.RED: 3>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=-0.059941090643405914
+  vp={'0': 1, '1': 1, '2': 1, '3': 0}
+  resources={'0': {'WOOD': 3, 'BRICK': 0, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '1': {'WOOD': 3, 'BRICK': 1, 'SHEEP': 1, 'WHEAT': 1, 'ORE': 1}, '2': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 1, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 3, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.16502349078655243, 0.2352605164051056, 0.23152080178260803, 0.1971004605293274, 0.17109467089176178]]}
+
+step=23 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=-0.1637045443058014
+  vp={'0': 1, '1': 1, '2': 1, '3': 0}
+  resources={'0': {'WOOD': 3, 'BRICK': 0, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '1': {'WOOD': 3, 'BRICK': 1, 'SHEEP': 1, 'WHEAT': 1, 'ORE': 1}, '2': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 1, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 3, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.16502349078655243, 0.2352605164051056, 0.23152080178260803, 0.1971004605293274, 0.17109467089176178]]}
+
+step=24 phase=ROLL reward=0.0 done=False
+
+step=25 phase=MAIN_ACTION reward=0.04 done=False
+  env_action={'type': 'build_road'}
+  action_dict={'gameplay_action': [70]}
+  value=0.007015477865934372
+  vp={'0': 1, '1': 1, '2': 1, '3': 0}
+  resources={'0': {'WOOD': 3, 'BRICK': 1, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '1': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 1, 'WHEAT': 1, 'ORE': 1}, '2': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 1, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 3, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.1644763946533203, 0.23546792566776276, 0.23190802335739136, 0.19718319177627563, 0.17096447944641113]]}
+
+step=26 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.RED: 3>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=-0.04769641160964966
+  vp={'0': 1, '1': 1, '2': 1, '3': 0}
+  resources={'0': {'WOOD': 3, 'BRICK': 1, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '1': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 1, 'WHEAT': 1, 'ORE': 1}, '2': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 1, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 3, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.1644763946533203, 0.23546792566776276, 0.23190802335739136, 0.19718319177627563, 0.17096447944641113]]}
+
+step=27 phase=TRADE_RESPOND reward=0.02 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [2], 'request': [3]}
+  value=-0.16121867299079895
+  vp={'0': 1, '1': 1, '2': 1, '3': 0}
+  resources={'0': {'WOOD': 3, 'BRICK': 1, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '1': {'WOOD': 2, 'BRICK': 0, 'SHEEP': 1, 'WHEAT': 2, 'ORE': 1}, '2': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 1, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 3, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.1644763946533203, 0.23546792566776276, 0.23190802335739136, 0.19718319177627563, 0.17096447944641113]]}
+
+step=28 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=-0.14764127135276794
+  vp={'0': 1, '1': 1, '2': 1, '3': 0}
+  resources={'0': {'WOOD': 3, 'BRICK': 1, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '1': {'WOOD': 2, 'BRICK': 0, 'SHEEP': 1, 'WHEAT': 2, 'ORE': 1}, '2': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 1, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 3, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.16306328773498535, 0.23636004328727722, 0.2330564558506012, 0.1972062587738037, 0.17031393945217133]]}
+
+step=29 phase=ROLL reward=0.0 done=False
+
+step=30 phase=MAIN_ACTION reward=0.04 done=False
+  env_action={'type': 'build_road'}
+  action_dict={'gameplay_action': [70]}
+  value=0.0200739074498415
+  vp={'0': 1, '1': 1, '2': 1, '3': 0}
+  resources={'0': {'WOOD': 3, 'BRICK': 2, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '1': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 1, 'WHEAT': 2, 'ORE': 1}, '2': {'WOOD': 1, 'BRICK': 2, 'SHEEP': 1, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 3, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.16323959827423096, 0.2366228699684143, 0.23314319550991058, 0.19680622220039368, 0.17018809914588928]]}
+
+step=31 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.RED: 3>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 1, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [2], 'request': [3]}
+  value=-0.03792838752269745
+  vp={'0': 1, '1': 1, '2': 1, '3': 0}
+  resources={'0': {'WOOD': 3, 'BRICK': 2, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '1': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 1, 'WHEAT': 2, 'ORE': 1}, '2': {'WOOD': 1, 'BRICK': 2, 'SHEEP': 1, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 3, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.16323959827423096, 0.2366228699684143, 0.23314319550991058, 0.19680622220039368, 0.17018809914588928]]}
+
+step=32 phase=TRADE_RESPOND reward=-0.008 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [2], 'request': [3]}
+  value=-0.1564401537179947
+  vp={'0': 1, '1': 1, '2': 1, '3': 0}
+  resources={'0': {'WOOD': 3, 'BRICK': 2, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '1': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 1, 'WHEAT': 2, 'ORE': 1}, '2': {'WOOD': 1, 'BRICK': 2, 'SHEEP': 1, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 3, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.16323959827423096, 0.2366228699684143, 0.23314319550991058, 0.19680622220039368, 0.17018809914588928]]}
+
+step=33 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=-0.1555996984243393
+  vp={'0': 1, '1': 1, '2': 1, '3': 0}
+  resources={'0': {'WOOD': 3, 'BRICK': 2, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '1': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 1, 'WHEAT': 2, 'ORE': 1}, '2': {'WOOD': 1, 'BRICK': 2, 'SHEEP': 1, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 3, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.16323959827423096, 0.2366228699684143, 0.23314319550991058, 0.19680622220039368, 0.17018809914588928]]}
+
+step=34 phase=ROLL reward=0.0 done=False
+
+step=35 phase=MAIN_ACTION reward=-0.002 done=False
+  env_action={'type': 'end_main_action'}
+  action_dict={'gameplay_action': [70]}
+  value=0.04770573973655701
+  vp={'0': 1, '1': 1, '2': 1, '3': 0}
+  resources={'0': {'WOOD': 3, 'BRICK': 3, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '1': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 1, 'WHEAT': 2, 'ORE': 1}, '2': {'WOOD': 1, 'BRICK': 3, 'SHEEP': 1, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 3, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.15990908443927765, 0.23791185021400452, 0.2362719476222992, 0.1989392191171646, 0.1669679582118988]]}
+
+step=36 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.BLUE: 1>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 1, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [1], 'offer': [2], 'request': [3]}
+  value=-0.012530067935585976
+  vp={'0': 1, '1': 1, '2': 1, '3': 0}
+  resources={'0': {'WOOD': 3, 'BRICK': 3, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '1': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 1, 'WHEAT': 2, 'ORE': 1}, '2': {'WOOD': 1, 'BRICK': 3, 'SHEEP': 1, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 3, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.15990908443927765, 0.23791185021400452, 0.2362719476222992, 0.1989392191171646, 0.1669679582118988]]}
+
+step=37 phase=TRADE_RESPOND reward=0.02 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [2], 'request': [3]}
+  value=-0.13587360084056854
+  vp={'0': 1, '1': 1, '2': 1, '3': 0}
+  resources={'0': {'WOOD': 3, 'BRICK': 3, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '1': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}, '2': {'WOOD': 1, 'BRICK': 3, 'SHEEP': 1, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.15990908443927765, 0.23791185021400452, 0.2362719476222992, 0.1989392191171646, 0.1669679582118988]]}
+
+step=38 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=-0.11071260273456573
+  vp={'0': 1, '1': 1, '2': 1, '3': 0}
+  resources={'0': {'WOOD': 3, 'BRICK': 3, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '1': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}, '2': {'WOOD': 1, 'BRICK': 3, 'SHEEP': 1, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.1595841348171234, 0.2386930137872696, 0.23677805066108704, 0.19849973917007446, 0.1664450466632843]]}
+
+step=39 phase=ROLL reward=0.0 done=False
+
+step=40 phase=MAIN_ACTION reward=0.32 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [70]}
+  value=0.07135006040334702
+  vp={'0': 2, '1': 1, '2': 1, '3': 0}
+  resources={'0': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 0, 'WHEAT': 1, 'ORE': 1}, '1': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 3, 'WHEAT': 1, 'ORE': 1}, '2': {'WOOD': 1, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.15966327488422394, 0.2420286387205124, 0.23657499253749847, 0.19648464024066925, 0.16524842381477356]]}
+
+step=41 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.RED: 3>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=-0.03701967000961304
+  vp={'0': 2, '1': 1, '2': 1, '3': 0}
+  resources={'0': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 0, 'WHEAT': 1, 'ORE': 1}, '1': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 3, 'WHEAT': 1, 'ORE': 1}, '2': {'WOOD': 1, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.15966327488422394, 0.2420286387205124, 0.23657499253749847, 0.19648464024066925, 0.16524842381477356]]}
+
+step=42 phase=TRADE_RESPOND reward=0.02 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [2], 'request': [3]}
+  value=-0.15933555364608765
+  vp={'0': 2, '1': 1, '2': 1, '3': 0}
+  resources={'0': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '1': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 3, 'WHEAT': 1, 'ORE': 1}, '2': {'WOOD': 1, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.15966327488422394, 0.2420286387205124, 0.23657499253749847, 0.19648464024066925, 0.16524842381477356]]}
+
+step=43 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=-0.13443484902381897
+  vp={'0': 2, '1': 1, '2': 1, '3': 0}
+  resources={'0': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 0, 'WHEAT': 2, 'ORE': 1}, '1': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 3, 'WHEAT': 1, 'ORE': 1}, '2': {'WOOD': 1, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.15899121761322021, 0.2426331639289856, 0.23742879927158356, 0.19663061201572418, 0.16431622207164764]]}
+
+step=44 phase=ROLL reward=0.0 done=False
+
+step=45 phase=MAIN_ACTION reward=0.32 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [70]}
+  value=0.07533944398164749
+  vp={'0': 2, '1': 2, '2': 1, '3': 0}
+  resources={'0': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 1, 'WHEAT': 3, 'ORE': 1}, '1': {'WOOD': 1, 'BRICK': 1, 'SHEEP': 3, 'WHEAT': 0, 'ORE': 1}, '2': {'WOOD': 1, 'BRICK': 3, 'SHEEP': 3, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.15852807462215424, 0.2423282116651535, 0.23790639638900757, 0.1972448080778122, 0.16399256885051727]]}
+
+step=46 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.RED: 3>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=-0.043716467916965485
+  vp={'0': 2, '1': 2, '2': 1, '3': 0}
+  resources={'0': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 1, 'WHEAT': 3, 'ORE': 1}, '1': {'WOOD': 1, 'BRICK': 1, 'SHEEP': 3, 'WHEAT': 0, 'ORE': 1}, '2': {'WOOD': 1, 'BRICK': 3, 'SHEEP': 3, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.15852807462215424, 0.2423282116651535, 0.23790639638900757, 0.1972448080778122, 0.16399256885051727]]}
+
+step=47 phase=TRADE_RESPOND reward=-0.008 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [2], 'request': [3]}
+  value=-0.16740916669368744
+  vp={'0': 2, '1': 2, '2': 1, '3': 0}
+  resources={'0': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 1, 'WHEAT': 3, 'ORE': 1}, '1': {'WOOD': 1, 'BRICK': 1, 'SHEEP': 3, 'WHEAT': 0, 'ORE': 1}, '2': {'WOOD': 1, 'BRICK': 3, 'SHEEP': 3, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.15852807462215424, 0.2423282116651535, 0.23790639638900757, 0.1972448080778122, 0.16399256885051727]]}
+
+step=48 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=-0.16518543660640717
+  vp={'0': 2, '1': 2, '2': 1, '3': 0}
+  resources={'0': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 1, 'WHEAT': 3, 'ORE': 1}, '1': {'WOOD': 1, 'BRICK': 1, 'SHEEP': 3, 'WHEAT': 0, 'ORE': 1}, '2': {'WOOD': 1, 'BRICK': 3, 'SHEEP': 3, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.15852807462215424, 0.2423282116651535, 0.23790639638900757, 0.1972448080778122, 0.16399256885051727]]}
+
+step=49 phase=ROLL reward=0.0 done=False
+
+step=50 phase=MAIN_ACTION reward=0.32 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [70]}
+  value=0.08812832832336426
+  vp={'0': 2, '1': 2, '2': 2, '3': 0}
+  resources={'0': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 2, 'WHEAT': 4, 'ORE': 1}, '1': {'WOOD': 1, 'BRICK': 1, 'SHEEP': 4, 'WHEAT': 1, 'ORE': 1}, '2': {'WOOD': 0, 'BRICK': 2, 'SHEEP': 3, 'WHEAT': 0, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.15699784457683563, 0.24402393400669098, 0.239959254860878, 0.1966681033372879, 0.1623508185148239]]}
+
+step=51 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.RED: 3>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=-0.03853689879179001
+  vp={'0': 2, '1': 2, '2': 2, '3': 0}
+  resources={'0': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 2, 'WHEAT': 4, 'ORE': 1}, '1': {'WOOD': 1, 'BRICK': 1, 'SHEEP': 4, 'WHEAT': 1, 'ORE': 1}, '2': {'WOOD': 0, 'BRICK': 2, 'SHEEP': 3, 'WHEAT': 0, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.15699784457683563, 0.24402393400669098, 0.239959254860878, 0.1966681033372879, 0.1623508185148239]]}
+
+step=52 phase=TRADE_RESPOND reward=-0.008 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [2], 'request': [3]}
+  value=-0.16300883889198303
+  vp={'0': 2, '1': 2, '2': 2, '3': 0}
+  resources={'0': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 2, 'WHEAT': 4, 'ORE': 1}, '1': {'WOOD': 1, 'BRICK': 1, 'SHEEP': 4, 'WHEAT': 1, 'ORE': 1}, '2': {'WOOD': 0, 'BRICK': 2, 'SHEEP': 3, 'WHEAT': 0, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.15699784457683563, 0.24402393400669098, 0.239959254860878, 0.1966681033372879, 0.1623508185148239]]}
+
+step=53 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=-0.16139623522758484
+  vp={'0': 2, '1': 2, '2': 2, '3': 0}
+  resources={'0': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 2, 'WHEAT': 4, 'ORE': 1}, '1': {'WOOD': 1, 'BRICK': 1, 'SHEEP': 4, 'WHEAT': 1, 'ORE': 1}, '2': {'WOOD': 0, 'BRICK': 2, 'SHEEP': 3, 'WHEAT': 0, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.15699784457683563, 0.24402393400669098, 0.239959254860878, 0.1966681033372879, 0.1623508185148239]]}
+
+step=54 phase=ROLL reward=0.0 done=False
+
+step=55 phase=MAIN_ACTION reward=-0.002 done=False
+  env_action={'type': 'end_main_action'}
+  action_dict={'gameplay_action': [70]}
+  value=0.10920839011669159
+  vp={'0': 2, '1': 2, '2': 2, '3': 0}
+  resources={'0': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 3, 'WHEAT': 5, 'ORE': 1}, '1': {'WOOD': 1, 'BRICK': 1, 'SHEEP': 5, 'WHEAT': 2, 'ORE': 1}, '2': {'WOOD': 0, 'BRICK': 2, 'SHEEP': 4, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.15205392241477966, 0.24909144639968872, 0.24498754739761353, 0.1966555416584015, 0.15721149742603302]]}
+
+step=56 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.BLUE: 1>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [1], 'offer': [1], 'request': [3]}
+  value=0.04567903280258179
+  vp={'0': 2, '1': 2, '2': 2, '3': 0}
+  resources={'0': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 3, 'WHEAT': 5, 'ORE': 1}, '1': {'WOOD': 1, 'BRICK': 1, 'SHEEP': 5, 'WHEAT': 2, 'ORE': 1}, '2': {'WOOD': 0, 'BRICK': 2, 'SHEEP': 4, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.15205392241477966, 0.24909144639968872, 0.24498754739761353, 0.1966555416584015, 0.15721149742603302]]}
+
+step=57 phase=TRADE_RESPOND reward=0.02 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [2], 'request': [3]}
+  value=-0.0791100412607193
+  vp={'0': 2, '1': 2, '2': 2, '3': 0}
+  resources={'0': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 3, 'WHEAT': 5, 'ORE': 1}, '1': {'WOOD': 1, 'BRICK': 2, 'SHEEP': 5, 'WHEAT': 1, 'ORE': 1}, '2': {'WOOD': 0, 'BRICK': 2, 'SHEEP': 4, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.15205392241477966, 0.24909144639968872, 0.24498754739761353, 0.1966555416584015, 0.15721149742603302]]}
+
+step=58 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=-0.04332761466503143
+  vp={'0': 2, '1': 2, '2': 2, '3': 0}
+  resources={'0': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 3, 'WHEAT': 5, 'ORE': 1}, '1': {'WOOD': 1, 'BRICK': 2, 'SHEEP': 5, 'WHEAT': 1, 'ORE': 1}, '2': {'WOOD': 0, 'BRICK': 2, 'SHEEP': 4, 'WHEAT': 1, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.15110811591148376, 0.250114381313324, 0.24564918875694275, 0.19674822688102722, 0.15638013184070587]]}
+
+step=59 phase=ROLL reward=0.0 done=False
+
+step=60 phase=MAIN_ACTION reward=0.32 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [70]}
+  value=0.20104089379310608
+  vp={'0': 3, '1': 2, '2': 2, '3': 0}
+  resources={'0': {'WOOD': 1, 'BRICK': 0, 'SHEEP': 2, 'WHEAT': 5, 'ORE': 2}, '1': {'WOOD': 1, 'BRICK': 2, 'SHEEP': 5, 'WHEAT': 2, 'ORE': 2}, '2': {'WOOD': 0, 'BRICK': 2, 'SHEEP': 4, 'WHEAT': 2, 'ORE': 2}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.15379922091960907, 0.2493242472410202, 0.24236717820167542, 0.19674821197986603, 0.1577611267566681]]}
+
+step=61 phase=TRADE_PROPOSE reward=-0.01 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.RED: 3>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.1074170470237732
+  vp={'0': 3, '1': 2, '2': 2, '3': 0}
+  resources={'0': {'WOOD': 1, 'BRICK': 0, 'SHEEP': 2, 'WHEAT': 5, 'ORE': 2}, '1': {'WOOD': 1, 'BRICK': 2, 'SHEEP': 5, 'WHEAT': 2, 'ORE': 2}, '2': {'WOOD': 0, 'BRICK': 2, 'SHEEP': 4, 'WHEAT': 2, 'ORE': 2}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.15379922091960907, 0.2493242472410202, 0.24236717820167542, 0.19674821197986603, 0.1577611267566681]]}
+
+step=62 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=-0.016609178856015205
+  vp={'0': 3, '1': 2, '2': 2, '3': 0}
+  resources={'0': {'WOOD': 1, 'BRICK': 0, 'SHEEP': 2, 'WHEAT': 5, 'ORE': 2}, '1': {'WOOD': 1, 'BRICK': 2, 'SHEEP': 5, 'WHEAT': 2, 'ORE': 2}, '2': {'WOOD': 0, 'BRICK': 2, 'SHEEP': 4, 'WHEAT': 2, 'ORE': 2}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.15379922091960907, 0.2493242472410202, 0.24236717820167542, 0.19674821197986603, 0.1577611267566681]]}
+
+step=63 phase=ROLL reward=0.0 done=False
+
+step=64 phase=MAIN_ACTION reward=0.36 done=False
+  env_action={'type': 'build_city'}
+  action_dict={'gameplay_action': [70]}
+  value=0.19515110552310944
+  vp={'0': 3, '1': 3, '2': 2, '3': 0}
+  resources={'0': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 2, 'WHEAT': 6, 'ORE': 3}, '1': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 5, 'WHEAT': 1, 'ORE': 0}, '2': {'WOOD': 1, 'BRICK': 2, 'SHEEP': 4, 'WHEAT': 3, 'ORE': 3}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.15579083561897278, 0.24709132313728333, 0.24119478464126587, 0.19614538550376892, 0.1597777009010315]]}
+
+step=65 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.RED: 3>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.013479748740792274
+  vp={'0': 3, '1': 3, '2': 2, '3': 0}
+  resources={'0': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 2, 'WHEAT': 6, 'ORE': 3}, '1': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 5, 'WHEAT': 1, 'ORE': 0}, '2': {'WOOD': 1, 'BRICK': 2, 'SHEEP': 4, 'WHEAT': 3, 'ORE': 3}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.15579083561897278, 0.24709132313728333, 0.24119478464126587, 0.19614538550376892, 0.1597777009010315]]}
+
+step=66 phase=TRADE_RESPOND reward=0.02 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=-0.11857764422893524
+  vp={'0': 3, '1': 3, '2': 2, '3': 0}
+  resources={'0': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 2, 'WHEAT': 6, 'ORE': 3}, '1': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 5, 'WHEAT': 2, 'ORE': 0}, '2': {'WOOD': 1, 'BRICK': 2, 'SHEEP': 4, 'WHEAT': 3, 'ORE': 3}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.15579083561897278, 0.24709132313728333, 0.24119478464126587, 0.19614538550376892, 0.1597777009010315]]}
+
+step=67 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=-0.08964630216360092
+  vp={'0': 3, '1': 3, '2': 2, '3': 0}
+  resources={'0': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 2, 'WHEAT': 6, 'ORE': 3}, '1': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 5, 'WHEAT': 2, 'ORE': 0}, '2': {'WOOD': 1, 'BRICK': 2, 'SHEEP': 4, 'WHEAT': 3, 'ORE': 3}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.15487833321094513, 0.24821072816848755, 0.24190989136695862, 0.19611480832099915, 0.15888625383377075]]}
+
+step=68 phase=ROLL reward=0.0 done=False
+
+step=69 phase=MAIN_ACTION reward=0.36 done=False
+  env_action={'type': 'build_city'}
+  action_dict={'gameplay_action': [70]}
+  value=0.21709787845611572
+  vp={'0': 3, '1': 3, '2': 3, '3': 0}
+  resources={'0': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 2, 'WHEAT': 6, 'ORE': 3}, '1': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 5, 'WHEAT': 2, 'ORE': 0}, '2': {'WOOD': 1, 'BRICK': 2, 'SHEEP': 4, 'WHEAT': 1, 'ORE': 0}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.1556464582681656, 0.24729779362678528, 0.2422056943178177, 0.19458916783332825, 0.16026099026203156]]}
+
+step=70 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.RED: 3>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.03280813992023468
+  vp={'0': 3, '1': 3, '2': 3, '3': 0}
+  resources={'0': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 2, 'WHEAT': 6, 'ORE': 3}, '1': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 5, 'WHEAT': 2, 'ORE': 0}, '2': {'WOOD': 1, 'BRICK': 2, 'SHEEP': 4, 'WHEAT': 1, 'ORE': 0}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.1556464582681656, 0.24729779362678528, 0.2422056943178177, 0.19458916783332825, 0.16026099026203156]]}
+
+step=71 phase=TRADE_RESPOND reward=-0.008 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=-0.10295740514993668
+  vp={'0': 3, '1': 3, '2': 3, '3': 0}
+  resources={'0': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 2, 'WHEAT': 6, 'ORE': 3}, '1': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 5, 'WHEAT': 2, 'ORE': 0}, '2': {'WOOD': 1, 'BRICK': 2, 'SHEEP': 4, 'WHEAT': 1, 'ORE': 0}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.1556464582681656, 0.24729779362678528, 0.2422056943178177, 0.19458916783332825, 0.16026099026203156]]}
+
+step=72 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=-0.10025498270988464
+  vp={'0': 3, '1': 3, '2': 3, '3': 0}
+  resources={'0': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 2, 'WHEAT': 6, 'ORE': 3}, '1': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 5, 'WHEAT': 2, 'ORE': 0}, '2': {'WOOD': 1, 'BRICK': 2, 'SHEEP': 4, 'WHEAT': 1, 'ORE': 0}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.1556464582681656, 0.24729779362678528, 0.2422056943178177, 0.19458916783332825, 0.16026099026203156]]}
+
+step=73 phase=ROLL reward=0.0 done=False
+
+step=74 phase=MAIN_ACTION reward=-0.002 done=False
+  env_action={'type': 'end_main_action'}
+  action_dict={'gameplay_action': [70]}
+  value=0.1879136711359024
+  vp={'0': 3, '1': 3, '2': 3, '3': 0}
+  resources={'0': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 2, 'WHEAT': 7, 'ORE': 4}, '1': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 5, 'WHEAT': 3, 'ORE': 1}, '2': {'WOOD': 1, 'BRICK': 2, 'SHEEP': 4, 'WHEAT': 2, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.1525913029909134, 0.2515921890735626, 0.24529443681240082, 0.19450026750564575, 0.1560218185186386]]}
+
+step=75 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.BLUE: 1>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [1], 'offer': [1], 'request': [3]}
+  value=0.12029281258583069
+  vp={'0': 3, '1': 3, '2': 3, '3': 0}
+  resources={'0': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 2, 'WHEAT': 7, 'ORE': 4}, '1': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 5, 'WHEAT': 3, 'ORE': 1}, '2': {'WOOD': 1, 'BRICK': 2, 'SHEEP': 4, 'WHEAT': 2, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.1525913029909134, 0.2515921890735626, 0.24529443681240082, 0.19450026750564575, 0.1560218185186386]]}
+
+step=76 phase=TRADE_RESPOND reward=0.02 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=-0.006264811381697655
+  vp={'0': 3, '1': 3, '2': 3, '3': 0}
+  resources={'0': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 2, 'WHEAT': 7, 'ORE': 4}, '1': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 5, 'WHEAT': 2, 'ORE': 1}, '2': {'WOOD': 1, 'BRICK': 2, 'SHEEP': 4, 'WHEAT': 2, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.1525913029909134, 0.2515921890735626, 0.24529443681240082, 0.19450026750564575, 0.1560218185186386]]}
+
+step=77 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=0.030291935428977013
+  vp={'0': 3, '1': 3, '2': 3, '3': 0}
+  resources={'0': {'WOOD': 2, 'BRICK': 1, 'SHEEP': 2, 'WHEAT': 7, 'ORE': 4}, '1': {'WOOD': 2, 'BRICK': 2, 'SHEEP': 5, 'WHEAT': 2, 'ORE': 1}, '2': {'WOOD': 1, 'BRICK': 2, 'SHEEP': 4, 'WHEAT': 2, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.15158340334892273, 0.25244104862213135, 0.24626687169075012, 0.19460894167423248, 0.15509973466396332]]}
+
+step=78 phase=ROLL reward=0.0 done=False
+
+step=79 phase=MAIN_ACTION reward=0.36 done=False
+  env_action={'type': 'build_city'}
+  action_dict={'gameplay_action': [70]}
+  value=0.30698361992836
+  vp={'0': 4, '1': 3, '2': 3, '3': 0}
+  resources={'0': {'WOOD': 3, 'BRICK': 2, 'SHEEP': 3, 'WHEAT': 5, 'ORE': 2}, '1': {'WOOD': 3, 'BRICK': 3, 'SHEEP': 6, 'WHEAT': 2, 'ORE': 2}, '2': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 5, 'WHEAT': 2, 'ORE': 2}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.1532253623008728, 0.25395578145980835, 0.2438872903585434, 0.19200251996517181, 0.1569291204214096]]}
+
+step=80 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.RED: 3>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.14514361321926117
+  vp={'0': 4, '1': 3, '2': 3, '3': 0}
+  resources={'0': {'WOOD': 3, 'BRICK': 2, 'SHEEP': 3, 'WHEAT': 5, 'ORE': 2}, '1': {'WOOD': 3, 'BRICK': 3, 'SHEEP': 6, 'WHEAT': 2, 'ORE': 2}, '2': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 5, 'WHEAT': 2, 'ORE': 2}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.1532253623008728, 0.25395578145980835, 0.2438872903585434, 0.19200251996517181, 0.1569291204214096]]}
+
+step=81 phase=TRADE_RESPOND reward=0.02 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.02700895629823208
+  vp={'0': 4, '1': 3, '2': 3, '3': 0}
+  resources={'0': {'WOOD': 3, 'BRICK': 1, 'SHEEP': 3, 'WHEAT': 6, 'ORE': 2}, '1': {'WOOD': 3, 'BRICK': 3, 'SHEEP': 6, 'WHEAT': 2, 'ORE': 2}, '2': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 5, 'WHEAT': 2, 'ORE': 2}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.1532253623008728, 0.25395578145980835, 0.2438872903585434, 0.19200251996517181, 0.1569291204214096]]}
+
+step=82 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=0.042467162013053894
+  vp={'0': 4, '1': 3, '2': 3, '3': 0}
+  resources={'0': {'WOOD': 3, 'BRICK': 1, 'SHEEP': 3, 'WHEAT': 6, 'ORE': 2}, '1': {'WOOD': 3, 'BRICK': 3, 'SHEEP': 6, 'WHEAT': 2, 'ORE': 2}, '2': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 5, 'WHEAT': 2, 'ORE': 2}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.1521790772676468, 0.25498881936073303, 0.24471746385097504, 0.19214999675750732, 0.1559647023677826]]}
+
+step=83 phase=ROLL reward=0.0 done=False
+
+step=84 phase=MAIN_ACTION reward=0.36 done=False
+  env_action={'type': 'build_city'}
+  action_dict={'gameplay_action': [70]}
+  value=0.20446239411830902
+  vp={'0': 4, '1': 4, '2': 3, '3': 0}
+  resources={'0': {'WOOD': 4, 'BRICK': 2, 'SHEEP': 4, 'WHEAT': 7, 'ORE': 4}, '1': {'WOOD': 4, 'BRICK': 4, 'SHEEP': 7, 'WHEAT': 0, 'ORE': 0}, '2': {'WOOD': 3, 'BRICK': 4, 'SHEEP': 6, 'WHEAT': 2, 'ORE': 3}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.15232446789741516, 0.2554551661014557, 0.2461060881614685, 0.19054849445819855, 0.1555657535791397]]}
+
+step=85 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.RED: 3>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.03966784477233887
+  vp={'0': 4, '1': 4, '2': 3, '3': 0}
+  resources={'0': {'WOOD': 4, 'BRICK': 2, 'SHEEP': 4, 'WHEAT': 7, 'ORE': 4}, '1': {'WOOD': 4, 'BRICK': 4, 'SHEEP': 7, 'WHEAT': 0, 'ORE': 0}, '2': {'WOOD': 3, 'BRICK': 4, 'SHEEP': 6, 'WHEAT': 2, 'ORE': 3}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.15232446789741516, 0.2554551661014557, 0.2461060881614685, 0.19054849445819855, 0.1555657535791397]]}
+
+step=86 phase=TRADE_RESPOND reward=-0.008 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=-0.09335190802812576
+  vp={'0': 4, '1': 4, '2': 3, '3': 0}
+  resources={'0': {'WOOD': 4, 'BRICK': 2, 'SHEEP': 4, 'WHEAT': 7, 'ORE': 4}, '1': {'WOOD': 4, 'BRICK': 4, 'SHEEP': 7, 'WHEAT': 0, 'ORE': 0}, '2': {'WOOD': 3, 'BRICK': 4, 'SHEEP': 6, 'WHEAT': 2, 'ORE': 3}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.15232446789741516, 0.2554551661014557, 0.2461060881614685, 0.19054849445819855, 0.1555657535791397]]}
+
+step=87 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=-0.09073276072740555
+  vp={'0': 4, '1': 4, '2': 3, '3': 0}
+  resources={'0': {'WOOD': 4, 'BRICK': 2, 'SHEEP': 4, 'WHEAT': 7, 'ORE': 4}, '1': {'WOOD': 4, 'BRICK': 4, 'SHEEP': 7, 'WHEAT': 0, 'ORE': 0}, '2': {'WOOD': 3, 'BRICK': 4, 'SHEEP': 6, 'WHEAT': 2, 'ORE': 3}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.15232446789741516, 0.2554551661014557, 0.2461060881614685, 0.19054849445819855, 0.1555657535791397]]}
+
+step=88 phase=ROLL reward=0.0 done=False
+
+step=89 phase=MAIN_ACTION reward=0.36 done=False
+  env_action={'type': 'build_city'}
+  action_dict={'gameplay_action': [70]}
+  value=0.22903946042060852
+  vp={'0': 4, '1': 4, '2': 4, '3': 0}
+  resources={'0': {'WOOD': 5, 'BRICK': 3, 'SHEEP': 5, 'WHEAT': 8, 'ORE': 6}, '1': {'WOOD': 5, 'BRICK': 5, 'SHEEP': 8, 'WHEAT': 1, 'ORE': 2}, '2': {'WOOD': 4, 'BRICK': 5, 'SHEEP': 7, 'WHEAT': 0, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.15059341490268707, 0.2611726224422455, 0.24829065799713135, 0.18659499287605286, 0.15334825217723846]]}
+
+step=90 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.RED: 3>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.05751212686300278
+  vp={'0': 4, '1': 4, '2': 4, '3': 0}
+  resources={'0': {'WOOD': 5, 'BRICK': 3, 'SHEEP': 5, 'WHEAT': 8, 'ORE': 6}, '1': {'WOOD': 5, 'BRICK': 5, 'SHEEP': 8, 'WHEAT': 1, 'ORE': 2}, '2': {'WOOD': 4, 'BRICK': 5, 'SHEEP': 7, 'WHEAT': 0, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.15059341490268707, 0.2611726224422455, 0.24829065799713135, 0.18659499287605286, 0.15334825217723846]]}
+
+step=91 phase=TRADE_RESPOND reward=-0.008 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=-0.07185467332601547
+  vp={'0': 4, '1': 4, '2': 4, '3': 0}
+  resources={'0': {'WOOD': 5, 'BRICK': 3, 'SHEEP': 5, 'WHEAT': 8, 'ORE': 6}, '1': {'WOOD': 5, 'BRICK': 5, 'SHEEP': 8, 'WHEAT': 1, 'ORE': 2}, '2': {'WOOD': 4, 'BRICK': 5, 'SHEEP': 7, 'WHEAT': 0, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.15059341490268707, 0.2611726224422455, 0.24829065799713135, 0.18659499287605286, 0.15334825217723846]]}
+
+step=92 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=-0.06845058500766754
+  vp={'0': 4, '1': 4, '2': 4, '3': 0}
+  resources={'0': {'WOOD': 5, 'BRICK': 3, 'SHEEP': 5, 'WHEAT': 8, 'ORE': 6}, '1': {'WOOD': 5, 'BRICK': 5, 'SHEEP': 8, 'WHEAT': 1, 'ORE': 2}, '2': {'WOOD': 4, 'BRICK': 5, 'SHEEP': 7, 'WHEAT': 0, 'ORE': 1}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.15059341490268707, 0.2611726224422455, 0.24829065799713135, 0.18659499287605286, 0.15334825217723846]]}
+
+step=93 phase=ROLL reward=0.0 done=False
+
+step=94 phase=MAIN_ACTION reward=-0.002 done=False
+  env_action={'type': 'end_main_action'}
+  action_dict={'gameplay_action': [70]}
+  value=0.26165711879730225
+  vp={'0': 4, '1': 4, '2': 4, '3': 0}
+  resources={'0': {'WOOD': 6, 'BRICK': 4, 'SHEEP': 6, 'WHEAT': 9, 'ORE': 7}, '1': {'WOOD': 6, 'BRICK': 6, 'SHEEP': 9, 'WHEAT': 2, 'ORE': 3}, '2': {'WOOD': 5, 'BRICK': 6, 'SHEEP': 8, 'WHEAT': 1, 'ORE': 2}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.14205363392829895, 0.27846407890319824, 0.25739091634750366, 0.17817503213882446, 0.14391635358333588]]}
+
+step=95 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.ORANGE: 2>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.19556593894958496
+  vp={'0': 4, '1': 4, '2': 4, '3': 0}
+  resources={'0': {'WOOD': 6, 'BRICK': 4, 'SHEEP': 6, 'WHEAT': 9, 'ORE': 7}, '1': {'WOOD': 6, 'BRICK': 6, 'SHEEP': 9, 'WHEAT': 2, 'ORE': 3}, '2': {'WOOD': 5, 'BRICK': 6, 'SHEEP': 8, 'WHEAT': 1, 'ORE': 2}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.14205363392829895, 0.27846407890319824, 0.25739091634750366, 0.17817503213882446, 0.14391635358333588]]}
+
+step=96 phase=TRADE_RESPOND reward=0.02 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.07290410250425339
+  vp={'0': 4, '1': 4, '2': 4, '3': 0}
+  resources={'0': {'WOOD': 6, 'BRICK': 4, 'SHEEP': 6, 'WHEAT': 9, 'ORE': 7}, '1': {'WOOD': 6, 'BRICK': 6, 'SHEEP': 9, 'WHEAT': 2, 'ORE': 3}, '2': {'WOOD': 5, 'BRICK': 7, 'SHEEP': 8, 'WHEAT': 0, 'ORE': 2}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.14205363392829895, 0.27846407890319824, 0.25739091634750366, 0.17817503213882446, 0.14391635358333588]]}
+
+step=97 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=0.10701927542686462
+  vp={'0': 4, '1': 4, '2': 4, '3': 0}
+  resources={'0': {'WOOD': 6, 'BRICK': 4, 'SHEEP': 6, 'WHEAT': 9, 'ORE': 7}, '1': {'WOOD': 6, 'BRICK': 6, 'SHEEP': 9, 'WHEAT': 2, 'ORE': 3}, '2': {'WOOD': 5, 'BRICK': 7, 'SHEEP': 8, 'WHEAT': 0, 'ORE': 2}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.1413741111755371, 0.2791851758956909, 0.2581152021884918, 0.17832572758197784, 0.14299985766410828]]}
+
+step=98 phase=ROLL reward=0.0 done=False
+
+step=99 phase=MAIN_ACTION reward=0.36 done=False
+  env_action={'type': 'build_city'}
+  action_dict={'gameplay_action': [70]}
+  value=0.3522033393383026
+  vp={'0': 5, '1': 4, '2': 4, '3': 0}
+  resources={'0': {'WOOD': 7, 'BRICK': 5, 'SHEEP': 6, 'WHEAT': 7, 'ORE': 4}, '1': {'WOOD': 7, 'BRICK': 7, 'SHEEP': 9, 'WHEAT': 2, 'ORE': 3}, '2': {'WOOD': 6, 'BRICK': 8, 'SHEEP': 8, 'WHEAT': 0, 'ORE': 2}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.14681023359298706, 0.2695784568786621, 0.25179997086524963, 0.18207944929599762, 0.1497318148612976]]}
+
+step=100 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.RED: 3>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.19856339693069458
+  vp={'0': 5, '1': 4, '2': 4, '3': 0}
+  resources={'0': {'WOOD': 7, 'BRICK': 5, 'SHEEP': 6, 'WHEAT': 7, 'ORE': 4}, '1': {'WOOD': 7, 'BRICK': 7, 'SHEEP': 9, 'WHEAT': 2, 'ORE': 3}, '2': {'WOOD': 6, 'BRICK': 8, 'SHEEP': 8, 'WHEAT': 0, 'ORE': 2}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.14681023359298706, 0.2695784568786621, 0.25179997086524963, 0.18207944929599762, 0.1497318148612976]]}
+
+step=101 phase=TRADE_RESPOND reward=0.02 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.07851889729499817
+  vp={'0': 5, '1': 4, '2': 4, '3': 0}
+  resources={'0': {'WOOD': 7, 'BRICK': 4, 'SHEEP': 6, 'WHEAT': 8, 'ORE': 4}, '1': {'WOOD': 7, 'BRICK': 7, 'SHEEP': 9, 'WHEAT': 2, 'ORE': 3}, '2': {'WOOD': 6, 'BRICK': 8, 'SHEEP': 8, 'WHEAT': 0, 'ORE': 2}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.14681023359298706, 0.2695784568786621, 0.25179997086524963, 0.18207944929599762, 0.1497318148612976]]}
+
+step=102 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=0.09443627297878265
+  vp={'0': 5, '1': 4, '2': 4, '3': 0}
+  resources={'0': {'WOOD': 7, 'BRICK': 4, 'SHEEP': 6, 'WHEAT': 8, 'ORE': 4}, '1': {'WOOD': 7, 'BRICK': 7, 'SHEEP': 9, 'WHEAT': 2, 'ORE': 3}, '2': {'WOOD': 6, 'BRICK': 8, 'SHEEP': 8, 'WHEAT': 0, 'ORE': 2}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.14587247371673584, 0.2703534960746765, 0.2526489794254303, 0.182159423828125, 0.14896567165851593]]}
+
+step=103 phase=ROLL reward=0.0 done=False
+
+step=104 phase=MAIN_ACTION reward=0.32 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [70]}
+  value=0.2095031440258026
+  vp={'0': 5, '1': 5, '2': 4, '3': 0}
+  resources={'0': {'WOOD': 9, 'BRICK': 5, 'SHEEP': 7, 'WHEAT': 9, 'ORE': 5}, '1': {'WOOD': 7, 'BRICK': 7, 'SHEEP': 9, 'WHEAT': 2, 'ORE': 4}, '2': {'WOOD': 7, 'BRICK': 9, 'SHEEP': 9, 'WHEAT': 1, 'ORE': 3}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.14711512625217438, 0.26975536346435547, 0.25345292687416077, 0.17991933226585388, 0.1497572809457779]]}
+
+step=105 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.RED: 3>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.12456095218658447
+  vp={'0': 5, '1': 5, '2': 4, '3': 0}
+  resources={'0': {'WOOD': 9, 'BRICK': 5, 'SHEEP': 7, 'WHEAT': 9, 'ORE': 5}, '1': {'WOOD': 7, 'BRICK': 7, 'SHEEP': 9, 'WHEAT': 2, 'ORE': 4}, '2': {'WOOD': 7, 'BRICK': 9, 'SHEEP': 9, 'WHEAT': 1, 'ORE': 3}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.14711512625217438, 0.26975536346435547, 0.25345292687416077, 0.17991933226585388, 0.1497572809457779]]}
+
+step=106 phase=TRADE_RESPOND reward=-0.008 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=-0.0005835872143507004
+  vp={'0': 5, '1': 5, '2': 4, '3': 0}
+  resources={'0': {'WOOD': 9, 'BRICK': 5, 'SHEEP': 7, 'WHEAT': 9, 'ORE': 5}, '1': {'WOOD': 7, 'BRICK': 7, 'SHEEP': 9, 'WHEAT': 2, 'ORE': 4}, '2': {'WOOD': 7, 'BRICK': 9, 'SHEEP': 9, 'WHEAT': 1, 'ORE': 3}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.14711512625217438, 0.26975536346435547, 0.25345292687416077, 0.17991933226585388, 0.1497572809457779]]}
+
+step=107 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=0.0020584557205438614
+  vp={'0': 5, '1': 5, '2': 4, '3': 0}
+  resources={'0': {'WOOD': 9, 'BRICK': 5, 'SHEEP': 7, 'WHEAT': 9, 'ORE': 5}, '1': {'WOOD': 7, 'BRICK': 7, 'SHEEP': 9, 'WHEAT': 2, 'ORE': 4}, '2': {'WOOD': 7, 'BRICK': 9, 'SHEEP': 9, 'WHEAT': 1, 'ORE': 3}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.14711512625217438, 0.26975536346435547, 0.25345292687416077, 0.17991933226585388, 0.1497572809457779]]}
+
+step=108 phase=ROLL reward=0.0 done=False
+
+step=109 phase=MAIN_ACTION reward=0.32 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [70]}
+  value=0.20839625597000122
+  vp={'0': 5, '1': 5, '2': 5, '3': 0}
+  resources={'0': {'WOOD': 11, 'BRICK': 6, 'SHEEP': 8, 'WHEAT': 10, 'ORE': 6}, '1': {'WOOD': 9, 'BRICK': 8, 'SHEEP': 10, 'WHEAT': 3, 'ORE': 5}, '2': {'WOOD': 7, 'BRICK': 9, 'SHEEP': 9, 'WHEAT': 1, 'ORE': 4}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.14606590569019318, 0.27399399876594543, 0.2545206546783447, 0.17658518254756927, 0.1488342136144638]]}
+
+step=110 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.RED: 3>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.1106758862733841
+  vp={'0': 5, '1': 5, '2': 5, '3': 0}
+  resources={'0': {'WOOD': 11, 'BRICK': 6, 'SHEEP': 8, 'WHEAT': 10, 'ORE': 6}, '1': {'WOOD': 9, 'BRICK': 8, 'SHEEP': 10, 'WHEAT': 3, 'ORE': 5}, '2': {'WOOD': 7, 'BRICK': 9, 'SHEEP': 9, 'WHEAT': 1, 'ORE': 4}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.14606590569019318, 0.27399399876594543, 0.2545206546783447, 0.17658518254756927, 0.1488342136144638]]}
+
+step=111 phase=TRADE_RESPOND reward=-0.008 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=-0.01634194515645504
+  vp={'0': 5, '1': 5, '2': 5, '3': 0}
+  resources={'0': {'WOOD': 11, 'BRICK': 6, 'SHEEP': 8, 'WHEAT': 10, 'ORE': 6}, '1': {'WOOD': 9, 'BRICK': 8, 'SHEEP': 10, 'WHEAT': 3, 'ORE': 5}, '2': {'WOOD': 7, 'BRICK': 9, 'SHEEP': 9, 'WHEAT': 1, 'ORE': 4}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.14606590569019318, 0.27399399876594543, 0.2545206546783447, 0.17658518254756927, 0.1488342136144638]]}
+
+step=112 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=-0.01191498152911663
+  vp={'0': 5, '1': 5, '2': 5, '3': 0}
+  resources={'0': {'WOOD': 11, 'BRICK': 6, 'SHEEP': 8, 'WHEAT': 10, 'ORE': 6}, '1': {'WOOD': 9, 'BRICK': 8, 'SHEEP': 10, 'WHEAT': 3, 'ORE': 5}, '2': {'WOOD': 7, 'BRICK': 9, 'SHEEP': 9, 'WHEAT': 1, 'ORE': 4}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.14606590569019318, 0.27399399876594543, 0.2545206546783447, 0.17658518254756927, 0.1488342136144638]]}
+
+step=113 phase=ROLL reward=0.0 done=False
+
+step=114 phase=MAIN_ACTION reward=-0.002 done=False
+  env_action={'type': 'end_main_action'}
+  action_dict={'gameplay_action': [70]}
+  value=0.29531267285346985
+  vp={'0': 5, '1': 5, '2': 5, '3': 0}
+  resources={'0': {'WOOD': 13, 'BRICK': 7, 'SHEEP': 9, 'WHEAT': 11, 'ORE': 7}, '1': {'WOOD': 11, 'BRICK': 9, 'SHEEP': 11, 'WHEAT': 4, 'ORE': 6}, '2': {'WOOD': 9, 'BRICK': 10, 'SHEEP': 10, 'WHEAT': 2, 'ORE': 5}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.13490557670593262, 0.29923489689826965, 0.26558348536491394, 0.16510938107967377, 0.13516664505004883]]}
+
+step=115 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.ORANGE: 2>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.22883126139640808
+  vp={'0': 5, '1': 5, '2': 5, '3': 0}
+  resources={'0': {'WOOD': 13, 'BRICK': 7, 'SHEEP': 9, 'WHEAT': 11, 'ORE': 7}, '1': {'WOOD': 11, 'BRICK': 9, 'SHEEP': 11, 'WHEAT': 4, 'ORE': 6}, '2': {'WOOD': 9, 'BRICK': 10, 'SHEEP': 10, 'WHEAT': 2, 'ORE': 5}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.13490557670593262, 0.29923489689826965, 0.26558348536491394, 0.16510938107967377, 0.13516664505004883]]}
+
+step=116 phase=TRADE_RESPOND reward=0.02 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.10180740803480148
+  vp={'0': 5, '1': 5, '2': 5, '3': 0}
+  resources={'0': {'WOOD': 13, 'BRICK': 7, 'SHEEP': 9, 'WHEAT': 11, 'ORE': 7}, '1': {'WOOD': 11, 'BRICK': 9, 'SHEEP': 11, 'WHEAT': 4, 'ORE': 6}, '2': {'WOOD': 9, 'BRICK': 11, 'SHEEP': 10, 'WHEAT': 1, 'ORE': 5}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.13490557670593262, 0.29923489689826965, 0.26558348536491394, 0.16510938107967377, 0.13516664505004883]]}
+
+step=117 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=0.13492289185523987
+  vp={'0': 5, '1': 5, '2': 5, '3': 0}
+  resources={'0': {'WOOD': 13, 'BRICK': 7, 'SHEEP': 9, 'WHEAT': 11, 'ORE': 7}, '1': {'WOOD': 11, 'BRICK': 9, 'SHEEP': 11, 'WHEAT': 4, 'ORE': 6}, '2': {'WOOD': 9, 'BRICK': 11, 'SHEEP': 10, 'WHEAT': 1, 'ORE': 5}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.1340203732252121, 0.30020490288734436, 0.2664042115211487, 0.16499698162078857, 0.13437360525131226]]}
+
+step=118 phase=ROLL reward=0.0 done=False
+
+step=119 phase=MAIN_ACTION reward=0.36 done=False
+  env_action={'type': 'build_city'}
+  action_dict={'gameplay_action': [70]}
+  value=0.3718509078025818
+  vp={'0': 6, '1': 5, '2': 5, '3': 0}
+  resources={'0': {'WOOD': 13, 'BRICK': 8, 'SHEEP': 10, 'WHEAT': 10, 'ORE': 5}, '1': {'WOOD': 11, 'BRICK': 10, 'SHEEP': 12, 'WHEAT': 5, 'ORE': 7}, '2': {'WOOD': 9, 'BRICK': 12, 'SHEEP': 11, 'WHEAT': 2, 'ORE': 6}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.1382203847169876, 0.2868044078350067, 0.2624984085559845, 0.1739584505558014, 0.1385183036327362]]}
+
+step=120 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.RED: 3>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.21971307694911957
+  vp={'0': 6, '1': 5, '2': 5, '3': 0}
+  resources={'0': {'WOOD': 13, 'BRICK': 8, 'SHEEP': 10, 'WHEAT': 10, 'ORE': 5}, '1': {'WOOD': 11, 'BRICK': 10, 'SHEEP': 12, 'WHEAT': 5, 'ORE': 7}, '2': {'WOOD': 9, 'BRICK': 12, 'SHEEP': 11, 'WHEAT': 2, 'ORE': 6}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.1382203847169876, 0.2868044078350067, 0.2624984085559845, 0.1739584505558014, 0.1385183036327362]]}
+
+step=121 phase=TRADE_RESPOND reward=0.02 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.10100675374269485
+  vp={'0': 6, '1': 5, '2': 5, '3': 0}
+  resources={'0': {'WOOD': 13, 'BRICK': 7, 'SHEEP': 10, 'WHEAT': 11, 'ORE': 5}, '1': {'WOOD': 11, 'BRICK': 10, 'SHEEP': 12, 'WHEAT': 5, 'ORE': 7}, '2': {'WOOD': 9, 'BRICK': 12, 'SHEEP': 11, 'WHEAT': 2, 'ORE': 6}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.1382203847169876, 0.2868044078350067, 0.2624984085559845, 0.1739584505558014, 0.1385183036327362]]}
+
+step=122 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=0.11689800024032593
+  vp={'0': 6, '1': 5, '2': 5, '3': 0}
+  resources={'0': {'WOOD': 13, 'BRICK': 7, 'SHEEP': 10, 'WHEAT': 11, 'ORE': 5}, '1': {'WOOD': 11, 'BRICK': 10, 'SHEEP': 12, 'WHEAT': 5, 'ORE': 7}, '2': {'WOOD': 9, 'BRICK': 12, 'SHEEP': 11, 'WHEAT': 2, 'ORE': 6}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.13733181357383728, 0.2876782715320587, 0.263357013463974, 0.17395085096359253, 0.13768205046653748]]}
+
+step=123 phase=ROLL reward=0.0 done=False
+
+step=124 phase=MAIN_ACTION reward=0.36 done=False
+  env_action={'type': 'build_city'}
+  action_dict={'gameplay_action': [70]}
+  value=0.2880336344242096
+  vp={'0': 6, '1': 6, '2': 5, '3': 0}
+  resources={'0': {'WOOD': 14, 'BRICK': 9, 'SHEEP': 12, 'WHEAT': 13, 'ORE': 6}, '1': {'WOOD': 12, 'BRICK': 12, 'SHEEP': 13, 'WHEAT': 4, 'ORE': 5}, '2': {'WOOD': 10, 'BRICK': 14, 'SHEEP': 12, 'WHEAT': 3, 'ORE': 7}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.1386205404996872, 0.2893146872520447, 0.2641580402851105, 0.1688118875026703, 0.13909491896629333]]}
+
+step=125 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.RED: 3>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.13902443647384644
+  vp={'0': 6, '1': 6, '2': 5, '3': 0}
+  resources={'0': {'WOOD': 14, 'BRICK': 9, 'SHEEP': 12, 'WHEAT': 13, 'ORE': 6}, '1': {'WOOD': 12, 'BRICK': 12, 'SHEEP': 13, 'WHEAT': 4, 'ORE': 5}, '2': {'WOOD': 10, 'BRICK': 14, 'SHEEP': 12, 'WHEAT': 3, 'ORE': 7}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.1386205404996872, 0.2893146872520447, 0.2641580402851105, 0.1688118875026703, 0.13909491896629333]]}
+
+step=126 phase=TRADE_RESPOND reward=-0.008 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.01855630613863468
+  vp={'0': 6, '1': 6, '2': 5, '3': 0}
+  resources={'0': {'WOOD': 14, 'BRICK': 9, 'SHEEP': 12, 'WHEAT': 13, 'ORE': 6}, '1': {'WOOD': 12, 'BRICK': 12, 'SHEEP': 13, 'WHEAT': 4, 'ORE': 5}, '2': {'WOOD': 10, 'BRICK': 14, 'SHEEP': 12, 'WHEAT': 3, 'ORE': 7}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.1386205404996872, 0.2893146872520447, 0.2641580402851105, 0.1688118875026703, 0.13909491896629333]]}
+
+step=127 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=0.020845117047429085
+  vp={'0': 6, '1': 6, '2': 5, '3': 0}
+  resources={'0': {'WOOD': 14, 'BRICK': 9, 'SHEEP': 12, 'WHEAT': 13, 'ORE': 6}, '1': {'WOOD': 12, 'BRICK': 12, 'SHEEP': 13, 'WHEAT': 4, 'ORE': 5}, '2': {'WOOD': 10, 'BRICK': 14, 'SHEEP': 12, 'WHEAT': 3, 'ORE': 7}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.1386205404996872, 0.2893146872520447, 0.2641580402851105, 0.1688118875026703, 0.13909491896629333]]}
+
+step=128 phase=ROLL reward=0.0 done=False
+
+step=129 phase=MAIN_ACTION reward=0.36 done=False
+  env_action={'type': 'build_city'}
+  action_dict={'gameplay_action': [70]}
+  value=0.2672487795352936
+  vp={'0': 6, '1': 6, '2': 6, '3': 0}
+  resources={'0': {'WOOD': 15, 'BRICK': 11, 'SHEEP': 14, 'WHEAT': 15, 'ORE': 8}, '1': {'WOOD': 13, 'BRICK': 14, 'SHEEP': 15, 'WHEAT': 6, 'ORE': 7}, '2': {'WOOD': 11, 'BRICK': 16, 'SHEEP': 14, 'WHEAT': 2, 'ORE': 5}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.13712844252586365, 0.2973637878894806, 0.2666194438934326, 0.16335351765155792, 0.13553474843502045]]}
+
+step=130 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.RED: 3>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.10758250951766968
+  vp={'0': 6, '1': 6, '2': 6, '3': 0}
+  resources={'0': {'WOOD': 15, 'BRICK': 11, 'SHEEP': 14, 'WHEAT': 15, 'ORE': 8}, '1': {'WOOD': 13, 'BRICK': 14, 'SHEEP': 15, 'WHEAT': 6, 'ORE': 7}, '2': {'WOOD': 11, 'BRICK': 16, 'SHEEP': 14, 'WHEAT': 2, 'ORE': 5}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.13712844252586365, 0.2973637878894806, 0.2666194438934326, 0.16335351765155792, 0.13553474843502045]]}
+
+step=131 phase=TRADE_RESPOND reward=-0.008 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=-0.015555409714579582
+  vp={'0': 6, '1': 6, '2': 6, '3': 0}
+  resources={'0': {'WOOD': 15, 'BRICK': 11, 'SHEEP': 14, 'WHEAT': 15, 'ORE': 8}, '1': {'WOOD': 13, 'BRICK': 14, 'SHEEP': 15, 'WHEAT': 6, 'ORE': 7}, '2': {'WOOD': 11, 'BRICK': 16, 'SHEEP': 14, 'WHEAT': 2, 'ORE': 5}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.13712844252586365, 0.2973637878894806, 0.2666194438934326, 0.16335351765155792, 0.13553474843502045]]}
+
+step=132 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=-0.012517852708697319
+  vp={'0': 6, '1': 6, '2': 6, '3': 0}
+  resources={'0': {'WOOD': 15, 'BRICK': 11, 'SHEEP': 14, 'WHEAT': 15, 'ORE': 8}, '1': {'WOOD': 13, 'BRICK': 14, 'SHEEP': 15, 'WHEAT': 6, 'ORE': 7}, '2': {'WOOD': 11, 'BRICK': 16, 'SHEEP': 14, 'WHEAT': 2, 'ORE': 5}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.13712844252586365, 0.2973637878894806, 0.2666194438934326, 0.16335351765155792, 0.13553474843502045]]}
+
+step=133 phase=ROLL reward=0.0 done=False
+
+step=134 phase=MAIN_ACTION reward=-0.002 done=False
+  env_action={'type': 'end_main_action'}
+  action_dict={'gameplay_action': [70]}
+  value=0.3115001618862152
+  vp={'0': 6, '1': 6, '2': 6, '3': 0}
+  resources={'0': {'WOOD': 16, 'BRICK': 13, 'SHEEP': 16, 'WHEAT': 17, 'ORE': 9}, '1': {'WOOD': 14, 'BRICK': 16, 'SHEEP': 17, 'WHEAT': 8, 'ORE': 8}, '2': {'WOOD': 12, 'BRICK': 18, 'SHEEP': 16, 'WHEAT': 4, 'ORE': 6}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.1159566342830658, 0.3416433036327362, 0.2876602113246918, 0.14406633377075195, 0.11067347228527069]]}
+
+step=135 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.ORANGE: 2>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.2476908266544342
+  vp={'0': 6, '1': 6, '2': 6, '3': 0}
+  resources={'0': {'WOOD': 16, 'BRICK': 13, 'SHEEP': 16, 'WHEAT': 17, 'ORE': 9}, '1': {'WOOD': 14, 'BRICK': 16, 'SHEEP': 17, 'WHEAT': 8, 'ORE': 8}, '2': {'WOOD': 12, 'BRICK': 18, 'SHEEP': 16, 'WHEAT': 4, 'ORE': 6}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.1159566342830658, 0.3416433036327362, 0.2876602113246918, 0.14406633377075195, 0.11067347228527069]]}
+
+step=136 phase=TRADE_RESPOND reward=0.02 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.12219849228858948
+  vp={'0': 6, '1': 6, '2': 6, '3': 0}
+  resources={'0': {'WOOD': 16, 'BRICK': 13, 'SHEEP': 16, 'WHEAT': 17, 'ORE': 9}, '1': {'WOOD': 14, 'BRICK': 16, 'SHEEP': 17, 'WHEAT': 8, 'ORE': 8}, '2': {'WOOD': 12, 'BRICK': 19, 'SHEEP': 16, 'WHEAT': 3, 'ORE': 6}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.1159566342830658, 0.3416433036327362, 0.2876602113246918, 0.14406633377075195, 0.11067347228527069]]}
+
+step=137 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=0.1523478478193283
+  vp={'0': 6, '1': 6, '2': 6, '3': 0}
+  resources={'0': {'WOOD': 16, 'BRICK': 13, 'SHEEP': 16, 'WHEAT': 17, 'ORE': 9}, '1': {'WOOD': 14, 'BRICK': 16, 'SHEEP': 17, 'WHEAT': 8, 'ORE': 8}, '2': {'WOOD': 12, 'BRICK': 19, 'SHEEP': 16, 'WHEAT': 3, 'ORE': 6}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.11513052135705948, 0.3427290618419647, 0.28829917311668396, 0.1438673585653305, 0.10997384041547775]]}
+
+step=138 phase=ROLL reward=0.0 done=False
+
+step=139 phase=MAIN_ACTION reward=0.32 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [70]}
+  value=0.4457074999809265
+  vp={'0': 7, '1': 6, '2': 6, '3': 0}
+  resources={'0': {'WOOD': 17, 'BRICK': 14, 'SHEEP': 18, 'WHEAT': 18, 'ORE': 11}, '1': {'WOOD': 16, 'BRICK': 18, 'SHEEP': 20, 'WHEAT': 10, 'ORE': 10}, '2': {'WOOD': 14, 'BRICK': 21, 'SHEEP': 19, 'WHEAT': 5, 'ORE': 8}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.121640145778656, 0.3232574760913849, 0.28054192662239075, 0.1549692004919052, 0.11959116160869598]]}
+
+step=140 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.RED: 3>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.36559581756591797
+  vp={'0': 7, '1': 6, '2': 6, '3': 0}
+  resources={'0': {'WOOD': 17, 'BRICK': 14, 'SHEEP': 18, 'WHEAT': 18, 'ORE': 11}, '1': {'WOOD': 16, 'BRICK': 18, 'SHEEP': 20, 'WHEAT': 10, 'ORE': 10}, '2': {'WOOD': 14, 'BRICK': 21, 'SHEEP': 19, 'WHEAT': 5, 'ORE': 8}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.121640145778656, 0.3232574760913849, 0.28054192662239075, 0.1549692004919052, 0.11959116160869598]]}
+
+step=141 phase=TRADE_RESPOND reward=0.02 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.24857768416404724
+  vp={'0': 7, '1': 6, '2': 6, '3': 0}
+  resources={'0': {'WOOD': 17, 'BRICK': 13, 'SHEEP': 18, 'WHEAT': 19, 'ORE': 11}, '1': {'WOOD': 16, 'BRICK': 18, 'SHEEP': 20, 'WHEAT': 10, 'ORE': 10}, '2': {'WOOD': 14, 'BRICK': 21, 'SHEEP': 19, 'WHEAT': 5, 'ORE': 8}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.121640145778656, 0.3232574760913849, 0.28054192662239075, 0.1549692004919052, 0.11959116160869598]]}
+
+step=142 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=0.26561233401298523
+  vp={'0': 7, '1': 6, '2': 6, '3': 0}
+  resources={'0': {'WOOD': 17, 'BRICK': 13, 'SHEEP': 18, 'WHEAT': 19, 'ORE': 11}, '1': {'WOOD': 16, 'BRICK': 18, 'SHEEP': 20, 'WHEAT': 10, 'ORE': 10}, '2': {'WOOD': 14, 'BRICK': 21, 'SHEEP': 19, 'WHEAT': 5, 'ORE': 8}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.12066835165023804, 0.32466602325439453, 0.2812657654285431, 0.15475651621818542, 0.11864324659109116]]}
+
+step=143 phase=ROLL reward=0.0 done=False
+
+step=144 phase=MAIN_ACTION reward=0.32 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [70]}
+  value=0.334796279668808
+  vp={'0': 7, '1': 7, '2': 6, '3': 0}
+  resources={'0': {'WOOD': 18, 'BRICK': 14, 'SHEEP': 20, 'WHEAT': 21, 'ORE': 12}, '1': {'WOOD': 16, 'BRICK': 18, 'SHEEP': 21, 'WHEAT': 10, 'ORE': 11}, '2': {'WOOD': 15, 'BRICK': 22, 'SHEEP': 21, 'WHEAT': 6, 'ORE': 9}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.12388543784618378, 0.32419031858444214, 0.2806226909160614, 0.15122084319591522, 0.12008076161146164]]}
+
+step=145 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.RED: 3>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.25114747881889343
+  vp={'0': 7, '1': 7, '2': 6, '3': 0}
+  resources={'0': {'WOOD': 18, 'BRICK': 14, 'SHEEP': 20, 'WHEAT': 21, 'ORE': 12}, '1': {'WOOD': 16, 'BRICK': 18, 'SHEEP': 21, 'WHEAT': 10, 'ORE': 11}, '2': {'WOOD': 15, 'BRICK': 22, 'SHEEP': 21, 'WHEAT': 6, 'ORE': 9}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.12388543784618378, 0.32419031858444214, 0.2806226909160614, 0.15122084319591522, 0.12008076161146164]]}
+
+step=146 phase=TRADE_RESPOND reward=-0.008 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.13114479184150696
+  vp={'0': 7, '1': 7, '2': 6, '3': 0}
+  resources={'0': {'WOOD': 18, 'BRICK': 14, 'SHEEP': 20, 'WHEAT': 21, 'ORE': 12}, '1': {'WOOD': 16, 'BRICK': 18, 'SHEEP': 21, 'WHEAT': 10, 'ORE': 11}, '2': {'WOOD': 15, 'BRICK': 22, 'SHEEP': 21, 'WHEAT': 6, 'ORE': 9}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.12388543784618378, 0.32419031858444214, 0.2806226909160614, 0.15122084319591522, 0.12008076161146164]]}
+
+step=147 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=0.13136324286460876
+  vp={'0': 7, '1': 7, '2': 6, '3': 0}
+  resources={'0': {'WOOD': 18, 'BRICK': 14, 'SHEEP': 20, 'WHEAT': 21, 'ORE': 12}, '1': {'WOOD': 16, 'BRICK': 18, 'SHEEP': 21, 'WHEAT': 10, 'ORE': 11}, '2': {'WOOD': 15, 'BRICK': 22, 'SHEEP': 21, 'WHEAT': 6, 'ORE': 9}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.12388543784618378, 0.32419031858444214, 0.2806226909160614, 0.15122084319591522, 0.12008076161146164]]}
+
+step=148 phase=ROLL reward=0.0 done=False
+
+step=149 phase=MAIN_ACTION reward=0.32 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [70]}
+  value=0.29185208678245544
+  vp={'0': 7, '1': 7, '2': 7, '3': 0}
+  resources={'0': {'WOOD': 20, 'BRICK': 16, 'SHEEP': 23, 'WHEAT': 24, 'ORE': 14}, '1': {'WOOD': 18, 'BRICK': 20, 'SHEEP': 24, 'WHEAT': 13, 'ORE': 13}, '2': {'WOOD': 16, 'BRICK': 23, 'SHEEP': 23, 'WHEAT': 7, 'ORE': 11}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.12186799943447113, 0.334403395652771, 0.2826146185398102, 0.144794762134552, 0.1163192018866539]]}
+
+step=150 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.RED: 3>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.2061080038547516
+  vp={'0': 7, '1': 7, '2': 7, '3': 0}
+  resources={'0': {'WOOD': 20, 'BRICK': 16, 'SHEEP': 23, 'WHEAT': 24, 'ORE': 14}, '1': {'WOOD': 18, 'BRICK': 20, 'SHEEP': 24, 'WHEAT': 13, 'ORE': 13}, '2': {'WOOD': 16, 'BRICK': 23, 'SHEEP': 23, 'WHEAT': 7, 'ORE': 11}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.12186799943447113, 0.334403395652771, 0.2826146185398102, 0.144794762134552, 0.1163192018866539]]}
+
+step=151 phase=TRADE_RESPOND reward=-0.008 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.08430583775043488
+  vp={'0': 7, '1': 7, '2': 7, '3': 0}
+  resources={'0': {'WOOD': 20, 'BRICK': 16, 'SHEEP': 23, 'WHEAT': 24, 'ORE': 14}, '1': {'WOOD': 18, 'BRICK': 20, 'SHEEP': 24, 'WHEAT': 13, 'ORE': 13}, '2': {'WOOD': 16, 'BRICK': 23, 'SHEEP': 23, 'WHEAT': 7, 'ORE': 11}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.12186799943447113, 0.334403395652771, 0.2826146185398102, 0.144794762134552, 0.1163192018866539]]}
+
+step=152 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=0.08519354462623596
+  vp={'0': 7, '1': 7, '2': 7, '3': 0}
+  resources={'0': {'WOOD': 20, 'BRICK': 16, 'SHEEP': 23, 'WHEAT': 24, 'ORE': 14}, '1': {'WOOD': 18, 'BRICK': 20, 'SHEEP': 24, 'WHEAT': 13, 'ORE': 13}, '2': {'WOOD': 16, 'BRICK': 23, 'SHEEP': 23, 'WHEAT': 7, 'ORE': 11}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.12186799943447113, 0.334403395652771, 0.2826146185398102, 0.144794762134552, 0.1163192018866539]]}
+
+step=153 phase=ROLL reward=0.0 done=False
+
+step=154 phase=MAIN_ACTION reward=-0.002 done=False
+  env_action={'type': 'end_main_action'}
+  action_dict={'gameplay_action': [70]}
+  value=0.33589133620262146
+  vp={'0': 7, '1': 7, '2': 7, '3': 0}
+  resources={'0': {'WOOD': 20, 'BRICK': 16, 'SHEEP': 23, 'WHEAT': 24, 'ORE': 14}, '1': {'WOOD': 18, 'BRICK': 20, 'SHEEP': 24, 'WHEAT': 13, 'ORE': 13}, '2': {'WOOD': 16, 'BRICK': 23, 'SHEEP': 23, 'WHEAT': 7, 'ORE': 11}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.09809834510087967, 0.38584235310554504, 0.3020133376121521, 0.1236269623041153, 0.09041900932788849]]}
+
+step=155 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.ORANGE: 2>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.27260804176330566
+  vp={'0': 7, '1': 7, '2': 7, '3': 0}
+  resources={'0': {'WOOD': 20, 'BRICK': 16, 'SHEEP': 23, 'WHEAT': 24, 'ORE': 14}, '1': {'WOOD': 18, 'BRICK': 20, 'SHEEP': 24, 'WHEAT': 13, 'ORE': 13}, '2': {'WOOD': 16, 'BRICK': 23, 'SHEEP': 23, 'WHEAT': 7, 'ORE': 11}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.09809834510087967, 0.38584235310554504, 0.3020133376121521, 0.1236269623041153, 0.09041900932788849]]}
+
+step=156 phase=TRADE_RESPOND reward=0.02 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.14985162019729614
+  vp={'0': 7, '1': 7, '2': 7, '3': 0}
+  resources={'0': {'WOOD': 20, 'BRICK': 16, 'SHEEP': 23, 'WHEAT': 24, 'ORE': 14}, '1': {'WOOD': 18, 'BRICK': 20, 'SHEEP': 24, 'WHEAT': 13, 'ORE': 13}, '2': {'WOOD': 16, 'BRICK': 24, 'SHEEP': 23, 'WHEAT': 6, 'ORE': 11}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.09809834510087967, 0.38584235310554504, 0.3020133376121521, 0.1236269623041153, 0.09041900932788849]]}
+
+step=157 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=0.17701205611228943
+  vp={'0': 7, '1': 7, '2': 7, '3': 0}
+  resources={'0': {'WOOD': 20, 'BRICK': 16, 'SHEEP': 23, 'WHEAT': 24, 'ORE': 14}, '1': {'WOOD': 18, 'BRICK': 20, 'SHEEP': 24, 'WHEAT': 13, 'ORE': 13}, '2': {'WOOD': 16, 'BRICK': 24, 'SHEEP': 23, 'WHEAT': 6, 'ORE': 11}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.097370445728302, 0.386686772108078, 0.30268239974975586, 0.12346507608890533, 0.0897953137755394]]}
+
+step=158 phase=ROLL reward=0.0 done=False
+
+step=159 phase=MAIN_ACTION reward=0.36 done=False
+  env_action={'type': 'build_city'}
+  action_dict={'gameplay_action': [70]}
+  value=0.602619469165802
+  vp={'0': 8, '1': 7, '2': 7, '3': 0}
+  resources={'0': {'WOOD': 23, 'BRICK': 19, 'SHEEP': 25, 'WHEAT': 25, 'ORE': 14}, '1': {'WOOD': 21, 'BRICK': 23, 'SHEEP': 26, 'WHEAT': 16, 'ORE': 16}, '2': {'WOOD': 19, 'BRICK': 27, 'SHEEP': 25, 'WHEAT': 9, 'ORE': 14}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.10983502864837646, 0.35253414511680603, 0.29280611872673035, 0.14032293856143951, 0.10450172424316406]]}
+
+step=160 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.RED: 3>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.4460369944572449
+  vp={'0': 8, '1': 7, '2': 7, '3': 0}
+  resources={'0': {'WOOD': 23, 'BRICK': 19, 'SHEEP': 25, 'WHEAT': 25, 'ORE': 14}, '1': {'WOOD': 21, 'BRICK': 23, 'SHEEP': 26, 'WHEAT': 16, 'ORE': 16}, '2': {'WOOD': 19, 'BRICK': 27, 'SHEEP': 25, 'WHEAT': 9, 'ORE': 14}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.10983502864837646, 0.35253414511680603, 0.29280611872673035, 0.14032293856143951, 0.10450172424316406]]}
+
+step=161 phase=TRADE_RESPOND reward=0.02 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.3307197391986847
+  vp={'0': 8, '1': 7, '2': 7, '3': 0}
+  resources={'0': {'WOOD': 23, 'BRICK': 18, 'SHEEP': 25, 'WHEAT': 26, 'ORE': 14}, '1': {'WOOD': 21, 'BRICK': 23, 'SHEEP': 26, 'WHEAT': 16, 'ORE': 16}, '2': {'WOOD': 19, 'BRICK': 27, 'SHEEP': 25, 'WHEAT': 9, 'ORE': 14}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.10983502864837646, 0.35253414511680603, 0.29280611872673035, 0.14032293856143951, 0.10450172424316406]]}
+
+step=162 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=0.3455669581890106
+  vp={'0': 8, '1': 7, '2': 7, '3': 0}
+  resources={'0': {'WOOD': 23, 'BRICK': 18, 'SHEEP': 25, 'WHEAT': 26, 'ORE': 14}, '1': {'WOOD': 21, 'BRICK': 23, 'SHEEP': 26, 'WHEAT': 16, 'ORE': 16}, '2': {'WOOD': 19, 'BRICK': 27, 'SHEEP': 25, 'WHEAT': 9, 'ORE': 14}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.10886465758085251, 0.3537001609802246, 0.2935793101787567, 0.14014266431331635, 0.10371311753988266]]}
+
+step=163 phase=ROLL reward=0.0 done=False
+
+step=164 phase=MAIN_ACTION reward=0.36 done=False
+  env_action={'type': 'build_city'}
+  action_dict={'gameplay_action': [70]}
+  value=0.4567442238330841
+  vp={'0': 8, '1': 8, '2': 7, '3': 0}
+  resources={'0': {'WOOD': 24, 'BRICK': 19, 'SHEEP': 25, 'WHEAT': 27, 'ORE': 15}, '1': {'WOOD': 22, 'BRICK': 23, 'SHEEP': 26, 'WHEAT': 15, 'ORE': 14}, '2': {'WOOD': 20, 'BRICK': 27, 'SHEEP': 25, 'WHEAT': 10, 'ORE': 15}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.11563359946012497, 0.3477301001548767, 0.289008229970932, 0.13875408470630646, 0.10887401551008224]]}
+
+step=165 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.RED: 3>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.29651692509651184
+  vp={'0': 8, '1': 8, '2': 7, '3': 0}
+  resources={'0': {'WOOD': 24, 'BRICK': 19, 'SHEEP': 25, 'WHEAT': 27, 'ORE': 15}, '1': {'WOOD': 22, 'BRICK': 23, 'SHEEP': 26, 'WHEAT': 15, 'ORE': 14}, '2': {'WOOD': 20, 'BRICK': 27, 'SHEEP': 25, 'WHEAT': 10, 'ORE': 15}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.11563359946012497, 0.3477301001548767, 0.289008229970932, 0.13875408470630646, 0.10887401551008224]]}
+
+step=166 phase=TRADE_RESPOND reward=-0.008 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.17784959077835083
+  vp={'0': 8, '1': 8, '2': 7, '3': 0}
+  resources={'0': {'WOOD': 24, 'BRICK': 19, 'SHEEP': 25, 'WHEAT': 27, 'ORE': 15}, '1': {'WOOD': 22, 'BRICK': 23, 'SHEEP': 26, 'WHEAT': 15, 'ORE': 14}, '2': {'WOOD': 20, 'BRICK': 27, 'SHEEP': 25, 'WHEAT': 10, 'ORE': 15}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.11563359946012497, 0.3477301001548767, 0.289008229970932, 0.13875408470630646, 0.10887401551008224]]}
+
+step=167 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=0.17515809834003448
+  vp={'0': 8, '1': 8, '2': 7, '3': 0}
+  resources={'0': {'WOOD': 24, 'BRICK': 19, 'SHEEP': 25, 'WHEAT': 27, 'ORE': 15}, '1': {'WOOD': 22, 'BRICK': 23, 'SHEEP': 26, 'WHEAT': 15, 'ORE': 14}, '2': {'WOOD': 20, 'BRICK': 27, 'SHEEP': 25, 'WHEAT': 10, 'ORE': 15}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.11563359946012497, 0.3477301001548767, 0.289008229970932, 0.13875408470630646, 0.10887401551008224]]}
+
+step=168 phase=ROLL reward=0.0 done=False
+
+step=169 phase=MAIN_ACTION reward=0.36 done=False
+  env_action={'type': 'build_city'}
+  action_dict={'gameplay_action': [70]}
+  value=0.39360395073890686
+  vp={'0': 8, '1': 8, '2': 8, '3': 0}
+  resources={'0': {'WOOD': 24, 'BRICK': 19, 'SHEEP': 25, 'WHEAT': 28, 'ORE': 16}, '1': {'WOOD': 22, 'BRICK': 23, 'SHEEP': 26, 'WHEAT': 16, 'ORE': 15}, '2': {'WOOD': 20, 'BRICK': 27, 'SHEEP': 25, 'WHEAT': 9, 'ORE': 13}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.11851099878549576, 0.34542739391326904, 0.2863995432853699, 0.13854974508285522, 0.11111236363649368]]}
+
+step=170 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.RED: 3>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.23701900243759155
+  vp={'0': 8, '1': 8, '2': 8, '3': 0}
+  resources={'0': {'WOOD': 24, 'BRICK': 19, 'SHEEP': 25, 'WHEAT': 28, 'ORE': 16}, '1': {'WOOD': 22, 'BRICK': 23, 'SHEEP': 26, 'WHEAT': 16, 'ORE': 15}, '2': {'WOOD': 20, 'BRICK': 27, 'SHEEP': 25, 'WHEAT': 9, 'ORE': 13}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.11851099878549576, 0.34542739391326904, 0.2863995432853699, 0.13854974508285522, 0.11111236363649368]]}
+
+step=171 phase=TRADE_RESPOND reward=-0.008 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.11666756868362427
+  vp={'0': 8, '1': 8, '2': 8, '3': 0}
+  resources={'0': {'WOOD': 24, 'BRICK': 19, 'SHEEP': 25, 'WHEAT': 28, 'ORE': 16}, '1': {'WOOD': 22, 'BRICK': 23, 'SHEEP': 26, 'WHEAT': 16, 'ORE': 15}, '2': {'WOOD': 20, 'BRICK': 27, 'SHEEP': 25, 'WHEAT': 9, 'ORE': 13}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.11851099878549576, 0.34542739391326904, 0.2863995432853699, 0.13854974508285522, 0.11111236363649368]]}
+
+step=172 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=0.11399956047534943
+  vp={'0': 8, '1': 8, '2': 8, '3': 0}
+  resources={'0': {'WOOD': 24, 'BRICK': 19, 'SHEEP': 25, 'WHEAT': 28, 'ORE': 16}, '1': {'WOOD': 22, 'BRICK': 23, 'SHEEP': 26, 'WHEAT': 16, 'ORE': 15}, '2': {'WOOD': 20, 'BRICK': 27, 'SHEEP': 25, 'WHEAT': 9, 'ORE': 13}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.11851099878549576, 0.34542739391326904, 0.2863995432853699, 0.13854974508285522, 0.11111236363649368]]}
+
+step=173 phase=ROLL reward=0.0 done=False
+
+step=174 phase=MAIN_ACTION reward=-0.002 done=False
+  env_action={'type': 'end_main_action'}
+  action_dict={'gameplay_action': [70]}
+  value=0.32241442799568176
+  vp={'0': 8, '1': 8, '2': 8, '3': 0}
+  resources={'0': {'WOOD': 27, 'BRICK': 21, 'SHEEP': 27, 'WHEAT': 31, 'ORE': 19}, '1': {'WOOD': 25, 'BRICK': 25, 'SHEEP': 28, 'WHEAT': 19, 'ORE': 18}, '2': {'WOOD': 23, 'BRICK': 29, 'SHEEP': 27, 'WHEAT': 12, 'ORE': 16}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.08995983749628067, 0.4184702932834625, 0.3057993948459625, 0.1072676032781601, 0.07850276678800583]]}
+
+step=175 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.ORANGE: 2>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.2631983160972595
+  vp={'0': 8, '1': 8, '2': 8, '3': 0}
+  resources={'0': {'WOOD': 27, 'BRICK': 21, 'SHEEP': 27, 'WHEAT': 31, 'ORE': 19}, '1': {'WOOD': 25, 'BRICK': 25, 'SHEEP': 28, 'WHEAT': 19, 'ORE': 18}, '2': {'WOOD': 23, 'BRICK': 29, 'SHEEP': 27, 'WHEAT': 12, 'ORE': 16}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.08995983749628067, 0.4184702932834625, 0.3057993948459625, 0.1072676032781601, 0.07850276678800583]]}
+
+step=176 phase=TRADE_RESPOND reward=0.02 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.14388248324394226
+  vp={'0': 8, '1': 8, '2': 8, '3': 0}
+  resources={'0': {'WOOD': 27, 'BRICK': 21, 'SHEEP': 27, 'WHEAT': 31, 'ORE': 19}, '1': {'WOOD': 25, 'BRICK': 25, 'SHEEP': 28, 'WHEAT': 19, 'ORE': 18}, '2': {'WOOD': 23, 'BRICK': 30, 'SHEEP': 27, 'WHEAT': 11, 'ORE': 16}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.08995983749628067, 0.4184702932834625, 0.3057993948459625, 0.1072676032781601, 0.07850276678800583]]}
+
+step=177 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=0.16880595684051514
+  vp={'0': 8, '1': 8, '2': 8, '3': 0}
+  resources={'0': {'WOOD': 27, 'BRICK': 21, 'SHEEP': 27, 'WHEAT': 31, 'ORE': 19}, '1': {'WOOD': 25, 'BRICK': 25, 'SHEEP': 28, 'WHEAT': 19, 'ORE': 18}, '2': {'WOOD': 23, 'BRICK': 30, 'SHEEP': 27, 'WHEAT': 11, 'ORE': 16}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.08935293555259705, 0.4193291664123535, 0.30635127425193787, 0.1070062667131424, 0.07796043157577515]]}
+
+step=178 phase=ROLL reward=0.0 done=False
+
+step=179 phase=MAIN_ACTION reward=0.32 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [70]}
+  value=0.6641234755516052
+  vp={'0': 9, '1': 8, '2': 8, '3': 0}
+  resources={'0': {'WOOD': 29, 'BRICK': 23, 'SHEEP': 29, 'WHEAT': 32, 'ORE': 22}, '1': {'WOOD': 28, 'BRICK': 28, 'SHEEP': 31, 'WHEAT': 21, 'ORE': 21}, '2': {'WOOD': 26, 'BRICK': 33, 'SHEEP': 30, 'WHEAT': 13, 'ORE': 19}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.10415268689393997, 0.3779096305370331, 0.2959953546524048, 0.1271241456270218, 0.09481827914714813]]}
+
+step=180 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.RED: 3>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.5860195755958557
+  vp={'0': 9, '1': 8, '2': 8, '3': 0}
+  resources={'0': {'WOOD': 29, 'BRICK': 23, 'SHEEP': 29, 'WHEAT': 32, 'ORE': 22}, '1': {'WOOD': 28, 'BRICK': 28, 'SHEEP': 31, 'WHEAT': 21, 'ORE': 21}, '2': {'WOOD': 26, 'BRICK': 33, 'SHEEP': 30, 'WHEAT': 13, 'ORE': 19}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.10415268689393997, 0.3779096305370331, 0.2959953546524048, 0.1271241456270218, 0.09481827914714813]]}
+
+step=181 phase=TRADE_RESPOND reward=0.02 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.47250816226005554
+  vp={'0': 9, '1': 8, '2': 8, '3': 0}
+  resources={'0': {'WOOD': 29, 'BRICK': 22, 'SHEEP': 29, 'WHEAT': 33, 'ORE': 22}, '1': {'WOOD': 28, 'BRICK': 28, 'SHEEP': 31, 'WHEAT': 21, 'ORE': 21}, '2': {'WOOD': 26, 'BRICK': 33, 'SHEEP': 30, 'WHEAT': 13, 'ORE': 19}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.10415268689393997, 0.3779096305370331, 0.2959953546524048, 0.1271241456270218, 0.09481827914714813]]}
+
+step=182 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=0.48669055104255676
+  vp={'0': 9, '1': 8, '2': 8, '3': 0}
+  resources={'0': {'WOOD': 29, 'BRICK': 22, 'SHEEP': 29, 'WHEAT': 33, 'ORE': 22}, '1': {'WOOD': 28, 'BRICK': 28, 'SHEEP': 31, 'WHEAT': 21, 'ORE': 21}, '2': {'WOOD': 26, 'BRICK': 33, 'SHEEP': 30, 'WHEAT': 13, 'ORE': 19}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.10334398597478867, 0.37898045778274536, 0.2966100871562958, 0.12696458399295807, 0.09410089999437332]]}
+
+step=183 phase=ROLL reward=0.0 done=False
+
+step=184 phase=MAIN_ACTION reward=0.32 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [70]}
+  value=0.5208005905151367
+  vp={'0': 9, '1': 9, '2': 8, '3': 0}
+  resources={'0': {'WOOD': 32, 'BRICK': 25, 'SHEEP': 31, 'WHEAT': 35, 'ORE': 25}, '1': {'WOOD': 30, 'BRICK': 29, 'SHEEP': 32, 'WHEAT': 22, 'ORE': 24}, '2': {'WOOD': 29, 'BRICK': 35, 'SHEEP': 32, 'WHEAT': 15, 'ORE': 22}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.10405686497688293, 0.3826025724411011, 0.29697951674461365, 0.12250812351703644, 0.09385284781455994]]}
+
+step=185 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.RED: 3>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.44359737634658813
+  vp={'0': 9, '1': 9, '2': 8, '3': 0}
+  resources={'0': {'WOOD': 32, 'BRICK': 25, 'SHEEP': 31, 'WHEAT': 35, 'ORE': 25}, '1': {'WOOD': 30, 'BRICK': 29, 'SHEEP': 32, 'WHEAT': 22, 'ORE': 24}, '2': {'WOOD': 29, 'BRICK': 35, 'SHEEP': 32, 'WHEAT': 15, 'ORE': 22}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.10405686497688293, 0.3826025724411011, 0.29697951674461365, 0.12250812351703644, 0.09385284781455994]]}
+
+step=186 phase=TRADE_RESPOND reward=-0.008 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.32734444737434387
+  vp={'0': 9, '1': 9, '2': 8, '3': 0}
+  resources={'0': {'WOOD': 32, 'BRICK': 25, 'SHEEP': 31, 'WHEAT': 35, 'ORE': 25}, '1': {'WOOD': 30, 'BRICK': 29, 'SHEEP': 32, 'WHEAT': 22, 'ORE': 24}, '2': {'WOOD': 29, 'BRICK': 35, 'SHEEP': 32, 'WHEAT': 15, 'ORE': 22}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.10405686497688293, 0.3826025724411011, 0.29697951674461365, 0.12250812351703644, 0.09385284781455994]]}
+
+step=187 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=0.32392680644989014
+  vp={'0': 9, '1': 9, '2': 8, '3': 0}
+  resources={'0': {'WOOD': 32, 'BRICK': 25, 'SHEEP': 31, 'WHEAT': 35, 'ORE': 25}, '1': {'WOOD': 30, 'BRICK': 29, 'SHEEP': 32, 'WHEAT': 22, 'ORE': 24}, '2': {'WOOD': 29, 'BRICK': 35, 'SHEEP': 32, 'WHEAT': 15, 'ORE': 22}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.10405686497688293, 0.3826025724411011, 0.29697951674461365, 0.12250812351703644, 0.09385284781455994]]}
+
+step=188 phase=ROLL reward=0.0 done=False
+
+step=189 phase=MAIN_ACTION reward=0.32 done=False
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [70]}
+  value=0.4284806549549103
+  vp={'0': 9, '1': 9, '2': 9, '3': 0}
+  resources={'0': {'WOOD': 33, 'BRICK': 26, 'SHEEP': 32, 'WHEAT': 35, 'ORE': 26}, '1': {'WOOD': 31, 'BRICK': 30, 'SHEEP': 33, 'WHEAT': 22, 'ORE': 25}, '2': {'WOOD': 29, 'BRICK': 35, 'SHEEP': 32, 'WHEAT': 14, 'ORE': 23}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.1050836592912674, 0.3849523365497589, 0.29399916529655457, 0.12160023301839828, 0.09436468034982681]]}
+
+step=190 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.BLUE: 1>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [1], 'offer': [1], 'request': [3]}
+  value=0.3466345965862274
+  vp={'0': 9, '1': 9, '2': 9, '3': 0}
+  resources={'0': {'WOOD': 33, 'BRICK': 26, 'SHEEP': 32, 'WHEAT': 35, 'ORE': 26}, '1': {'WOOD': 31, 'BRICK': 30, 'SHEEP': 33, 'WHEAT': 22, 'ORE': 25}, '2': {'WOOD': 29, 'BRICK': 35, 'SHEEP': 32, 'WHEAT': 14, 'ORE': 23}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.1050836592912674, 0.3849523365497589, 0.29399916529655457, 0.12160023301839828, 0.09436468034982681]]}
+
+step=191 phase=TRADE_RESPOND reward=0.02 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.22734586894512177
+  vp={'0': 9, '1': 9, '2': 9, '3': 0}
+  resources={'0': {'WOOD': 33, 'BRICK': 26, 'SHEEP': 32, 'WHEAT': 35, 'ORE': 26}, '1': {'WOOD': 31, 'BRICK': 31, 'SHEEP': 33, 'WHEAT': 21, 'ORE': 25}, '2': {'WOOD': 29, 'BRICK': 34, 'SHEEP': 32, 'WHEAT': 15, 'ORE': 23}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.1050836592912674, 0.3849523365497589, 0.29399916529655457, 0.12160023301839828, 0.09436468034982681]]}
+
+step=192 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=0.23614218831062317
+  vp={'0': 9, '1': 9, '2': 9, '3': 0}
+  resources={'0': {'WOOD': 33, 'BRICK': 26, 'SHEEP': 32, 'WHEAT': 35, 'ORE': 26}, '1': {'WOOD': 31, 'BRICK': 31, 'SHEEP': 33, 'WHEAT': 21, 'ORE': 25}, '2': {'WOOD': 29, 'BRICK': 34, 'SHEEP': 32, 'WHEAT': 15, 'ORE': 23}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.10438112169504166, 0.38582608103752136, 0.29473206400871277, 0.12126311659812927, 0.09379762411117554]]}
+
+step=193 phase=ROLL reward=0.0 done=False
+
+step=194 phase=MAIN_ACTION reward=-0.002 done=False
+  env_action={'type': 'end_main_action'}
+  action_dict={'gameplay_action': [70]}
+  value=0.31252560019493103
+  vp={'0': 9, '1': 9, '2': 9, '3': 0}
+  resources={'0': {'WOOD': 36, 'BRICK': 29, 'SHEEP': 34, 'WHEAT': 37, 'ORE': 29}, '1': {'WOOD': 34, 'BRICK': 34, 'SHEEP': 35, 'WHEAT': 23, 'ORE': 28}, '2': {'WOOD': 32, 'BRICK': 37, 'SHEEP': 34, 'WHEAT': 17, 'ORE': 26}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.06995367258787155, 0.4780709743499756, 0.31014224886894226, 0.08423744142055511, 0.05759569630026817]]}
+
+step=195 phase=TRADE_PROPOSE reward=0.006 done=False
+  env_action={'type': 'propose_trade', 'target': <PlayerId.ORANGE: 2>, 'offer': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 1, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 0, <Resource.ORE: 4>: 0}, 'request': {<Resource.WOOD: 0>: 0, <Resource.BRICK: 1>: 0, <Resource.SHEEP: 2>: 0, <Resource.WHEAT: 3>: 1, <Resource.ORE: 4>: 0}}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.25434061884880066
+  vp={'0': 9, '1': 9, '2': 9, '3': 0}
+  resources={'0': {'WOOD': 36, 'BRICK': 29, 'SHEEP': 34, 'WHEAT': 37, 'ORE': 29}, '1': {'WOOD': 34, 'BRICK': 34, 'SHEEP': 35, 'WHEAT': 23, 'ORE': 28}, '2': {'WOOD': 32, 'BRICK': 37, 'SHEEP': 34, 'WHEAT': 17, 'ORE': 26}, '3': {'WOOD': 2, 'BRICK': 4, 'SHEEP': 2, 'WHEAT': 0, 'ORE': 1}}
+  tom={'need_pred': [[0.06995367258787155, 0.4780709743499756, 0.31014224886894226, 0.08423744142055511, 0.05759569630026817]]}
+
+step=196 phase=TRADE_RESPOND reward=0.02 done=False
+  env_action={'type': 'accept_trade', 'response_type': 'accept'}
+  action_dict={'engage_trade': [1], 'trade_response': [0], 'target': [2], 'offer': [1], 'request': [3]}
+  value=0.1337815523147583
+  vp={'0': 9, '1': 9, '2': 9, '3': 0}
+  resources={'0': {'WOOD': 36, 'BRICK': 29, 'SHEEP': 34, 'WHEAT': 37, 'ORE': 29}, '1': {'WOOD': 34, 'BRICK': 34, 'SHEEP': 35, 'WHEAT': 23, 'ORE': 28}, '2': {'WOOD': 32, 'BRICK': 38, 'SHEEP': 34, 'WHEAT': 16, 'ORE': 26}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.06995367258787155, 0.4780709743499756, 0.31014224886894226, 0.08423744142055511, 0.05759569630026817]]}
+
+step=197 phase=END_TURN reward=0.0 done=False
+  env_action={'type': 'end_turn'}
+  action_dict={'gameplay_action': [70]}
+  value=0.15812648832798004
+  vp={'0': 9, '1': 9, '2': 9, '3': 0}
+  resources={'0': {'WOOD': 36, 'BRICK': 29, 'SHEEP': 34, 'WHEAT': 37, 'ORE': 29}, '1': {'WOOD': 34, 'BRICK': 34, 'SHEEP': 35, 'WHEAT': 23, 'ORE': 28}, '2': {'WOOD': 32, 'BRICK': 38, 'SHEEP': 34, 'WHEAT': 16, 'ORE': 26}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.06947854906320572, 0.47879356145858765, 0.31054919958114624, 0.08400525897741318, 0.05717343091964722]]}
+
+step=198 phase=ROLL reward=0.0 done=False
+
+step=199 phase=MAIN_ACTION reward=1.32 done=True
+  env_action={'type': 'build_settlement'}
+  action_dict={'gameplay_action': [70]}
+  value=0.7889794707298279
+  vp={'0': 10, '1': 9, '2': 9, '3': 0}
+  resources={'0': {'WOOD': 39, 'BRICK': 31, 'SHEEP': 36, 'WHEAT': 39, 'ORE': 32}, '1': {'WOOD': 38, 'BRICK': 37, 'SHEEP': 38, 'WHEAT': 26, 'ORE': 31}, '2': {'WOOD': 36, 'BRICK': 41, 'SHEEP': 37, 'WHEAT': 19, 'ORE': 29}, '3': {'WOOD': 2, 'BRICK': 3, 'SHEEP': 2, 'WHEAT': 1, 'ORE': 1}}
+  tom={'need_pred': [[0.0899740606546402, 0.420844703912735, 0.30187204480171204, 0.10906318575143814, 0.07824600487947464]]}
+

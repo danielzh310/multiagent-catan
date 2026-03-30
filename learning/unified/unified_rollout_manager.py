@@ -10,10 +10,11 @@ from environment.catan_env import CatanEnv
 
 
 class UnifiedRolloutManager:
-    def __init__(self, num_envs: int, device: str = "cpu"):
+    def __init__(self, num_envs: int, device: str = "cpu", enable_trading: bool = True):
         self.num_envs = num_envs
         self.device = device
-        self.envs = [CatanEnv() for _ in range(num_envs)]
+        self.enable_trading = enable_trading
+        self.envs = [CatanEnv(enable_trading=enable_trading) for _ in range(num_envs)]
         self.obs = [env.reset() for env in self.envs]
 
     def _phase_name(self, env: CatanEnv) -> str:
@@ -58,7 +59,6 @@ class UnifiedRolloutManager:
 
         self_vec = torch.tensor([to_vec(player)], dtype=torch.float32, device=self.device)
 
-        # Opponents aggregated
         op_vec = [0.0] * 64
         if other_players:
             nums = len(other_players)
@@ -70,34 +70,15 @@ class UnifiedRolloutManager:
             op_vec = [x / nums for x in sum_vec]
 
         board_vec = torch.zeros((1, 64), dtype=torch.float32, device=self.device)
-        # include basic turn info + trade info
-        board_vec[0, 0:3] = torch.tensor([
-            float(raw["game"].get("turn_number", 0)),
-            float(env.get_current_player_id()),
-            float(env.get_phase().value),
-        ], dtype=torch.float32, device=self.device)
+        board_vec[0, 0] = float(raw["game"].get("turn_number", 0))
+        board_vec[0, 1] = float(int(env.get_current_player_id()))
+        board_vec[0, 2] = float(env.get_phase().value)
+        board_vec[0, 3] = 1.0 if raw["game"].get("enable_trading", True) else 0.0
 
-        # include pending trade state so policy can see negotiation progress
         pending_trade = raw.get("trade")
         if pending_trade is not None:
-            board_vec[0, 3] = 1.0  # has_pending_trade flag
-            board_vec[0, 4] = float(pending_trade.counter_count)
-            
-            # offer vector (5 resources: WOOD, BRICK, SHEEP, WHEAT, ORE)
-            offer = pending_trade.offer
-            board_vec[0, 5] = float(offer.get(Resource.WOOD, 0))
-            board_vec[0, 6] = float(offer.get(Resource.BRICK, 0))
-            board_vec[0, 7] = float(offer.get(Resource.SHEEP, 0))
-            board_vec[0, 8] = float(offer.get(Resource.WHEAT, 0))
-            board_vec[0, 9] = float(offer.get(Resource.ORE, 0))
-            
-            # request vector (5 resources)
-            request = pending_trade.request
-            board_vec[0, 10] = float(request.get(Resource.WOOD, 0))
-            board_vec[0, 11] = float(request.get(Resource.BRICK, 0))
-            board_vec[0, 12] = float(request.get(Resource.SHEEP, 0))
-            board_vec[0, 13] = float(request.get(Resource.WHEAT, 0))
-            board_vec[0, 14] = float(request.get(Resource.ORE, 0))
+            board_vec[0, 4] = 1.0
+            board_vec[0, 5] = float(pending_trade.counter_count)
 
         return {
             "board": board_vec,
@@ -119,19 +100,29 @@ class UnifiedRolloutManager:
         return out
 
     def _decode_gameplay(self, action_idx: int, env: CatanEnv) -> dict:
+        legal_actions = env.get_legal_actions()
+
         if env.get_phase() == TurnPhase.END_TURN:
             return {"type": "end_turn"}
 
-        if action_idx == 0:
-            return {"type": "build_road"}
-        if action_idx == 1:
-            return {"type": "build_settlement"}
-        if action_idx == 2:
-            return {"type": "build_city"}
+        gameplay_actions = [
+            a for a in legal_actions
+            if a["type"] in {"build_road", "build_settlement", "build_city", "end_main_action"}
+        ]
 
-        return {"type": "end_main_action"}
+        if not gameplay_actions:
+            return {"type": "end_main_action"}
+
+        mapped_idx = int(action_idx) % len(gameplay_actions)
+        return gameplay_actions[mapped_idx]
 
     def _decode_trade(self, action_dict: Dict[str, torch.Tensor], env: CatanEnv) -> dict:
+        if not self.enable_trading:
+            phase = env.get_phase()
+            if phase == TurnPhase.TRADE_RESPOND:
+                return {"type": "reject_trade", "response_type": "reject"}
+            return {"type": "skip_trade"}
+
         phase = env.get_phase()
 
         engage = int(action_dict["engage_trade"].item())
