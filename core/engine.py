@@ -60,6 +60,8 @@ class CatanEngine:
         self.robber_pending = False
         self.last_roll: Optional[int] = None
         self.last_robber_event: Optional[dict] = None
+        self.robber_discard_required: Dict[PlayerId, int] = {}
+        self.robber_discard_order: List[PlayerId] = []
 
         self.trade_history = TradeHistory()
         self.trade_manager = TradeManager(self.trade_history)
@@ -133,6 +135,8 @@ class CatanEngine:
         self.robber_pending = False
         self.last_roll = None
         self.last_robber_event = None
+        self.robber_discard_required = {}
+        self.robber_discard_order = []
 
         self.trade_manager.reset()
         self.phase_router.reset()
@@ -269,12 +273,15 @@ class CatanEngine:
 
     def _apply_robber_effects(self):
         discarded_summary: Dict[str, Dict[str, int]] = {}
+        self.robber_discard_required = {}
+        self.robber_discard_order = []
 
         for player_id, player in self.players.items():
-            total_cards = sum(int(v) for v in player.resources.values())
-            if total_cards > 7:
-                discarded = self._discard_half_random(player)
-                discarded_summary[str(player_id)] = {k.name: v for k, v in discarded.items() if v > 0}
+            discard_count = player.discard_half_if_needed()
+            if discard_count > 0:
+                self.robber_discard_required[player_id] = discard_count
+                self.robber_discard_order.append(player_id)
+                discarded_summary[str(player_id)] = {}
 
         self.last_robber_event = {
             "rolled_seven": True,
@@ -431,6 +438,61 @@ class CatanEngine:
         before_vp = self._vp(player_id)
         before_diversity = self._resource_diversity(player_id)
 
+        # If a 7 was rolled and robber action is outstanding, only robber movement is allowed.
+        if self.phase_router.get_phase() == TurnPhase.MAIN_ACTION and self.robber_pending:
+            if self.robber_discard_order:
+                if action_type != "discard_cards":
+                    return -0.02
+            elif action_type != "move_robber":
+                # Enforce robber resolution before any other main action.
+                return -0.02
+
+        if action_type == "discard_cards":
+            if not self.robber_pending or not self.robber_discard_order:
+                return -0.02
+
+            expected_player = self.robber_discard_order[0]
+            if player_id != expected_player:
+                return -0.02
+
+            resources = action.get("resources")
+            if not isinstance(resources, dict):
+                return -0.02
+
+            required = self.robber_discard_required.get(player_id, 0)
+            if required <= 0:
+                return -0.02
+
+            discard_sum = 0
+            for res_key, amount in resources.items():
+                if not isinstance(amount, int) or amount < 0:
+                    return -0.02
+                discard_sum += amount
+                if player.resources.get(res_key, 0) < amount:
+                    return -0.02
+
+            if discard_sum != required:
+                return -0.02
+
+            # Apply discard.
+            for res_key, amount in resources.items():
+                player.resources[res_key] -= amount
+
+            # Record discarded values for event tracking.
+            self.last_robber_event["discarded"][str(player_id)] = {res_key.name: amount for res_key, amount in resources.items() if amount > 0} if resources else {}
+
+            self.robber_discard_required.pop(player_id, None)
+            self.robber_discard_order.pop(0)
+
+            reward += 0.0
+
+            # If still discards required, keep in MAIN_ACTION.
+            if self.robber_discard_order:
+                return reward
+
+            # All players discarded; robber can now be moved.
+            return reward
+
         if action_type == "build_settlement":
             vertex_id = action.get("vertex")
             if vertex_id is None or vertex_id not in self.get_valid_settlement_vertices(player_id):
@@ -495,7 +557,7 @@ class CatanEngine:
                 reward += self._apply_bank_trade(player_id, give, receive)
 
         elif action_type == "move_robber":
-            if not self.robber_pending:
+            if not self.robber_pending or self.robber_discard_order:
                 reward -= 0.02
             else:
                 tile_id = action.get("tile")
@@ -659,6 +721,10 @@ class CatanEngine:
                 "initial_placement_stage": self.initial_placement_stage,
                 "last_roll": self.last_roll,
                 "robber_pending": self.robber_pending,
+                "robber_discard_required": {
+                    str(pid): v for pid, v in self.robber_discard_required.items()
+                },
+                "robber_discard_order": [str(pid) for pid in self.robber_discard_order],
                 "last_robber_event": self.last_robber_event,
             },
             "player": self.players[current_player].as_dict(),

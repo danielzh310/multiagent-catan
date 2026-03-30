@@ -310,15 +310,42 @@ class RolloutManager:
     def _build_action_mask(self, env):
         legal_actions = env.get_legal_actions()
 
-        action_type_mask = torch.zeros(1, 9, dtype=torch.float32, device=self.device)
+        action_type_mask = torch.zeros(1, 10, dtype=torch.float32, device=self.device)
         settlement_mask = torch.ones(1, 54, dtype=torch.float32, device=self.device) * 1e-8
         road_mask = torch.ones(1, 72, dtype=torch.float32, device=self.device) * 1e-8
         city_mask = torch.ones(1, 54, dtype=torch.float32, device=self.device) * 1e-8
         robber_mask = torch.ones(1, 19, dtype=torch.float32, device=self.device) * 1e-8
         trade_mask = torch.ones(1, 2, dtype=torch.float32, device=self.device)
+        discard_wood_mask = torch.ones(1, 8, dtype=torch.float32, device=self.device) * 1e-8
+        discard_brick_mask = torch.ones(1, 8, dtype=torch.float32, device=self.device) * 1e-8
+        discard_sheep_mask = torch.ones(1, 8, dtype=torch.float32, device=self.device) * 1e-8
+        discard_wheat_mask = torch.ones(1, 8, dtype=torch.float32, device=self.device) * 1e-8
+        discard_ore_mask = torch.ones(1, 8, dtype=torch.float32, device=self.device) * 1e-8
+
+        string_to_action_type = {
+            "end_turn": ActionType.END_TURN,
+            "build_road": ActionType.BUILD_ROAD,
+            "build_settlement": ActionType.BUILD_SETTLEMENT,
+            "build_city": ActionType.BUILD_CITY,
+            "buy_dev_card": ActionType.BUY_DEV_CARD,
+            "play_dev_card": ActionType.PLAY_DEV_CARD,
+            "move_robber": ActionType.MOVE_ROBBER,
+            "bank_trade": ActionType.TRADE_BANK,
+            "trade_player": ActionType.TRADE_PLAYER,
+            "discard_cards": ActionType.DISCARD_CARDS,
+        }
 
         for action in legal_actions:
-            action_type = action["type"]
+            raw_type = action["type"]
+            if isinstance(raw_type, str):
+                action_type = string_to_action_type.get(raw_type, None)
+            elif isinstance(raw_type, int):
+                action_type = ActionType(raw_type)
+            else:
+                action_type = raw_type
+
+            if action_type is None:
+                continue
             action_type_mask[0, int(action_type)] = 1.0
 
             if action_type == ActionType.BUILD_SETTLEMENT:
@@ -329,6 +356,9 @@ class RolloutManager:
                 city_mask[0, action["vertex_id"]] = 1.0
             elif action_type == ActionType.MOVE_ROBBER:
                 robber_mask[0, action["tile_id"]] = 1.0
+            elif action_type == ActionType.DISCARD_CARDS:
+                # Discard action uses explicit resource map outside this head
+                pass
 
         return {
             "action_type": action_type_mask,
@@ -380,5 +410,62 @@ class RolloutManager:
                 if candidate.get("tile_id") == tile_id:
                     return candidate
             return chosen
+
+            if action_type == ActionType.DISCARD_CARDS:
+                # Discard resources are provided by discard resource head vectors.
+                current_player = env.get_current_player_id()
+                required = env.engine.robber_discard_required.get(current_player, 0)
+                player_resources = env.engine.players[current_player].resources
+
+                chosen_discard = {
+                    Resource.WOOD: int(action_dict["discard_wood"].squeeze().cpu().item()),
+                    Resource.BRICK: int(action_dict["discard_brick"].squeeze().cpu().item()),
+                    Resource.SHEEP: int(action_dict["discard_sheep"].squeeze().cpu().item()),
+                    Resource.WHEAT: int(action_dict["discard_wheat"].squeeze().cpu().item()),
+                    Resource.ORE: int(action_dict["discard_ore"].squeeze().cpu().item()),
+                }
+
+                # Cap to available resources
+                for res in chosen_discard:
+                    chosen_discard[res] = min(chosen_discard[res], int(player_resources.get(res, 0)))
+
+                total = sum(chosen_discard.values())
+
+                # Adjust to required sum if necessary.
+                if total > required:
+                    while total > required:
+                        reducible = [r for r, v in chosen_discard.items() if v > 0]
+                        if not reducible:
+                            break
+                        r = max(reducible, key=lambda x: chosen_discard[x])
+                        chosen_discard[r] -= 1
+                        total -= 1
+                elif total < required:
+                    for res in [Resource.WOOD, Resource.BRICK, Resource.SHEEP, Resource.WHEAT, Resource.ORE]:
+                        available = int(player_resources.get(res, 0))
+                        while total < required and chosen_discard[res] < available:
+                            chosen_discard[res] += 1
+                            total += 1
+                        if total == required:
+                            break
+
+                # If not possible to meet requirement, fallback to required best-effort.
+                if total != required:
+                    candidate = {r: 0 for r in chosen_discard}
+                    remaining = required
+                    for res in [Resource.WOOD, Resource.BRICK, Resource.SHEEP, Resource.WHEAT, Resource.ORE]:
+                        available = int(player_resources.get(res, 0))
+                        if remaining <= 0:
+                            break
+                        allocate = min(available, remaining)
+                        candidate[res] = allocate
+                        remaining -= allocate
+                    chosen_discard = candidate
+                    total = sum(chosen_discard.values())
+
+                return {
+                    "type": "discard_cards",
+                    "resources": chosen_discard,
+                }
 
         return chosen

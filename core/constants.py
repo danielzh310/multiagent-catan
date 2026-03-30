@@ -59,6 +59,7 @@ class ActionType(IntEnum):
     MOVE_ROBBER = 6
     TRADE_BANK = 7
     TRADE_PLAYER = 8
+    DISCARD_CARDS = 9
 
 
 ResourceCost = Tuple[int, int, int, int, int]

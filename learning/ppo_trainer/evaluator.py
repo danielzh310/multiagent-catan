@@ -3,6 +3,7 @@ import torch
 
 from environment.catan_env import CatanEnv
 from core.constants import ActionType, PlayerId
+from core.constants import Resource
 
 
 class Evaluator:
@@ -201,15 +202,42 @@ class Evaluator:
     def _build_action_mask(self):
         legal_actions = self.env.get_legal_actions()
 
-        action_type_mask = torch.zeros(1, 9, dtype=torch.float32, device=self.device)
+        action_type_mask = torch.zeros(1, 10, dtype=torch.float32, device=self.device)
         settlement_mask = torch.ones(1, 54, dtype=torch.float32, device=self.device) * 1e-8
         road_mask = torch.ones(1, 72, dtype=torch.float32, device=self.device) * 1e-8
         city_mask = torch.ones(1, 54, dtype=torch.float32, device=self.device) * 1e-8
         robber_mask = torch.ones(1, 19, dtype=torch.float32, device=self.device) * 1e-8
         trade_mask = torch.ones(1, 2, dtype=torch.float32, device=self.device)
+        discard_wood_mask = torch.ones(1, 8, dtype=torch.float32, device=self.device) * 1e-8
+        discard_brick_mask = torch.ones(1, 8, dtype=torch.float32, device=self.device) * 1e-8
+        discard_sheep_mask = torch.ones(1, 8, dtype=torch.float32, device=self.device) * 1e-8
+        discard_wheat_mask = torch.ones(1, 8, dtype=torch.float32, device=self.device) * 1e-8
+        discard_ore_mask = torch.ones(1, 8, dtype=torch.float32, device=self.device) * 1e-8
+
+        string_to_action_type = {
+            "end_turn": ActionType.END_TURN,
+            "build_road": ActionType.BUILD_ROAD,
+            "build_settlement": ActionType.BUILD_SETTLEMENT,
+            "build_city": ActionType.BUILD_CITY,
+            "buy_dev_card": ActionType.BUY_DEV_CARD,
+            "play_dev_card": ActionType.PLAY_DEV_CARD,
+            "move_robber": ActionType.MOVE_ROBBER,
+            "bank_trade": ActionType.TRADE_BANK,
+            "trade_player": ActionType.TRADE_PLAYER,
+            "discard_cards": ActionType.DISCARD_CARDS,
+        }
 
         for action in legal_actions:
-            action_type = action["type"]
+            raw_type = action["type"]
+            if isinstance(raw_type, str):
+                action_type = string_to_action_type.get(raw_type, None)
+            elif isinstance(raw_type, int):
+                action_type = ActionType(raw_type)
+            else:
+                action_type = raw_type
+
+            if action_type is None:
+                continue
             action_type_mask[0, int(action_type)] = 1.0
 
             if action_type == ActionType.BUILD_SETTLEMENT:
@@ -220,6 +248,8 @@ class Evaluator:
                 city_mask[0, action["vertex_id"]] = 1.0
             elif action_type == ActionType.MOVE_ROBBER:
                 robber_mask[0, action["tile_id"]] = 1.0
+            elif action_type == ActionType.DISCARD_CARDS:
+                pass
 
         return {
             "action_type": action_type_mask,
@@ -228,6 +258,11 @@ class Evaluator:
             "city": city_mask,
             "robber": robber_mask,
             "trade": trade_mask,
+            "discard_wood": discard_wood_mask,
+            "discard_brick": discard_brick_mask,
+            "discard_sheep": discard_sheep_mask,
+            "discard_wheat": discard_wheat_mask,
+            "discard_ore": discard_ore_mask,
         }
 
     def _decode_action(self, action_dict):
@@ -271,5 +306,56 @@ class Evaluator:
                 if candidate.get("tile_id") == tile_id:
                     return candidate
             return chosen
+
+        if action_type == ActionType.DISCARD_CARDS:
+            current_player = self.env.get_current_player_id()
+            required = self.env.engine.robber_discard_required.get(current_player, 0)
+            player_resources = self.env.engine.players[current_player].resources
+
+            chosen_discard = {
+                Resource.WOOD: int(action_dict["discard_wood"].squeeze().cpu().item()),
+                Resource.BRICK: int(action_dict["discard_brick"].squeeze().cpu().item()),
+                Resource.SHEEP: int(action_dict["discard_sheep"].squeeze().cpu().item()),
+                Resource.WHEAT: int(action_dict["discard_wheat"].squeeze().cpu().item()),
+                Resource.ORE: int(action_dict["discard_ore"].squeeze().cpu().item()),
+            }
+
+            for res in chosen_discard:
+                chosen_discard[res] = min(chosen_discard[res], int(player_resources.get(res, 0)))
+
+            total = sum(chosen_discard.values())
+            if total > required:
+                while total > required:
+                    reducible = [r for r, v in chosen_discard.items() if v > 0]
+                    if not reducible:
+                        break
+                    r = max(reducible, key=lambda x: chosen_discard[x])
+                    chosen_discard[r] -= 1
+                    total -= 1
+            elif total < required:
+                for res in [Resource.WOOD, Resource.BRICK, Resource.SHEEP, Resource.WHEAT, Resource.ORE]:
+                    available = int(player_resources.get(res, 0))
+                    while total < required and chosen_discard[res] < available:
+                        chosen_discard[res] += 1
+                        total += 1
+                    if total == required:
+                        break
+
+            if total != required:
+                candidate = {r: 0 for r in chosen_discard}
+                remaining = required
+                for res in [Resource.WOOD, Resource.BRICK, Resource.SHEEP, Resource.WHEAT, Resource.ORE]:
+                    available = int(player_resources.get(res, 0))
+                    if remaining <= 0:
+                        break
+                    allocate = min(available, remaining)
+                    candidate[res] = allocate
+                    remaining -= allocate
+                chosen_discard = candidate
+
+            return {
+                "type": "discard_cards",
+                "resources": chosen_discard,
+            }
 
         return chosen

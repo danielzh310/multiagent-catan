@@ -102,6 +102,16 @@ class CatanEnv:
 
         if phase == TurnPhase.MAIN_ACTION:
             if self.engine.robber_pending:
+                if self.engine.robber_discard_order:
+                    current_player = self.engine.get_current_player_id()
+                    required = self.engine.robber_discard_required.get(current_player, 0)
+                    if required <= 0:
+                        return []
+
+                    # For simplicity, expose a single discard action and required count.
+                    # Player strategy should fill `resources` to sum `required`.
+                    return [{"type": "discard_cards", "resources": {}, "required": required}]
+
                 current_robber_tile = next((t.id for t in self.engine.board.tiles if t.has_robber), None)
                 moves = []
                 for t in self.engine.board.tiles:

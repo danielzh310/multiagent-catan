@@ -53,6 +53,11 @@ class ActionHeads(nn.Module):
         self.robber_head = CategoricalHead(hidden_dim, num_tiles)
 
         self.trade_head = CategoricalHead(hidden_dim, 2)  # accept / reject
+        self.discard_wood_head = CategoricalHead(hidden_dim, 8)
+        self.discard_brick_head = CategoricalHead(hidden_dim, 8)
+        self.discard_sheep_head = CategoricalHead(hidden_dim, 8)
+        self.discard_wheat_head = CategoricalHead(hidden_dim, 8)
+        self.discard_ore_head = CategoricalHead(hidden_dim, 8)
 
     def forward(self, x, action_masks=None):
         """
@@ -93,6 +98,26 @@ class ActionHeads(nn.Module):
             h,
             mask=self._get_mask(action_masks, "trade"),
         )
+        outputs["discard_wood"] = self.discard_wood_head(
+            h,
+            mask=self._get_mask(action_masks, "discard_wood"),
+        )
+        outputs["discard_brick"] = self.discard_brick_head(
+            h,
+            mask=self._get_mask(action_masks, "discard_brick"),
+        )
+        outputs["discard_sheep"] = self.discard_sheep_head(
+            h,
+            mask=self._get_mask(action_masks, "discard_sheep"),
+        )
+        outputs["discard_wheat"] = self.discard_wheat_head(
+            h,
+            mask=self._get_mask(action_masks, "discard_wheat"),
+        )
+        outputs["discard_ore"] = self.discard_ore_head(
+            h,
+            mask=self._get_mask(action_masks, "discard_ore"),
+        )
 
         return outputs
 
@@ -111,6 +136,11 @@ class ActionHeads(nn.Module):
         action["robber"] = outputs["robber"].sample()
         action["trade"] = outputs["trade"].sample()
 
+        action["discard_wood"] = outputs["discard_wood"].sample()
+        action["discard_brick"] = outputs["discard_brick"].sample()
+        action["discard_sheep"] = outputs["discard_sheep"].sample()
+        action["discard_wheat"] = outputs["discard_wheat"].sample()
+        action["discard_ore"] = outputs["discard_ore"].sample()
         return action
 
     def log_probs(self, outputs, actions):
@@ -126,6 +156,11 @@ class ActionHeads(nn.Module):
         log_probs.append(outputs["robber"].log_probs(actions["robber"]))
         log_probs.append(outputs["trade"].log_probs(actions["trade"]))
 
+        log_probs.append(outputs["discard_wood"].log_probs(actions["discard_wood"]))
+        log_probs.append(outputs["discard_brick"].log_probs(actions["discard_brick"]))
+        log_probs.append(outputs["discard_sheep"].log_probs(actions["discard_sheep"]))
+        log_probs.append(outputs["discard_wheat"].log_probs(actions["discard_wheat"]))
+        log_probs.append(outputs["discard_ore"].log_probs(actions["discard_ore"]))
         return torch.sum(torch.stack(log_probs), dim=0)
 
     def entropy(self, outputs):
@@ -136,7 +171,6 @@ class ActionHeads(nn.Module):
 
         for key in outputs:
             entropies.append(outputs[key].entropy())
-
         return torch.sum(torch.stack(entropies), dim=0)
 
     def mode(self, outputs):
@@ -152,6 +186,11 @@ class ActionHeads(nn.Module):
         action["robber"] = outputs["robber"].mode()
         action["trade"] = outputs["trade"].mode()
 
+        action["discard_wood"] = outputs["discard_wood"].mode()
+        action["discard_brick"] = outputs["discard_brick"].mode()
+        action["discard_sheep"] = outputs["discard_sheep"].mode()
+        action["discard_wheat"] = outputs["discard_wheat"].mode()
+        action["discard_ore"] = outputs["discard_ore"].mode()
         return action
 
     def _get_mask(self, masks, key):
