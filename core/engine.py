@@ -13,7 +13,7 @@ from core.constants import (
 )
 from core.agent_state import AgentState
 from core.board_layout import BoardLayout
-from core.helpers import roll_dice
+from core.helpers import roll_dice, move_robber
 from core.trade_manager import TradeManager, TradeResponse
 from core.trade_history import TradeHistory
 from core.phase_router import PhaseRouter, TurnPhase
@@ -276,30 +276,49 @@ class CatanEngine:
                 discarded = self._discard_half_random(player)
                 discarded_summary[str(player_id)] = {k.name: v for k, v in discarded.items() if v > 0}
 
+        self.last_robber_event = {
+            "rolled_seven": True,
+            "discarded": discarded_summary,
+            "robber_moved": False,
+            "moved_to": None,
+            "stolen_from": None,
+            "stolen_resource": None,
+        }
+
+    def _move_robber(self, target_tile_id: int):
+        if target_tile_id < 0 or target_tile_id >= len(self.board.tiles):
+            return
+
+        target_tile = self.board.tiles[target_tile_id]
+        if target_tile.has_robber:
+            return
+
+        move_robber(self.board, target_tile_id)
+
         thief_id = self.get_current_player_id()
         thief = self.players[thief_id]
 
-        candidates: List[tuple[PlayerId, int]] = []
-        for pid, player in self.players.items():
-            if pid == thief_id:
-                continue
-            total = sum(int(v) for v in player.resources.values())
-            if total > 0:
-                candidates.append((pid, total))
+        adjacent_owners = set()
+        for vertex in target_tile.vertices:
+            if vertex.building and vertex.building.owner != thief_id:
+                owner = vertex.building.owner
+                if sum(int(v) for v in self.players[owner].resources.values()) > 0:
+                    adjacent_owners.add(owner)
 
         stolen_from = None
         stolen_resource = None
-
-        if candidates:
-            candidates.sort(key=lambda x: x[1], reverse=True)
-            victim_id = candidates[0][0]
+        if adjacent_owners:
+            victim_id = self.random.choice(list(adjacent_owners))
             victim = self.players[victim_id]
             stolen_resource = self._steal_one_random_resource(victim, thief)
             stolen_from = victim_id if stolen_resource is not None else None
 
+        self.robber_pending = False
         self.last_robber_event = {
             "rolled_seven": True,
-            "discarded": discarded_summary,
+            "discarded": self.last_robber_event.get("discarded", {}),
+            "robber_moved": True,
+            "moved_to": str(target_tile_id),
             "stolen_from": str(stolen_from) if stolen_from is not None else None,
             "stolen_resource": stolen_resource.name if stolen_resource is not None else None,
         }
@@ -474,6 +493,19 @@ class CatanEngine:
                 reward -= 0.02
             else:
                 reward += self._apply_bank_trade(player_id, give, receive)
+
+        elif action_type == "move_robber":
+            if not self.robber_pending:
+                reward -= 0.02
+            else:
+                tile_id = action.get("tile")
+                if tile_id is None or not isinstance(tile_id, int) or not (0 <= tile_id < len(self.board.tiles)):
+                    reward -= 0.02
+                elif self.board.tiles[tile_id].has_robber:
+                    reward -= 0.02
+                else:
+                    self._move_robber(tile_id)
+                    reward += 0.03
 
         elif action_type == "end_turn":
             self.phase_router.complete_end_turn_phase(self)

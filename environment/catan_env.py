@@ -101,6 +101,13 @@ class CatanEnv:
             return [{"type": "roll"}]
 
         if phase == TurnPhase.MAIN_ACTION:
+            if self.engine.robber_pending:
+                current_robber_tile = next((t.id for t in self.engine.board.tiles if t.has_robber), None)
+                moves = []
+                for t in self.engine.board.tiles:
+                    if t.id != current_robber_tile:
+                        moves.append({"type": "move_robber", "tile": t.id})
+                return moves
             return self._get_legal_gameplay_actions(current_player)
 
         if phase == TurnPhase.TRADE_PROPOSE:
