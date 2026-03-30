@@ -23,8 +23,17 @@ class Connection:
             return self.v1
         raise ValueError("Vertex not part of this connection.")
 
-    def can_build_road(self, player_id: PlayerId) -> bool:
-        return not self.is_occupied()
+    def can_build_road(self, player_id: PlayerId, settlement_positions: dict, road_positions: dict) -> bool:
+        if self.is_occupied():
+            return False
+        # check connected: one end has settlement or road
+        v1_has = self.v1.id in settlement_positions[player_id] or any(
+            c.id in road_positions[player_id] for c in self.v1.edges
+        )
+        v2_has = self.v2.id in settlement_positions[player_id] or any(
+            c.id in road_positions[player_id] for c in self.v2.edges
+        )
+        return v1_has or v2_has
 
     def build_road(self, player_id: PlayerId) -> None:
         if self.owner is not None:

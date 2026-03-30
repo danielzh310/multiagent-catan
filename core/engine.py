@@ -17,6 +17,8 @@ from core.helpers import roll_dice
 from core.trade_manager import TradeManager, TradeResponse
 from core.trade_history import TradeHistory
 from core.phase_router import PhaseRouter, TurnPhase
+from core.constructions import Building
+from core.constants import BuildingType
 
 
 class CatanEngine:
@@ -139,52 +141,21 @@ class CatanEngine:
         self.settlement_positions = {p: set() for p in self.players}
         self.road_positions = {p: set() for p in self.players}
 
+        # Clear buildings from vertices
+        for vertex in self.board.vertices:
+            vertex.building = None
+
+        # Clear roads from connections
+        for connection in self.board.connections:
+            connection.owner = None
+
         self.winner = None
 
     def get_valid_settlement_vertices(self, player_id: PlayerId, require_road: bool = True) -> List[int]:
-        valid = []
-        for vertex in self.board.vertices:
-            if vertex.id in self.settlement_positions[player_id]:
-                continue  # already has settlement
-            occupied = any(vertex.id in pos for pos in self.settlement_positions.values())
-            if occupied:
-                continue
-            # check distance: no adjacent vertex has settlement
-            has_adjacent = any(
-                adj.id in self.settlement_positions[player_id] or any(adj.id in pos for pos in self.settlement_positions.values())
-                for adj in vertex.neighbors
-            )
-            if has_adjacent:
-                continue
-            if require_road:
-                # check connected by road
-                connected = any(
-                    conn.id in self.road_positions[player_id] for conn in vertex.edges
-                )
-                if not connected:
-                    continue
-            valid.append(vertex.id)
-        return valid
+        return self.board.get_valid_settlement_vertices(player_id, self.settlement_positions, self.road_positions, require_road)
 
     def get_valid_road_connections(self, player_id: PlayerId) -> List[int]:
-        valid = []
-        for conn in self.board.connections:
-            if conn.id in self.road_positions[player_id]:
-                continue  # already has road
-            occupied = any(conn.id in pos for pos in self.road_positions.values())
-            if occupied:
-                continue
-            # check connected: one end has settlement or road
-            v1_has = conn.v1.id in self.settlement_positions[player_id] or any(
-                c.id in self.road_positions[player_id] for c in conn.v1.edges
-            )
-            v2_has = conn.v2.id in self.settlement_positions[player_id] or any(
-                c.id in self.road_positions[player_id] for c in conn.v2.edges
-            )
-            if not (v1_has or v2_has):
-                continue
-            valid.append(conn.id)
-        return valid
+        return self.board.get_valid_road_connections(player_id, self.settlement_positions, self.road_positions)
 
 
     def get_current_player_id(self) -> PlayerId:
@@ -385,7 +356,7 @@ class CatanEngine:
                     return -0.02
 
                 vertex_id = action.get("vertex")
-                if vertex_id is None or vertex_id not in self.get_valid_settlement_vertices(player_id):
+                if vertex_id is None or vertex_id not in self.get_valid_settlement_vertices(player_id, require_road=False):
                     return -0.02
 
                 if player.n_settlements >= 5:
@@ -393,6 +364,9 @@ class CatanEngine:
                 else:
                     player.n_settlements += 1
                     self.settlement_positions[player_id].add(vertex_id)
+                    vertex = self.board.get_vertex_by_id(vertex_id)
+                    building = Building(BuildingType.SETTLEMENT, player_id, vertex)
+                    vertex.place_building(building)
                     player.update_victory_points()
                     reward += 0.20
 
@@ -415,6 +389,8 @@ class CatanEngine:
 
                 player.n_roads += 1
                 self.road_positions[player_id].add(conn_id)
+                connection = self.board.get_connection_by_id(conn_id)
+                connection.build_road(player_id)
                 player.update_victory_points()
                 reward += 0.08
 
@@ -448,6 +424,9 @@ class CatanEngine:
                 self._attempt_pay_cost(player, COST_BUILD_SETTLEMENT)
                 player.n_settlements += 1
                 self.settlement_positions[player_id].add(vertex_id)
+                vertex = self.board.get_vertex_by_id(vertex_id)
+                building = Building(BuildingType.SETTLEMENT, player_id, vertex)
+                vertex.place_building(building)
                 player.update_victory_points()
                 reward += 0.20
 
@@ -464,6 +443,8 @@ class CatanEngine:
                 player.n_settlements -= 1
                 player.n_cities += 1
                 self.settlement_positions[player_id].remove(vertex_id)
+                vertex = self.board.get_vertex_by_id(vertex_id)
+                vertex.upgrade_to_city()
                 player.update_victory_points()
                 reward += 0.24
 
@@ -481,6 +462,8 @@ class CatanEngine:
                 self._attempt_pay_cost(player, COST_BUILD_ROAD)
                 player.n_roads += 1
                 self.road_positions[player_id].add(conn_id)
+                connection = self.board.get_connection_by_id(conn_id)
+                connection.build_road(player_id)
                 player.update_victory_points()
                 reward += 0.04
 

@@ -14,6 +14,7 @@ def parse_args():
     parser.add_argument("--deterministic", action="store_true", help="Use greedy deterministic actions")
     parser.add_argument("--max-steps", type=int, default=2000, help="Maximum simulation steps")
     parser.add_argument("--show-obs", action="store_true", help="Print raw observation vectors each step")
+    parser.add_argument("--show-board", action="store_true", help="Print board state each step")
     parser.add_argument("--gameplay-only", action="store_true", help="Disable trading and only evaluate gameplay")
     return parser.parse_args()
 
@@ -48,13 +49,60 @@ def diff_resources(before, after):
 
 def format_board_state(env):
     lines = []
-    lines.append("=== FINAL BOARD STATE ===")
+    lines.append("=== CURRENT BOARD STATE ===")
     lines.append(f"phase={env.get_phase().name}")
     lines.append(f"current_player={env.get_current_player_id()}")
     lines.append(f"last_roll={env.get_last_roll()}")
     lines.append(f"last_robber_event={env.get_last_robber_event()}")
-    lines.append("players:")
+    lines.append(f"board: {len(env.engine.board.tiles)} tiles, {len(env.engine.board.vertices)} vertices, {len(env.engine.board.connections)} connections")
+    lines.append("")
 
+    # Show tiles
+    lines.append("TILES:")
+    for i, tile in enumerate(env.engine.board.tiles):
+        robber_str = " (ROBBER)" if tile.has_robber else ""
+        lines.append(f"  tile_{i}: {tile.resource.name}@{tile.number}{robber_str}")
+    lines.append("")
+
+    # Show vertices and their buildings
+    lines.append("VERTICES (settlements/cities):")
+    occupied_vertices = []
+    for i in range(len(env.engine.board.vertices)):  # Show all vertices
+        vertex = env.engine.board.vertices[i]
+        owner = vertex.owner()
+        building = "empty"
+        if owner is not None and vertex.building is not None:
+            if vertex.building.type.name == "SETTLEMENT":
+                building = f"settlement({owner.name})"
+                occupied_vertices.append(f"V{i}: {building}")
+            elif vertex.building.type.name == "CITY":
+                building = f"city({owner.name})"
+                occupied_vertices.append(f"V{i}: {building}")
+    if occupied_vertices:
+        for line in occupied_vertices:
+            lines.append(f"  {line}")
+    else:
+        lines.append("  (no buildings placed)")
+    lines.append("")
+
+    # Show connections and roads
+    lines.append("CONNECTIONS (roads):")
+    roads = []
+    for i in range(len(env.engine.board.connections)):  # Show all connections
+        conn = env.engine.board.connections[i]
+        if conn.owner is not None:
+            v1_id = env.engine.board.vertices.index(conn.v1)
+            v2_id = env.engine.board.vertices.index(conn.v2)
+            roads.append(f"C{i} (V{v1_id}-V{v2_id}): {conn.owner.name}")
+    if roads:
+        for line in roads:
+            lines.append(f"  {line}")
+    else:
+        lines.append("  (no roads placed)")
+    lines.append("")
+
+    # Show player states
+    lines.append("PLAYERS:")
     for player in env.engine.player_order:
         state = env.engine.players[player]
         resources = (
@@ -100,6 +148,7 @@ def run_single_unified_game(
     deterministic=False,
     max_steps=2000,
     show_obs=False,
+    show_board=False,
     gameplay_only=False,
 ):
     model.eval()
@@ -171,8 +220,9 @@ def run_single_unified_game(
         current_player = env.get_current_player_id()
         obs = env_manager._build_obs(env)
 
-        if show_obs:
-            print("obs=", obs)
+        if show_board:
+            print(format_board_state(env))
+            print()
 
         value, action_dict, _, tom_out = model.act(
             obs=obs,
@@ -284,6 +334,7 @@ def main():
         deterministic=args.deterministic,
         max_steps=args.max_steps,
         show_obs=args.show_obs,
+        show_board=args.show_board,
         gameplay_only=args.gameplay_only,
     )
 

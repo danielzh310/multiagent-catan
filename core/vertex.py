@@ -15,12 +15,21 @@ class Vertex:
     def is_occupied(self) -> bool:
         return self.building is not None
 
-    def can_place_settlement(self, player_id: PlayerId) -> bool:
+    def can_place_settlement(self, player_id: PlayerId, settlement_positions: dict, road_positions: dict, require_road: bool = True) -> bool:
         if self.is_occupied():
             return False
 
+        # check distance: no adjacent vertex has settlement
         for neighbor in self.neighbors:
-            if neighbor.building is not None:
+            if any(neighbor.id in pos for pos in settlement_positions.values()):
+                return False
+
+        if require_road:
+            # check connected by player's own road
+            connected = any(
+                conn.id in road_positions[player_id] for conn in self.edges
+            )
+            if not connected:
                 return False
 
         return True
