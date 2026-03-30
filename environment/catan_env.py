@@ -81,9 +81,21 @@ class CatanEnv:
             return []
 
         if phase == TurnPhase.SETUP:
+            player_id = current_player
             if self.engine.initial_placement_stage == "settlement":
-                return [{"type": "build_settlement"}]
-            return [{"type": "build_road"}]
+                valid_settlements = self.engine.get_valid_settlement_vertices(player_id, require_road=False)
+                if valid_settlements:
+                    return [{"type": "build_settlement", "vertex": v} for v in valid_settlements]
+                else:
+                    # Fallback, allow any unoccupied vertex
+                    return [{"type": "build_settlement", "vertex": v.id} for v in self.engine.board.vertices if v.id not in self.engine.settlement_positions[player_id] and not any(v.id in pos for pos in self.engine.settlement_positions.values())]
+            else:
+                valid_roads = self.engine.get_valid_road_connections(player_id)
+                if valid_roads:
+                    return [{"type": "build_road", "connection": c} for c in valid_roads]
+                else:
+                    # Fallback
+                    return [{"type": "build_road", "connection": c.id} for c in self.engine.board.connections if c.id not in self.engine.road_positions[player_id] and not any(c.id in pos for pos in self.engine.road_positions.values())]
 
         if phase == TurnPhase.ROLL:
             return [{"type": "roll"}]
@@ -110,18 +122,23 @@ class CatanEnv:
         player = self.engine.players[player_id]
         actions = []
 
-        if player.n_settlements > 0 and player.n_roads < 15 and player.can_pay_cost(COST_BUILD_ROAD):
-            actions.append({"type": "build_road"})
-
+        valid_settlements = self.engine.get_valid_settlement_vertices(player_id)
         if (
             player.n_settlements < 5
             and player.can_pay_cost(COST_BUILD_SETTLEMENT)
-            and (player.n_settlements == 0 or player.n_roads > 0)
+            and valid_settlements
         ):
-            actions.append({"type": "build_settlement"})
+            for vertex_id in valid_settlements:
+                actions.append({"type": "build_settlement", "vertex": vertex_id})
+
+        valid_roads = self.engine.get_valid_road_connections(player_id)
+        if player.n_settlements > 0 and player.n_roads < 15 and player.can_pay_cost(COST_BUILD_ROAD) and valid_roads:
+            for conn_id in valid_roads:
+                actions.append({"type": "build_road", "connection": conn_id})
 
         if player.n_settlements > 0 and player.n_cities < 4 and player.can_pay_cost(COST_BUILD_CITY):
-            actions.append({"type": "build_city"})
+            for vertex_id in self.engine.settlement_positions[player_id]:
+                actions.append({"type": "build_city", "vertex": vertex_id})
 
         bank_trades = self._get_legal_bank_trades(player_id)
         actions.extend(bank_trades)

@@ -12,6 +12,7 @@ from core.constants import (
     COST_BUILD_CITY,
 )
 from core.agent_state import AgentState
+from core.board_layout import BoardLayout
 from core.helpers import roll_dice
 from core.trade_manager import TradeManager, TradeResponse
 from core.trade_history import TradeHistory
@@ -61,6 +62,10 @@ class CatanEngine:
         self.trade_history = TradeHistory()
         self.trade_manager = TradeManager(self.trade_history)
         self.phase_router = PhaseRouter()
+
+        self.board = BoardLayout(seed=seed)
+        self.settlement_positions: Dict[PlayerId, set[int]] = {p: set() for p in self.players}
+        self.road_positions: Dict[PlayerId, set[int]] = {p: set() for p in self.players}
 
         self.winner: Optional[PlayerId] = None
 
@@ -131,7 +136,56 @@ class CatanEngine:
         self.phase_router.reset()
         self.phase_router.set_phase(TurnPhase.SETUP)
 
+        self.settlement_positions = {p: set() for p in self.players}
+        self.road_positions = {p: set() for p in self.players}
+
         self.winner = None
+
+    def get_valid_settlement_vertices(self, player_id: PlayerId, require_road: bool = True) -> List[int]:
+        valid = []
+        for vertex in self.board.vertices:
+            if vertex.id in self.settlement_positions[player_id]:
+                continue  # already has settlement
+            occupied = any(vertex.id in pos for pos in self.settlement_positions.values())
+            if occupied:
+                continue
+            # check distance: no adjacent vertex has settlement
+            has_adjacent = any(
+                adj.id in self.settlement_positions[player_id] or any(adj.id in pos for pos in self.settlement_positions.values())
+                for adj in vertex.neighbors
+            )
+            if has_adjacent:
+                continue
+            if require_road:
+                # check connected by road
+                connected = any(
+                    conn.id in self.road_positions[player_id] for conn in vertex.edges
+                )
+                if not connected:
+                    continue
+            valid.append(vertex.id)
+        return valid
+
+    def get_valid_road_connections(self, player_id: PlayerId) -> List[int]:
+        valid = []
+        for conn in self.board.connections:
+            if conn.id in self.road_positions[player_id]:
+                continue  # already has road
+            occupied = any(conn.id in pos for pos in self.road_positions.values())
+            if occupied:
+                continue
+            # check connected: one end has settlement or road
+            v1_has = conn.v1.id in self.settlement_positions[player_id] or any(
+                c.id in self.road_positions[player_id] for c in conn.v1.edges
+            )
+            v2_has = conn.v2.id in self.settlement_positions[player_id] or any(
+                c.id in self.road_positions[player_id] for c in conn.v2.edges
+            )
+            if not (v1_has or v2_has):
+                continue
+            valid.append(conn.id)
+        return valid
+
 
     def get_current_player_id(self) -> PlayerId:
         if self.initial_placement_phase:
@@ -330,10 +384,15 @@ class CatanEngine:
                 if action_type != "build_settlement":
                     return -0.02
 
+                vertex_id = action.get("vertex")
+                if vertex_id is None or vertex_id not in self.get_valid_settlement_vertices(player_id):
+                    return -0.02
+
                 if player.n_settlements >= 5:
                     reward -= 0.15
                 else:
                     player.n_settlements += 1
+                    self.settlement_positions[player_id].add(vertex_id)
                     player.update_victory_points()
                     reward += 0.20
 
@@ -350,7 +409,12 @@ class CatanEngine:
                 if action_type != "build_road":
                     return -0.02
 
+                conn_id = action.get("connection")
+                if conn_id is None or conn_id not in self.get_valid_road_connections(player_id):
+                    return -0.02
+
                 player.n_roads += 1
+                self.road_positions[player_id].add(conn_id)
                 player.update_victory_points()
                 reward += 0.08
 
@@ -373,20 +437,25 @@ class CatanEngine:
         before_diversity = self._resource_diversity(player_id)
 
         if action_type == "build_settlement":
-            if player.n_settlements >= 5:
+            vertex_id = action.get("vertex")
+            if vertex_id is None or vertex_id not in self.get_valid_settlement_vertices(player_id):
+                reward -= 0.10
+            elif player.n_settlements >= 5:
                 reward -= 0.15
             elif not player.can_pay_cost(COST_BUILD_SETTLEMENT):
-                reward -= 0.10
-            elif player.n_settlements > 0 and player.n_roads <= 0:
                 reward -= 0.10
             else:
                 self._attempt_pay_cost(player, COST_BUILD_SETTLEMENT)
                 player.n_settlements += 1
+                self.settlement_positions[player_id].add(vertex_id)
                 player.update_victory_points()
                 reward += 0.20
 
         elif action_type == "build_city":
-            if player.n_settlements <= 0 or player.n_cities >= 4:
+            vertex_id = action.get("vertex")
+            if vertex_id is None or vertex_id not in self.settlement_positions[player_id]:
+                reward -= 0.12
+            elif player.n_settlements <= 0 or player.n_cities >= 4:
                 reward -= 0.12
             elif not player.can_pay_cost(COST_BUILD_CITY):
                 reward -= 0.12
@@ -394,11 +463,15 @@ class CatanEngine:
                 self._attempt_pay_cost(player, COST_BUILD_CITY)
                 player.n_settlements -= 1
                 player.n_cities += 1
+                self.settlement_positions[player_id].remove(vertex_id)
                 player.update_victory_points()
                 reward += 0.24
 
         elif action_type == "build_road":
-            if player.n_settlements <= 0:
+            conn_id = action.get("connection")
+            if conn_id is None or conn_id not in self.get_valid_road_connections(player_id):
+                reward -= 0.06
+            elif player.n_settlements <= 0:
                 reward -= 0.06
             elif player.n_roads >= 15:
                 reward -= 0.06
@@ -407,6 +480,7 @@ class CatanEngine:
             else:
                 self._attempt_pay_cost(player, COST_BUILD_ROAD)
                 player.n_roads += 1
+                self.road_positions[player_id].add(conn_id)
                 player.update_victory_points()
                 reward += 0.04
 
