@@ -19,7 +19,7 @@ class UnifiedRolloutManager:
 
     def _phase_name(self, env: CatanEnv) -> str:
         phase = env.get_phase()
-        if phase in (TurnPhase.MAIN_ACTION, TurnPhase.END_TURN):
+        if phase in (TurnPhase.SETUP, TurnPhase.MAIN_ACTION, TurnPhase.END_TURN):
             return "gameplay"
         if phase in (TurnPhase.TRADE_PROPOSE, TurnPhase.TRADE_RESPOND):
             return "trade"

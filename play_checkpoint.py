@@ -2,6 +2,7 @@ import argparse
 import os
 import torch
 
+from core.constants import Resource
 from learning.unified.unified_policy import UnifiedPolicy
 from learning.unified.unified_rollout_manager import UnifiedRolloutManager
 
@@ -45,6 +46,31 @@ def diff_resources(before, after):
     return out
 
 
+def format_board_state(env):
+    lines = []
+    lines.append("=== FINAL BOARD STATE ===")
+    lines.append(f"phase={env.get_phase().name}")
+    lines.append(f"current_player={env.get_current_player_id()}")
+    lines.append("players:")
+
+    for player in env.engine.player_order:
+        state = env.engine.players[player]
+        resources = (
+            f"WOOD:{state.resources[Resource.WOOD]}, "
+            f"BRICK:{state.resources[Resource.BRICK]}, "
+            f"SHEEP:{state.resources[Resource.SHEEP]}, "
+            f"WHEAT:{state.resources[Resource.WHEAT]}, "
+            f"ORE:{state.resources[Resource.ORE]}"
+        )
+        lines.append(
+            f"  {player.name}: settlements={state.n_settlements}, "
+            f"cities={state.n_cities}, roads={state.n_roads}, "
+            f"vp={state.update_victory_points()}, resources={{ {resources} }}"
+        )
+
+    return "\n".join(lines)
+
+
 def load_state_dict_from_checkpoint(checkpoint_path, device):
     raw = torch.load(checkpoint_path, map_location=device)
 
@@ -86,7 +112,7 @@ def run_single_unified_game(
         phase = env.get_phase()
         phase_name = (
             "gameplay"
-            if phase.name in ("MAIN_ACTION", "END_TURN")
+            if phase.name in ("SETUP", "MAIN_ACTION", "END_TURN")
             else "trade"
             if phase.name in ("TRADE_PROPOSE", "TRADE_RESPOND")
             else "auto"
@@ -208,12 +234,16 @@ def run_single_unified_game(
         total_steps += 1
 
     winner = env.engine.winner
+    final_board = format_board_state(env)
+    print("\n" + final_board)
+
     stats = {
         "winner": str(winner) if winner is not None else None,
         "victory_points": snapshot_vp(env),
         "total_steps": total_steps,
         "done": done,
         "report": report,
+        "final_board": final_board,
     }
     return stats
 
@@ -295,6 +325,9 @@ def main():
             if "tom" in step and step["tom"] is not None:
                 f.write(f"  tom={step['tom']}\n")
             f.write("\n")
+
+        f.write("=== FINAL BOARD STATE ===\n")
+        f.write(stats["final_board"] + "\n")
 
     print(f"Saved detailed game log to {out_path}")
 

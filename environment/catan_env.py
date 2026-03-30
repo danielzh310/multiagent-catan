@@ -81,6 +81,11 @@ class CatanEnv:
         if self.engine.winner is not None:
             return []
 
+        if phase == TurnPhase.SETUP:
+            if self.engine.initial_placement_stage == "settlement":
+                return [{"type": "build_settlement"}]
+            return [{"type": "build_road"}]
+
         if phase == TurnPhase.ROLL:
             return [{"type": "roll"}]
 

@@ -51,6 +51,18 @@ class CatanEngine:
         self.turn_number = 0
 
         self.initial_placement_phase = False
+        self.initial_placement_index = 0
+        self.initial_placement_stage = "settlement"
+        self.initial_placement_order = [
+            PlayerId.WHITE,
+            PlayerId.BLUE,
+            PlayerId.ORANGE,
+            PlayerId.RED,
+            PlayerId.RED,
+            PlayerId.ORANGE,
+            PlayerId.BLUE,
+            PlayerId.WHITE,
+        ]
         self.robber_pending = False
         self.last_roll: Optional[int] = None
         self.last_robber_event: Optional[dict] = None
@@ -115,10 +127,10 @@ class CatanEngine:
             # Small nonzero starting state so training can begin, but not so large
             # that the economy becomes unrealistic immediately.
             player.resources = {
-                Resource.WOOD: 1,
-                Resource.BRICK: 1,
-                Resource.SHEEP: 1,
-                Resource.WHEAT: 1,
+                Resource.WOOD: 0,
+                Resource.BRICK: 0,
+                Resource.SHEEP: 0,
+                Resource.WHEAT: 0,
                 Resource.ORE: 0,
             }
             player.update_victory_points()
@@ -126,7 +138,9 @@ class CatanEngine:
         self.current_player_idx = 0
         self.turn_number = 0
 
-        self.initial_placement_phase = False
+        self.initial_placement_phase = True
+        self.initial_placement_index = 0
+        self.initial_placement_stage = "settlement"
         self.robber_pending = False
         self.last_roll = None
         self.last_robber_event = None
@@ -137,6 +151,9 @@ class CatanEngine:
         self.winner = None
 
     def get_current_player_id(self) -> PlayerId:
+        if self.initial_placement_phase:
+            idx = min(self.initial_placement_index, len(self.initial_placement_order)-1)
+            return self.initial_placement_order[idx]
         return self.player_order[self.current_player_idx]
 
     def next_player(self):
@@ -294,6 +311,22 @@ class CatanEngine:
             "stolen_resource": stolen_resource.name if stolen_resource is not None else None,
         }
 
+    def _assign_initial_settlement_resources(self, player_id: PlayerId) -> None:
+        player = self.players[player_id]
+        profile = self.production_map.get(player_id, {})
+        resources = []
+        for resource_list in profile.values():
+            for r in resource_list:
+                if r not in resources:
+                    resources.append(r)
+                if len(resources) >= 3:
+                    break
+            if len(resources) >= 3:
+                break
+
+        for r in resources:
+            player.add_resource(r, 1)
+
     def apply_gameplay_action(self, action: Optional[dict]) -> float:
         player_id = self.get_current_player_id()
         player = self.players[player_id]
@@ -303,6 +336,52 @@ class CatanEngine:
 
         action_type = action.get("type")
         reward = 0.0
+
+        if self.phase_router.get_phase() == TurnPhase.SETUP:
+            if self.initial_placement_stage == "settlement":
+                if action_type != "build_settlement":
+                    return -0.02
+
+                if player.n_settlements >= 5:
+                    reward -= 0.15
+                else:
+                    player.n_settlements += 1
+                    player.update_victory_points()
+                    reward += 0.20
+
+                    # second settlement draws adjacent resources (classic Catan rule)
+                    if player.n_settlements == 2:
+                        self._assign_initial_settlement_resources(player_id)
+                        reward += 0.15
+
+                self.initial_placement_stage = "road"
+                self.phase_router.set_phase(TurnPhase.SETUP)
+                self._check_winner()
+                return reward
+
+            if self.initial_placement_stage == "road":
+                if action_type != "build_road":
+                    return -0.02
+
+                player.n_roads += 1
+                player.update_victory_points()
+                reward += 0.08
+
+                # finished one player’s SETUP pair
+                self.initial_placement_index += 1
+                self.initial_placement_stage = "settlement"
+
+                if self.initial_placement_index >= len(self.initial_placement_order):
+                    self.initial_placement_phase = False
+                    self.current_player_idx = 0
+                    self.phase_router.begin_turn(self)
+                else:
+                    self.phase_router.set_phase(TurnPhase.SETUP)
+
+                self._check_winner()
+                return reward
+
+            return -0.02
 
         before_vp = self._vp(player_id)
         before_diversity = self._resource_diversity(player_id)
@@ -512,7 +591,10 @@ class CatanEngine:
         phase = self.phase_router.get_phase()
         reward = 0.0
 
-        if phase == TurnPhase.ROLL:
+        if phase == TurnPhase.SETUP:
+            reward = self.apply_gameplay_action(action)
+
+        elif phase == TurnPhase.ROLL:
             self.step_roll_phase()
 
         elif phase == TurnPhase.MAIN_ACTION:
