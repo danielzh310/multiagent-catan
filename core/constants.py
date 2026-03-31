@@ -30,6 +30,16 @@ COLLECTABLE_RESOURCES = (
 )
 
 
+RESOURCE_NAMES: Dict[Resource, str] = {
+    Resource.WOOD: "wood",
+    Resource.BRICK: "brick",
+    Resource.SHEEP: "wool",
+    Resource.WHEAT: "wheat",
+    Resource.ORE: "ore",
+    Resource.DESERT: "desert",
+}
+
+
 class BuildingType(IntEnum):
     SETTLEMENT = 0
     CITY = 1
@@ -39,7 +49,7 @@ class DevCard(IntEnum):
     KNIGHT = 0
     VICTORY_POINT = 1
     ROAD_BUILDING = 2
-    YEAR_OF_PLENTY = 3
+    INVENTION = 3
     MONOPOLY = 4
 
 
@@ -60,6 +70,7 @@ class ActionType(IntEnum):
     TRADE_BANK = 7
     TRADE_PLAYER = 8
     DISCARD_CARDS = 9
+    CHOOSE_FIRST_PLAYER = 10
 
 
 ResourceCost = Tuple[int, int, int, int, int]
@@ -74,11 +85,18 @@ VICTORY_POINTS_TARGET = 10
 
 VP_SETTLEMENT = 1
 VP_CITY = 2
+VP_LONGEST_ROUTE = 2
+VP_LARGEST_ARMY = 2
+
+LONGEST_ROUTE_MIN_LENGTH = 5
+LARGEST_ARMY_MIN_KNIGHTS = 3
 
 
 NUM_TILES = 19
 NUM_PORTS = 9
 NUM_PLAYERS_DEFAULT = 4
+NUM_VERTICES = 54
+NUM_CONNECTIONS = 72
 
 
 TILE_RESOURCE_COUNTS: Dict[Resource, int] = {
@@ -105,6 +123,8 @@ NUMBER_TOKEN_COUNTS: Dict[int, int] = {
 }
 
 
+NUMBER_TOKEN_ORDER_FIXED = [5, 2, 6, 3, 8, 10, 9, 12, 11, 4, 8, 10, 9, 4, 5, 6, 3, 11]
+
 ROBBER_DICE_VALUE = 7
 
 
@@ -112,9 +132,11 @@ DEV_CARD_COUNTS: Dict[DevCard, int] = {
     DevCard.KNIGHT: 14,
     DevCard.VICTORY_POINT: 5,
     DevCard.ROAD_BUILDING: 2,
-    DevCard.YEAR_OF_PLENTY: 2,
+    DevCard.INVENTION: 2,
     DevCard.MONOPOLY: 2,
 }
+
+TOTAL_DEV_CARDS = 25
 
 
 class PortType(IntEnum):
@@ -133,6 +155,32 @@ PORT_COUNTS: Dict[PortType, int] = {
     PortType.SHEEP_2_TO_1: 1,
     PortType.WHEAT_2_TO_1: 1,
     PortType.ORE_2_TO_1: 1,
+}
+
+
+PORT_EXCHANGE_RATES: Dict[PortType, int] = {
+    PortType.GENERIC_3_TO_1: 3,
+    PortType.WOOD_2_TO_1: 2,
+    PortType.BRICK_2_TO_1: 2,
+    PortType.SHEEP_2_TO_1: 2,
+    PortType.WHEAT_2_TO_1: 2,
+    PortType.ORE_2_TO_1: 2,
+}
+
+
+RESOURCE_SUPPLY_COUNTS: Dict[Resource, int] = {
+    Resource.WOOD: 19,
+    Resource.BRICK: 19,
+    Resource.SHEEP: 19,
+    Resource.WHEAT: 19,
+    Resource.ORE: 19,
+}
+
+
+PLAYER_PIECE_LIMITS = {
+    BuildingType.SETTLEMENT: 5,
+    BuildingType.CITY: 4,
+    "roads": 15,
 }
 
 
@@ -155,3 +203,7 @@ class GameConfig:
     num_players: int = NUM_PLAYERS_DEFAULT
     victory_points_target: int = VICTORY_POINTS_TARGET
     robber_dice_value: int = ROBBER_DICE_VALUE
+    longest_route_min_length: int = LONGEST_ROUTE_MIN_LENGTH
+    largest_army_min_knights: int = LARGEST_ARMY_MIN_KNIGHTS
+    vp_longest_route: int = VP_LONGEST_ROUTE
+    vp_largest_army: int = VP_LARGEST_ARMY

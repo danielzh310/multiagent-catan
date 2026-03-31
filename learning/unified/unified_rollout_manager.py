@@ -133,23 +133,15 @@ class UnifiedRolloutManager:
         if phase == TurnPhase.END_TURN:
             return {"type": "end_turn"}
 
-        if phase == TurnPhase.SETUP:
-            setup_actions = [a for a in legal_actions if a["type"] in {"build_settlement", "build_road"}]
-            if not setup_actions:
-                return {"type": "build_settlement"}
-            mapped_idx = int(action_idx) % len(setup_actions)
-            return setup_actions[mapped_idx]
-
-        gameplay_actions = [
-            a for a in legal_actions
-            if a["type"] in {"build_road", "build_settlement", "build_city", "bank_trade", "end_main_action"}
-        ]
-
-        if not gameplay_actions:
+        if not legal_actions:
             return {"type": "end_main_action"}
 
-        mapped_idx = int(action_idx) % len(gameplay_actions)
-        return gameplay_actions[mapped_idx]
+        if phase == TurnPhase.SETUP:
+            mapped_idx = int(action_idx) % len(legal_actions)
+            return legal_actions[mapped_idx]
+
+        mapped_idx = int(action_idx) % len(legal_actions)
+        return legal_actions[mapped_idx]
 
     def _decode_trade(self, action_dict: Dict[str, torch.Tensor], env: CatanEnv) -> dict:
         if not self.enable_trading:

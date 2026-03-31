@@ -3,22 +3,22 @@ from __future__ import annotations
 import random
 from typing import Dict, List, Optional
 
-from core.constants import (
-    PlayerId,
-    VICTORY_POINTS_TARGET,
-    Resource,
-    COST_BUILD_ROAD,
-    COST_BUILD_SETTLEMENT,
-    COST_BUILD_CITY,
-)
 from core.agent_state import AgentState
 from core.board_layout import BoardLayout
-from core.helpers import roll_dice, move_robber
-from core.trade_manager import TradeManager, TradeResponse
-from core.trade_history import TradeHistory
-from core.phase_router import PhaseRouter, TurnPhase
+from core.constants import (
+    BuildingType,
+    COST_BUILD_CITY,
+    COST_BUILD_ROAD,
+    COST_BUILD_SETTLEMENT,
+    PlayerId,
+    Resource,
+    VICTORY_POINTS_TARGET,
+)
 from core.constructions import Building
-from core.constants import BuildingType
+from core.helpers import move_robber, roll_dice
+from core.phase_router import PhaseRouter, TurnPhase
+from core.trade_history import TradeHistory
+from core.trade_manager import TradeManager, TradeResponse
 
 
 class CatanEngine:
@@ -60,8 +60,6 @@ class CatanEngine:
         self.robber_pending = False
         self.last_roll: Optional[int] = None
         self.last_robber_event: Optional[dict] = None
-        self.robber_discard_required: Dict[PlayerId, int] = {}
-        self.robber_discard_order: List[PlayerId] = []
 
         self.trade_history = TradeHistory()
         self.trade_manager = TradeManager(self.trade_history)
@@ -69,49 +67,10 @@ class CatanEngine:
 
         self.board = BoardLayout(seed=seed)
         self.settlement_positions: Dict[PlayerId, set[int]] = {p: set() for p in self.players}
+        self.city_positions: Dict[PlayerId, set[int]] = {p: set() for p in self.players}
         self.road_positions: Dict[PlayerId, set[int]] = {p: set() for p in self.players}
 
         self.winner: Optional[PlayerId] = None
-
-        # Still simplified relative to full board geometry, but sparse and dice-keyed.
-        self.production_map: Dict[PlayerId, Dict[int, List[Resource]]] = {}
-        self._init_production_map()
-
-    def _init_production_map(self) -> None:
-        self.production_map = {
-            PlayerId.WHITE: {
-                4: [Resource.WOOD],
-                5: [Resource.BRICK],
-                6: [Resource.SHEEP],
-                8: [Resource.WHEAT],
-                9: [Resource.ORE],
-                10: [Resource.WOOD],
-            },
-            PlayerId.BLUE: {
-                4: [Resource.BRICK],
-                5: [Resource.SHEEP],
-                6: [Resource.WHEAT],
-                8: [Resource.ORE],
-                9: [Resource.WOOD],
-                10: [Resource.BRICK],
-            },
-            PlayerId.ORANGE: {
-                4: [Resource.SHEEP],
-                5: [Resource.WHEAT],
-                6: [Resource.WOOD],
-                8: [Resource.BRICK],
-                9: [Resource.ORE],
-                10: [Resource.SHEEP],
-            },
-            PlayerId.RED: {
-                4: [Resource.WHEAT],
-                5: [Resource.ORE],
-                6: [Resource.BRICK],
-                8: [Resource.SHEEP],
-                9: [Resource.WOOD],
-                10: [Resource.WHEAT],
-            },
-        }
 
     def reset(self):
         for player in self.players.values():
@@ -135,32 +94,43 @@ class CatanEngine:
         self.robber_pending = False
         self.last_roll = None
         self.last_robber_event = None
-        self.robber_discard_required = {}
-        self.robber_discard_order = []
 
         self.trade_manager.reset()
         self.phase_router.reset()
         self.phase_router.set_phase(TurnPhase.SETUP)
 
         self.settlement_positions = {p: set() for p in self.players}
+        self.city_positions = {p: set() for p in self.players}
         self.road_positions = {p: set() for p in self.players}
 
-        # Clear buildings from vertices
         for vertex in self.board.vertices:
             vertex.building = None
 
-        # Clear roads from connections
         for connection in self.board.connections:
             connection.owner = None
+
+        desert = self.board.get_desert_tile()
+        if desert is not None:
+            self.board.move_robber_to_tile(desert.id)
 
         self.winner = None
 
     def get_valid_settlement_vertices(self, player_id: PlayerId, require_road: bool = True) -> List[int]:
-        return self.board.get_valid_settlement_vertices(player_id, self.settlement_positions, self.road_positions, require_road)
+        return self.board.get_valid_settlement_vertices(
+            player_id,
+            self.settlement_positions,
+            self.road_positions,
+            city_positions=self.city_positions,
+            require_road=require_road,
+        )
 
     def get_valid_road_connections(self, player_id: PlayerId) -> List[int]:
-        return self.board.get_valid_road_connections(player_id, self.settlement_positions, self.road_positions)
-
+        return self.board.get_valid_road_connections(
+            player_id,
+            self.settlement_positions,
+            self.road_positions,
+            city_positions=self.city_positions,
+        )
 
     def get_current_player_id(self) -> PlayerId:
         if self.initial_placement_phase:
@@ -216,20 +186,20 @@ class CatanEngine:
         if dice_value == 7:
             return
 
-        for player_id, player in self.players.items():
-            if player.n_settlements <= 0 and player.n_cities <= 0:
-                continue
+        tiles = self.board.get_tiles_for_roll(dice_value)
 
-            produced_resources = self.production_map.get(player_id, {}).get(dice_value, [])
-            if not produced_resources:
-                continue
+        for tile in tiles:
+            for vertex in tile.vertices:
+                if vertex.building is None:
+                    continue
 
-            multiplier = int(player.n_settlements) + 2 * int(player.n_cities)
-            if multiplier <= 0:
-                continue
+                owner = vertex.building.owner
+                player = self.players[owner]
 
-            for resource in produced_resources:
-                player.resources[resource] += multiplier
+                if vertex.building.type == BuildingType.SETTLEMENT:
+                    player.resources[tile.resource] += 1
+                elif vertex.building.type == BuildingType.CITY:
+                    player.resources[tile.resource] += 2
 
     def _discard_half_random(self, player: AgentState) -> Dict[Resource, int]:
         total = sum(int(v) for v in player.resources.values())
@@ -273,15 +243,14 @@ class CatanEngine:
 
     def _apply_robber_effects(self):
         discarded_summary: Dict[str, Dict[str, int]] = {}
-        self.robber_discard_required = {}
-        self.robber_discard_order = []
 
         for player_id, player in self.players.items():
-            discard_count = player.discard_half_if_needed()
-            if discard_count > 0:
-                self.robber_discard_required[player_id] = discard_count
-                self.robber_discard_order.append(player_id)
-                discarded_summary[str(player_id)] = {}
+            total = sum(int(v) for v in player.resources.values())
+            if total > 7:
+                discarded = self._discard_half_random(player)
+                discarded_summary[str(player_id)] = {
+                    r.name: v for r, v in discarded.items() if v > 0
+                }
 
         self.last_robber_event = {
             "rolled_seven": True,
@@ -323,38 +292,20 @@ class CatanEngine:
         self.robber_pending = False
         self.last_robber_event = {
             "rolled_seven": True,
-            "discarded": self.last_robber_event.get("discarded", {}),
+            "discarded": self.last_robber_event.get("discarded", {}) if self.last_robber_event else {},
             "robber_moved": True,
             "moved_to": str(target_tile_id),
             "stolen_from": str(stolen_from) if stolen_from is not None else None,
             "stolen_resource": stolen_resource.name if stolen_resource is not None else None,
         }
 
-    def _assign_initial_settlement_resources(self, player_id: PlayerId) -> None:
-        """
-        Simplified substitute for 'second settlement gets adjacent hex resources'.
-        Pull distinct resources from that player's sparse production profile.
-        """
+    def _assign_initial_settlement_resources(self, vertex_id: int, player_id: PlayerId) -> None:
         player = self.players[player_id]
-        resources = []
-
-        profile = self.production_map.get(player_id, {})
-        for resource_list in profile.values():
-            for r in resource_list:
-                if r not in resources:
-                    resources.append(r)
-                if len(resources) >= 3:
-                    break
-            if len(resources) >= 3:
-                break
-
-        for r in resources:
-            player.add_resource(r, 1)
+        resources = self.board.get_player_starting_resources_from_second_settlement(vertex_id)
+        for resource, amount in resources.items():
+            player.add_resource(resource, amount)
 
     def _apply_bank_trade(self, player_id: PlayerId, give: Resource, receive: Resource) -> float:
-        """
-        Basic 4:1 bank trade.
-        """
         if give == receive:
             return -0.02
 
@@ -397,7 +348,7 @@ class CatanEngine:
                     reward += 0.20
 
                     if player.n_settlements == 2:
-                        self._assign_initial_settlement_resources(player_id)
+                        self._assign_initial_settlement_resources(vertex_id, player_id)
                         reward += 0.15
 
                 self.initial_placement_stage = "road"
@@ -438,60 +389,9 @@ class CatanEngine:
         before_vp = self._vp(player_id)
         before_diversity = self._resource_diversity(player_id)
 
-        # If a 7 was rolled and robber action is outstanding, only robber movement is allowed.
         if self.phase_router.get_phase() == TurnPhase.MAIN_ACTION and self.robber_pending:
-            if self.robber_discard_order:
-                if action_type != "discard_cards":
-                    return -0.02
-            elif action_type != "move_robber":
-                # Enforce robber resolution before any other main action.
+            if action_type != "move_robber":
                 return -0.02
-
-        if action_type == "discard_cards":
-            if not self.robber_pending or not self.robber_discard_order:
-                return -0.02
-
-            expected_player = self.robber_discard_order[0]
-            if player_id != expected_player:
-                return -0.02
-
-            resources = action.get("resources")
-            if not isinstance(resources, dict):
-                return -0.02
-
-            required = self.robber_discard_required.get(player_id, 0)
-            if required <= 0:
-                return -0.02
-
-            discard_sum = 0
-            for res_key, amount in resources.items():
-                if not isinstance(amount, int) or amount < 0:
-                    return -0.02
-                discard_sum += amount
-                if player.resources.get(res_key, 0) < amount:
-                    return -0.02
-
-            if discard_sum != required:
-                return -0.02
-
-            # Apply discard.
-            for res_key, amount in resources.items():
-                player.resources[res_key] -= amount
-
-            # Record discarded values for event tracking.
-            self.last_robber_event["discarded"][str(player_id)] = {res_key.name: amount for res_key, amount in resources.items() if amount > 0} if resources else {}
-
-            self.robber_discard_required.pop(player_id, None)
-            self.robber_discard_order.pop(0)
-
-            reward += 0.0
-
-            # If still discards required, keep in MAIN_ACTION.
-            if self.robber_discard_order:
-                return reward
-
-            # All players discarded; robber can now be moved.
-            return reward
 
         if action_type == "build_settlement":
             vertex_id = action.get("vertex")
@@ -524,6 +424,7 @@ class CatanEngine:
                 player.n_settlements -= 1
                 player.n_cities += 1
                 self.settlement_positions[player_id].remove(vertex_id)
+                self.city_positions[player_id].add(vertex_id)
                 vertex = self.board.get_vertex_by_id(vertex_id)
                 vertex.upgrade_to_city()
                 player.update_victory_points()
@@ -557,7 +458,7 @@ class CatanEngine:
                 reward += self._apply_bank_trade(player_id, give, receive)
 
         elif action_type == "move_robber":
-            if not self.robber_pending or self.robber_discard_order:
+            if not self.robber_pending:
                 reward -= 0.02
             else:
                 tile_id = action.get("tile")
@@ -704,6 +605,14 @@ class CatanEngine:
                 self.winner = player_id
                 return
 
+    def _serialize_tile(self, tile) -> dict:
+        return {
+            "id": tile.id,
+            "resource": tile.resource,
+            "number": tile.number,
+            "has_robber": tile.has_robber,
+        }
+
     def get_observation(self) -> dict:
         current_player = self.get_current_player_id()
 
@@ -721,11 +630,10 @@ class CatanEngine:
                 "initial_placement_stage": self.initial_placement_stage,
                 "last_roll": self.last_roll,
                 "robber_pending": self.robber_pending,
-                "robber_discard_required": {
-                    str(pid): v for pid, v in self.robber_discard_required.items()
-                },
-                "robber_discard_order": [str(pid) for pid in self.robber_discard_order],
                 "last_robber_event": self.last_robber_event,
+            },
+            "board": {
+                "tiles": [self._serialize_tile(tile) for tile in self.board.tiles],
             },
             "player": self.players[current_player].as_dict(),
             "players": {
@@ -745,19 +653,14 @@ class CatanEngine:
 
         if phase == TurnPhase.SETUP:
             reward = self.apply_gameplay_action(action)
-
         elif phase == TurnPhase.ROLL:
             self.step_roll_phase()
-
         elif phase == TurnPhase.MAIN_ACTION:
             reward = self.apply_gameplay_action(action)
-
         elif phase == TurnPhase.TRADE_PROPOSE:
             reward = self.apply_trade_proposal(action)
-
         elif phase == TurnPhase.TRADE_RESPOND:
             reward = self.apply_trade_response(action)
-
         elif phase == TurnPhase.END_TURN:
             reward = self.apply_gameplay_action({"type": "end_turn"})
 
@@ -769,5 +672,5 @@ class CatanEngine:
                 reward += 1.0
             else:
                 reward -= 1.0
-
+        
         return obs, reward, done, {}

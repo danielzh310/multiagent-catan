@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 from typing import List, Optional
 
 from core.constructions import Building
-from core.constants import PlayerId
+from core.constants import BuildingType, PlayerId
 
 
 class Vertex:
@@ -15,24 +17,51 @@ class Vertex:
     def is_occupied(self) -> bool:
         return self.building is not None
 
-    def can_place_settlement(self, player_id: PlayerId, settlement_positions: dict, road_positions: dict, require_road: bool = True) -> bool:
+    def owner(self) -> Optional[PlayerId]:
+        if self.building is None:
+            return None
+        return self.building.owner
+
+    def has_player_building(self, player_id: PlayerId) -> bool:
+        return self.building is not None and self.building.owner == player_id
+
+    def has_opponent_building(self, player_id: PlayerId) -> bool:
+        return self.building is not None and self.building.owner != player_id
+
+    def can_place_settlement(
+        self,
+        player_id: PlayerId,
+        settlement_positions: dict,
+        road_positions: dict,
+        city_positions: dict | None = None,
+        require_road: bool = True,
+    ) -> bool:
+        """
+        Rule-aligned settlement legality:
+        - vertex must be empty
+        - no adjacent vertex may contain any building
+        - if not in setup, settlement must connect to one of the player's roads
+        """
         if self.is_occupied():
             return False
 
-        # check distance: no adjacent vertex has settlement
         for neighbor in self.neighbors:
-            if any(neighbor.id in pos for pos in settlement_positions.values()):
+            if neighbor.is_occupied():
                 return False
 
         if require_road:
-            # check connected by player's own road
-            connected = any(
-                conn.id in road_positions[player_id] for conn in self.edges
-            )
+            connected = any(conn.id in road_positions.get(player_id, set()) for conn in self.edges)
             if not connected:
                 return False
 
         return True
+
+    def can_upgrade_to_city(self, player_id: PlayerId) -> bool:
+        if self.building is None:
+            return False
+        if self.building.owner != player_id:
+            return False
+        return self.building.type == BuildingType.SETTLEMENT
 
     def place_building(self, building: Building) -> None:
         if self.building is not None:
@@ -43,13 +72,20 @@ class Vertex:
     def upgrade_to_city(self) -> None:
         if self.building is None:
             raise ValueError("No building to upgrade.")
+        if self.building.type != BuildingType.SETTLEMENT:
+            raise ValueError("Only a settlement can be upgraded to a city.")
         self.building.upgrade_to_city()
 
-    def owner(self) -> Optional[PlayerId]:
-        if self.building is None:
-            return None
-        return self.building.owner
+    def adjacent_player_roads(self, player_id: PlayerId, road_positions: dict) -> list[int]:
+        return [conn.id for conn in self.edges if conn.id in road_positions.get(player_id, set())]
+
+    def adjacent_opponent_building_blocks(self, player_id: PlayerId) -> bool:
+        """
+        Useful later for route-evaluation helpers.
+        """
+        return self.building is not None and self.building.owner != player_id
 
     def __repr__(self) -> str:
         owner = self.owner().name if self.owner() is not None else None
-        return f"Vertex(id={self.id}, owner={owner})"
+        building_type = self.building.type.name if self.building is not None else None
+        return f"Vertex(id={self.id}, owner={owner}, building={building_type})"

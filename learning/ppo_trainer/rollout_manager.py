@@ -1,9 +1,11 @@
+from __future__ import annotations
+
 import copy
 import random
 import torch
 
 from environment.catan_env import CatanEnv
-from core.constants import ActionType, PlayerId
+from core.constants import ActionType, PlayerId, Resource
 
 
 class RolloutManager:
@@ -265,16 +267,16 @@ class RolloutManager:
         resources = player["resources"]
 
         vec = [
-            float(resources.get(0, 0)),
-            float(resources.get(1, 0)),
-            float(resources.get(2, 0)),
-            float(resources.get(3, 0)),
-            float(resources.get(4, 0)),
-            float(resources.get(5, 0)),
+            float(resources.get("WOOD", 0) if isinstance(next(iter(resources.keys()), None), str) else resources.get(0, 0)),
+            float(resources.get("BRICK", 0) if isinstance(next(iter(resources.keys()), None), str) else resources.get(1, 0)),
+            float(resources.get("SHEEP", 0) if isinstance(next(iter(resources.keys()), None), str) else resources.get(2, 0)),
+            float(resources.get("WHEAT", 0) if isinstance(next(iter(resources.keys()), None), str) else resources.get(3, 0)),
+            float(resources.get("ORE", 0) if isinstance(next(iter(resources.keys()), None), str) else resources.get(4, 0)),
             float(player["victory_points"]),
-            float(len(player["roads"])),
-            float(len(player["dev_cards"])),
-            float(player["dev_victory_points"]),
+            float(player.get("num_roads", len(player.get("roads", [])) if isinstance(player.get("roads", []), list) else 0)),
+            float(player.get("num_settlements", 0)),
+            float(player.get("num_cities", 0)),
+            float(player.get("dev_victory_points", 0)),
         ]
 
         while len(vec) < 32:
@@ -296,10 +298,10 @@ class RolloutManager:
 
         vec = [
             float(summary["victory_points"]),
-            float(len(summary["roads"])),
-            float(summary["dev_card_count"]),
-            float(summary["dev_victory_points"]),
-            float(summary["building_count"]),
+            float(summary.get("num_roads", len(summary.get("roads", [])) if isinstance(summary.get("roads", []), list) else 0)),
+            float(len(summary.get("dev_cards", [])) if isinstance(summary.get("dev_cards", []), list) else summary.get("dev_card_count", 0)),
+            float(summary.get("dev_victory_points", 0)),
+            float(summary.get("num_settlements", 0) + summary.get("num_cities", 0)),
         ]
 
         while len(vec) < 24:
@@ -310,17 +312,12 @@ class RolloutManager:
     def _build_action_mask(self, env):
         legal_actions = env.get_legal_actions()
 
-        action_type_mask = torch.zeros(1, 10, dtype=torch.float32, device=self.device)
+        action_type_mask = torch.zeros(1, 11, dtype=torch.float32, device=self.device)
         settlement_mask = torch.ones(1, 54, dtype=torch.float32, device=self.device) * 1e-8
         road_mask = torch.ones(1, 72, dtype=torch.float32, device=self.device) * 1e-8
         city_mask = torch.ones(1, 54, dtype=torch.float32, device=self.device) * 1e-8
         robber_mask = torch.ones(1, 19, dtype=torch.float32, device=self.device) * 1e-8
         trade_mask = torch.ones(1, 2, dtype=torch.float32, device=self.device)
-        discard_wood_mask = torch.ones(1, 8, dtype=torch.float32, device=self.device) * 1e-8
-        discard_brick_mask = torch.ones(1, 8, dtype=torch.float32, device=self.device) * 1e-8
-        discard_sheep_mask = torch.ones(1, 8, dtype=torch.float32, device=self.device) * 1e-8
-        discard_wheat_mask = torch.ones(1, 8, dtype=torch.float32, device=self.device) * 1e-8
-        discard_ore_mask = torch.ones(1, 8, dtype=torch.float32, device=self.device) * 1e-8
 
         string_to_action_type = {
             "end_turn": ActionType.END_TURN,
@@ -348,17 +345,14 @@ class RolloutManager:
                 continue
             action_type_mask[0, int(action_type)] = 1.0
 
-            if action_type == ActionType.BUILD_SETTLEMENT:
-                settlement_mask[0, action["vertex_id"]] = 1.0
-            elif action_type == ActionType.BUILD_ROAD:
-                road_mask[0, action["connection_id"]] = 1.0
-            elif action_type == ActionType.BUILD_CITY:
-                city_mask[0, action["vertex_id"]] = 1.0
-            elif action_type == ActionType.MOVE_ROBBER:
-                robber_mask[0, action["tile_id"]] = 1.0
-            elif action_type == ActionType.DISCARD_CARDS:
-                # Discard action uses explicit resource map outside this head
-                pass
+            if action_type == ActionType.BUILD_SETTLEMENT and "vertex" in action:
+                settlement_mask[0, action["vertex"]] = 1.0
+            elif action_type == ActionType.BUILD_ROAD and "connection" in action:
+                road_mask[0, action["connection"]] = 1.0
+            elif action_type == ActionType.BUILD_CITY and "vertex" in action:
+                city_mask[0, action["vertex"]] = 1.0
+            elif action_type == ActionType.MOVE_ROBBER and "tile" in action:
+                robber_mask[0, action["tile"]] = 1.0
 
         return {
             "action_type": action_type_mask,
@@ -375,97 +369,96 @@ class RolloutManager:
             return None
 
         action_type_idx = int(action_dict["action_type"].squeeze().cpu().item())
-        candidates = [action for action in legal_actions if int(action["type"]) == action_type_idx]
+        candidates = []
+
+        for action in legal_actions:
+            raw_type = action["type"]
+            if isinstance(raw_type, str):
+                lookup = {
+                    "end_turn": ActionType.END_TURN,
+                    "build_road": ActionType.BUILD_ROAD,
+                    "build_settlement": ActionType.BUILD_SETTLEMENT,
+                    "build_city": ActionType.BUILD_CITY,
+                    "buy_dev_card": ActionType.BUY_DEV_CARD,
+                    "play_dev_card": ActionType.PLAY_DEV_CARD,
+                    "move_robber": ActionType.MOVE_ROBBER,
+                    "bank_trade": ActionType.TRADE_BANK,
+                    "trade_player": ActionType.TRADE_PLAYER,
+                    "discard_cards": ActionType.DISCARD_CARDS,
+                }
+                mapped = lookup.get(raw_type, None)
+                if mapped is not None and int(mapped) == action_type_idx:
+                    candidates.append(action)
+            elif int(raw_type) == action_type_idx:
+                candidates.append(action)
 
         if len(candidates) == 0:
             return legal_actions[-1]
 
         chosen = candidates[0]
-        action_type = chosen["type"]
+        raw_type = chosen["type"]
+        if isinstance(raw_type, str):
+            lookup = {
+                "end_turn": ActionType.END_TURN,
+                "build_road": ActionType.BUILD_ROAD,
+                "build_settlement": ActionType.BUILD_SETTLEMENT,
+                "build_city": ActionType.BUILD_CITY,
+                "buy_dev_card": ActionType.BUY_DEV_CARD,
+                "play_dev_card": ActionType.PLAY_DEV_CARD,
+                "move_robber": ActionType.MOVE_ROBBER,
+                "bank_trade": ActionType.TRADE_BANK,
+                "trade_player": ActionType.TRADE_PLAYER,
+                "discard_cards": ActionType.DISCARD_CARDS,
+            }
+            action_type = lookup.get(raw_type, None)
+        else:
+            action_type = raw_type
 
         if action_type == ActionType.BUILD_SETTLEMENT:
             vertex_id = int(action_dict["settlement"].squeeze().cpu().item())
             for candidate in candidates:
-                if candidate.get("vertex_id") == vertex_id:
+                if candidate.get("vertex") == vertex_id:
                     return candidate
             return chosen
 
         if action_type == ActionType.BUILD_ROAD:
             connection_id = int(action_dict["road"].squeeze().cpu().item())
             for candidate in candidates:
-                if candidate.get("connection_id") == connection_id:
+                if candidate.get("connection") == connection_id:
                     return candidate
             return chosen
 
         if action_type == ActionType.BUILD_CITY:
             vertex_id = int(action_dict["city"].squeeze().cpu().item())
             for candidate in candidates:
-                if candidate.get("vertex_id") == vertex_id:
+                if candidate.get("vertex") == vertex_id:
                     return candidate
             return chosen
 
         if action_type == ActionType.MOVE_ROBBER:
             tile_id = int(action_dict["robber"].squeeze().cpu().item())
             for candidate in candidates:
-                if candidate.get("tile_id") == tile_id:
+                if candidate.get("tile") == tile_id:
                     return candidate
             return chosen
 
-            if action_type == ActionType.DISCARD_CARDS:
-                # Discard resources are provided by discard resource head vectors.
-                current_player = env.get_current_player_id()
-                required = env.engine.robber_discard_required.get(current_player, 0)
-                player_resources = env.engine.players[current_player].resources
+        if action_type == ActionType.DISCARD_CARDS:
+            current_player = env.get_current_player_id()
+            required = env.engine.robber_discard_required.get(current_player, 0)
+            player_resources = env.engine.players[current_player].resources
 
-                chosen_discard = {
-                    Resource.WOOD: int(action_dict["discard_wood"].squeeze().cpu().item()),
-                    Resource.BRICK: int(action_dict["discard_brick"].squeeze().cpu().item()),
-                    Resource.SHEEP: int(action_dict["discard_sheep"].squeeze().cpu().item()),
-                    Resource.WHEAT: int(action_dict["discard_wheat"].squeeze().cpu().item()),
-                    Resource.ORE: int(action_dict["discard_ore"].squeeze().cpu().item()),
-                }
+            resource_order = [Resource.WOOD, Resource.BRICK, Resource.SHEEP, Resource.WHEAT, Resource.ORE]
+            discard = {r: 0 for r in resource_order}
+            remaining = required
 
-                # Cap to available resources
-                for res in chosen_discard:
-                    chosen_discard[res] = min(chosen_discard[res], int(player_resources.get(res, 0)))
+            for resource in resource_order:
+                if remaining <= 0:
+                    break
+                available = int(player_resources.get(resource, 0))
+                take = min(available, remaining)
+                discard[resource] = take
+                remaining -= take
 
-                total = sum(chosen_discard.values())
-
-                # Adjust to required sum if necessary.
-                if total > required:
-                    while total > required:
-                        reducible = [r for r, v in chosen_discard.items() if v > 0]
-                        if not reducible:
-                            break
-                        r = max(reducible, key=lambda x: chosen_discard[x])
-                        chosen_discard[r] -= 1
-                        total -= 1
-                elif total < required:
-                    for res in [Resource.WOOD, Resource.BRICK, Resource.SHEEP, Resource.WHEAT, Resource.ORE]:
-                        available = int(player_resources.get(res, 0))
-                        while total < required and chosen_discard[res] < available:
-                            chosen_discard[res] += 1
-                            total += 1
-                        if total == required:
-                            break
-
-                # If not possible to meet requirement, fallback to required best-effort.
-                if total != required:
-                    candidate = {r: 0 for r in chosen_discard}
-                    remaining = required
-                    for res in [Resource.WOOD, Resource.BRICK, Resource.SHEEP, Resource.WHEAT, Resource.ORE]:
-                        available = int(player_resources.get(res, 0))
-                        if remaining <= 0:
-                            break
-                        allocate = min(available, remaining)
-                        candidate[res] = allocate
-                        remaining -= allocate
-                    chosen_discard = candidate
-                    total = sum(chosen_discard.values())
-
-                return {
-                    "type": "discard_cards",
-                    "resources": chosen_discard,
-                }
+            return {"type": "discard_cards", "resources": discard}
 
         return chosen
