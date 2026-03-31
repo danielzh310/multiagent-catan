@@ -43,6 +43,7 @@ class AgentState:
     buildings: List[object] = field(default_factory=list)
     roads: List[int] = field(default_factory=list)
 
+    hidden_vp_cards: int = 0
     revealed_vp_cards: int = 0
     played_knights: int = 0
 
@@ -67,6 +68,7 @@ class AgentState:
         self.played_dev_card_this_turn = False
         self.buildings = []
         self.roads = []
+        self.hidden_vp_cards = 0
         self.revealed_vp_cards = 0
         self.played_knights = 0
         self.n_settlements = 0
@@ -152,26 +154,40 @@ class AgentState:
     def piece_vp(self) -> int:
         return self.num_settlements() * VP_SETTLEMENT + self.num_cities() * VP_CITY
 
+    def total_dev_vp(self) -> int:
+        return int(self.hidden_vp_cards) + int(self.revealed_vp_cards)
+
+    def public_vp(self) -> int:
+        return self.piece_vp() + int(self.bonus_vp) + int(self.revealed_vp_cards)
+
     def total_vp(self) -> int:
-        return self.piece_vp() + int(self.bonus_vp) + int(self.dev_victory_points)
+        return self.piece_vp() + int(self.bonus_vp) + self.total_dev_vp()
 
     def update_victory_points(self) -> int:
         self.victory_points = self.total_vp()
         return self.victory_points
 
-    def as_dict(self) -> dict:
+    def as_dict(self, private: bool = False) -> dict:
         self.update_victory_points()
+        dev_cards_value: list[str] | int
+        if private:
+            dev_cards_value = [card.name for card in (self.dev_cards + self.new_dev_cards)]
+        else:
+            dev_cards_value = len(self.dev_cards) + len(self.new_dev_cards) + int(self.hidden_vp_cards)
+
         return {
             "player_id": self.player_id.name,
             "resources": {resource.name: self.resources.get(resource, 0) for resource in COLLECTABLE_RESOURCES},
-            "dev_cards": [card.name for card in (self.dev_cards + self.new_dev_cards)],
+            "dev_cards": dev_cards_value,
             "roads": list(self.roads),
             "num_buildings": self.num_settlements() + self.num_cities(),
             "num_settlements": self.num_settlements(),
             "num_cities": self.num_cities(),
             "num_roads": self.num_roads(),
+            "hidden_vp_cards": int(self.hidden_vp_cards) if private else 0,
             "played_knights": int(self.played_knights),
             "bonus_vp": int(self.bonus_vp),
-            "dev_victory_points": int(self.dev_victory_points),
-            "victory_points": int(self.victory_points),
+            "revealed_vp_cards": int(self.revealed_vp_cards),
+            "dev_victory_points": int(self.total_dev_vp()) if private else int(self.revealed_vp_cards),
+            "victory_points": int(self.victory_points) if private else int(self.public_vp()),
         }

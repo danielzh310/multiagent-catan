@@ -195,10 +195,9 @@ class BoardLayout:
 
     def _create_ports(self):
         """
-        Create 9 ports and attach them to 18 coastal vertices.
-        This is still a simplified port placement layer, but it preserves:
-        - 4 generic 3:1 ports
-        - 5 specialized 2:1 ports
+        Create 9 ports and attach them to coastal vertex pairs around the shoreline.
+        The exact resource ordering is still shuffled, but the attachment points now
+        follow the perimeter ring instead of pairing vertices by sorted id.
         """
         port_types = []
         for port_type, count in PORT_COUNTS.items():
@@ -206,19 +205,7 @@ class BoardLayout:
 
         random.shuffle(port_types)
 
-        coastal_vertices = [v for v in self.vertices if len(v.tiles) < 3]
-        coastal_vertices = sorted(coastal_vertices, key=lambda v: v.id)
-
-        # Attach each port to a consecutive pair of coastal vertices.
-        # This is a simplification, but good enough until you wire the exact
-        # official coastal slots from the board diagram.
-        port_vertex_pairs = []
-        i = 0
-        while i + 1 < len(coastal_vertices) and len(port_vertex_pairs) < len(port_types):
-            v1 = coastal_vertices[i]
-            v2 = coastal_vertices[i + 1]
-            port_vertex_pairs.append((v1, v2))
-            i += 2
+        port_vertex_pairs = self._coastal_port_pairs(len(port_types))
 
         if len(port_vertex_pairs) < len(port_types):
             raise ValueError("Not enough coastal vertex pairs to place all ports.")
@@ -245,6 +232,68 @@ class BoardLayout:
 
             self.vertex_to_ports[v1.id] = port
             self.vertex_to_ports[v2.id] = port
+
+    def _coastal_port_pairs(self, port_count: int) -> List[Tuple[Vertex, Vertex]]:
+        coastal_edges = []
+        coastal_adjacency: Dict[int, List[int]] = {}
+
+        for connection in self.connections:
+            if len(connection.v1.tiles) >= 3 or len(connection.v2.tiles) >= 3:
+                continue
+
+            shared_tiles = set(tile.id for tile in connection.v1.tiles) & set(tile.id for tile in connection.v2.tiles)
+            if len(shared_tiles) != 1:
+                continue
+
+            coastal_edges.append(connection)
+            coastal_adjacency.setdefault(connection.v1.id, []).append(connection.id)
+            coastal_adjacency.setdefault(connection.v2.id, []).append(connection.id)
+
+        if not coastal_edges:
+            return []
+
+        start_edge = min(
+            coastal_edges,
+            key=lambda edge: (
+                min(len(edge.v1.tiles), len(edge.v2.tiles)),
+                min(edge.v1.id, edge.v2.id),
+                edge.id,
+            ),
+        )
+
+        ordered_edges = [start_edge]
+        used_edges = {start_edge.id}
+        current_vertex = start_edge.v2.id
+
+        while len(ordered_edges) < len(coastal_edges):
+            candidates = [
+                edge_id
+                for edge_id in coastal_adjacency.get(current_vertex, [])
+                if edge_id not in used_edges
+            ]
+            if not candidates:
+                break
+
+            next_edge_id = min(candidates)
+            next_edge = self.get_connection_by_id(next_edge_id)
+            ordered_edges.append(next_edge)
+            used_edges.add(next_edge.id)
+            current_vertex = next_edge.v1.id if next_edge.v2.id == current_vertex else next_edge.v2.id
+
+        if len(ordered_edges) != len(coastal_edges):
+            remaining = [edge for edge in coastal_edges if edge.id not in used_edges]
+            ordered_edges.extend(sorted(remaining, key=lambda edge: edge.id))
+
+        chosen_indices = []
+        total_edges = len(ordered_edges)
+        for i in range(port_count):
+            idx = int(round(i * total_edges / float(port_count))) % total_edges
+            while idx in chosen_indices:
+                idx = (idx + 1) % total_edges
+            chosen_indices.append(idx)
+
+        chosen_indices.sort()
+        return [(ordered_edges[idx].v1, ordered_edges[idx].v2) for idx in chosen_indices]
 
     def get_tile_by_id(self, tile_id: int) -> HexTile:
         return self.tiles[tile_id]

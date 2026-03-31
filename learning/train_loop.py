@@ -23,21 +23,21 @@ class UnifiedPPOTrainer:
         gamma_start: float = 0.94,
         gamma_end: float = 0.995,
         gae_lambda: float = 0.95,
-        clip_param: float = 0.12,
-        value_clip_param: float = 0.15,
-        value_loss_coef: float = 0.18,
+        clip_param: float = 0.10,
+        value_clip_param: float = 0.10,
+        value_loss_coef: float = 0.25,
         entropy_coef_start: float = 1.2e-3,
-        entropy_coef_end: float = 4.0e-4,
-        entropy_hold_fraction: float = 0.60,
+        entropy_coef_end: float = 7.5e-4,
+        entropy_hold_fraction: float = 0.75,
         gameplay_entropy_floor: float = 0.35,
-        trade_entropy_floor: float = 0.55,
+        trade_entropy_floor: float = 0.75,
         gameplay_entropy_floor_coef: float = 0.010,
-        trade_entropy_floor_coef: float = 0.016,
+        trade_entropy_floor_coef: float = 0.022,
         tom_loss_coef_start: float = 0.02,
-        tom_loss_coef_end: float = 0.08,
+        tom_loss_coef_end: float = 0.06,
         max_grad_norm: float = 0.25,
         ppo_epochs: int = 3,
-        mini_batch_size: int = 192,
+        mini_batch_size: int = 256,
     ):
         self.policy = policy.to(device)
         self.device = device
@@ -478,7 +478,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Unified PPO training loop")
     parser.add_argument("--num-updates", type=int, default=200)
     parser.add_argument("--num-envs", type=int, default=8)
-    parser.add_argument("--rollout-steps", type=int, default=128)
+    parser.add_argument("--rollout-steps", type=int, default=192)
     parser.add_argument("--device", type=str, default="cpu")
     parser.add_argument("--checkpoint-dir", type=str, default="./checkpoints")
     return parser

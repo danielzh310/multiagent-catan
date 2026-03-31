@@ -11,7 +11,7 @@ from environment.catan_env import CatanEnv
 
 class UnifiedRolloutManager:
     MAX_GAMEPLAY_ACTIONS = 256
-    GAMEPLAY_FEATURE_DIM = 32
+    GAMEPLAY_FEATURE_DIM = 40
 
     def __init__(self, num_envs: int, device: str = "cpu", enable_trading: bool = True):
         self.num_envs = num_envs
@@ -72,23 +72,46 @@ class UnifiedRolloutManager:
             features[17] = float(action["connection"]) / 128.0
         if "tile" in action:
             features[18] = float(action["tile"]) / 19.0
+        if "connection_1" in action and action["connection_1"] is not None:
+            features[19] = float(action["connection_1"]) / 128.0
+        if "connection_2" in action and action["connection_2"] is not None:
+            features[20] = float(action["connection_2"]) / 128.0
 
         give_slot = self._resource_slot(action.get("give"))
         receive_slot = self._resource_slot(action.get("receive"))
         resource_slot = self._resource_slot(action.get("resource"))
         resource_1_slot = self._resource_slot(action.get("resource_1"))
         resource_2_slot = self._resource_slot(action.get("resource_2"))
+        card_slot = self._dev_card_slot(action.get("card"))
+        rate = action.get("rate")
+        required = action.get("required")
+        resources_to_discard = action.get("resources")
 
         if give_slot >= 0:
-            features[19 + give_slot] = 1.0
+            features[21 + give_slot] = 1.0
         if receive_slot >= 0:
-            features[24 + receive_slot] = 1.0
+            features[26 + receive_slot] = 1.0
         if resource_slot >= 0:
-            features[29] = float(resource_slot + 1) / 5.0
+            features[31] = float(resource_slot + 1) / 5.0
         if resource_1_slot >= 0:
-            features[30] = float(resource_1_slot + 1) / 5.0
+            features[32] = float(resource_1_slot + 1) / 5.0
         if resource_2_slot >= 0:
-            features[31] = float(resource_2_slot + 1) / 5.0
+            features[33] = float(resource_2_slot + 1) / 5.0
+        if card_slot >= 0:
+            features[34] = float(card_slot + 1) / 5.0
+        if rate is not None:
+            features[35] = float(rate) / 4.0
+        if required is not None:
+            features[36] = float(required) / 8.0
+        if isinstance(resources_to_discard, dict):
+            total_discard = 0.0
+            for amount in resources_to_discard.values():
+                total_discard += float(amount)
+            features[37] = total_discard / 8.0
+            non_zero = sum(1 for amount in resources_to_discard.values() if int(amount) > 0)
+            features[38] = float(non_zero) / 5.0
+        if action.get("type") == "play_dev_card":
+            features[39] = 1.0
 
         return features
 
@@ -288,7 +311,7 @@ class UnifiedRolloutManager:
 
         mapped_idx = min(max(int(action_idx), 0), len(legal_actions) - 1)
         chosen_action = legal_actions[mapped_idx]
-        if chosen_action.get("type") == "discard_cards":
+        if chosen_action.get("type") == "discard_cards" and "resources" not in chosen_action:
             return self._resolve_discard_action(chosen_action)
         return chosen_action
 

@@ -12,7 +12,7 @@ class UnifiedActionHeads(nn.Module):
     def __init__(
         self,
         hidden_dim: int,
-        gameplay_feature_dim: int = 32,
+        gameplay_feature_dim: int = 40,
         trade_targets: int = 3,
         resources: int = 5,
     ):

@@ -8,6 +8,8 @@ from core.phase_router import ControllerType, TurnPhase
 
 
 class CatanEnv:
+    MAX_DISCARD_ACTIONS = 64
+
     def __init__(self, seed: Optional[int] = None, enable_trading: bool = True):
         self.engine = CatanEngine(seed=seed, enable_trading=enable_trading)
 
@@ -151,14 +153,7 @@ class CatanEnv:
                 if tile.id != current_robber_tile:
                     actions.append({"type": "play_dev_card", "card": int(DevCard.KNIGHT), "tile": tile.id})
         if player.can_play_dev_card(DevCard.ROAD_BUILDING):
-            valid_roads = self.engine.get_valid_road_connections(player_id)
-            if valid_roads:
-                actions.append({
-                    "type": "play_dev_card",
-                    "card": int(DevCard.ROAD_BUILDING),
-                    "connection_1": valid_roads[0],
-                    "connection_2": valid_roads[1] if len(valid_roads) > 1 else None,
-                })
+            actions.extend(self._get_road_building_actions(player_id))
         if player.can_play_dev_card(DevCard.INVENTION):
             resources = [Resource.WOOD, Resource.BRICK, Resource.SHEEP, Resource.WHEAT, Resource.ORE]
             for resource_1 in resources:
@@ -209,6 +204,54 @@ class CatanEnv:
 
         return actions
 
+    def _get_road_building_actions(self, player_id: PlayerId) -> List[dict]:
+        actions = []
+        first_roads = self.engine.get_valid_road_connections(player_id)
+        if not first_roads:
+            return actions
+
+        seen = set()
+        for connection_1 in first_roads:
+            action_single = {
+                "type": "play_dev_card",
+                "card": int(DevCard.ROAD_BUILDING),
+                "connection_1": connection_1,
+                "connection_2": None,
+            }
+            key_single = (connection_1, None)
+            if key_single not in seen:
+                actions.append(action_single)
+                seen.add(key_single)
+
+            simulated_roads = {
+                pid: set(roads)
+                for pid, roads in self.engine.road_positions.items()
+            }
+            simulated_roads[player_id].add(connection_1)
+
+            second_roads = self.engine.board.get_valid_road_connections(
+                player_id,
+                self.engine.settlement_positions,
+                simulated_roads,
+                city_positions=self.engine.city_positions,
+            )
+
+            for connection_2 in second_roads:
+                if connection_2 == connection_1:
+                    continue
+                key_double = (connection_1, connection_2)
+                if key_double in seen:
+                    continue
+                actions.append({
+                    "type": "play_dev_card",
+                    "card": int(DevCard.ROAD_BUILDING),
+                    "connection_1": connection_1,
+                    "connection_2": connection_2,
+                })
+                seen.add(key_double)
+
+        return actions
+
     def _get_legal_discard_actions(self, player_id: PlayerId) -> List[dict]:
         required = int(self.engine.robber_discard_required.get(player_id, 0))
         if required <= 0:
@@ -216,10 +259,40 @@ class CatanEnv:
 
         player = self.engine.players[player_id]
         resources = [Resource.WOOD, Resource.BRICK, Resource.SHEEP, Resource.WHEAT, Resource.ORE]
+        available = {resource: int(player.resources.get(resource, 0)) for resource in resources}
+        combinations: List[dict] = []
+
+        def build_combo(index: int, remaining: int, current: dict) -> None:
+            if len(combinations) >= self.MAX_DISCARD_ACTIONS:
+                return
+            if index == len(resources):
+                if remaining == 0:
+                    combinations.append({
+                        "type": "discard_cards",
+                        "required": required,
+                        "available": {resource.name: available[resource] for resource in resources},
+                        "resources": dict(current),
+                    })
+                return
+
+            resource = resources[index]
+            max_take = min(available[resource], remaining)
+            for amount in range(max_take, -1, -1):
+                current[resource] = amount
+                build_combo(index + 1, remaining - amount, current)
+                if len(combinations) >= self.MAX_DISCARD_ACTIONS:
+                    return
+            current.pop(resource, None)
+
+        build_combo(0, required, {})
+
+        if combinations:
+            return combinations
+
         return [{
             "type": "discard_cards",
             "required": required,
-            "available": {resource.name: int(player.resources.get(resource, 0)) for resource in resources},
+            "available": {resource.name: available[resource] for resource in resources},
         }]
 
     def _can_afford_resources(self, resources: dict, cost: tuple) -> bool:

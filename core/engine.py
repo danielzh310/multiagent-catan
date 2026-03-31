@@ -340,7 +340,7 @@ class CatanEngine:
         player.play_dev_card(card)
 
         if card == DevCard.VICTORY_POINT:
-            player.dev_victory_points += 1
+            player.hidden_vp_cards += 1
             self._update_special_awards()
             return 0.45
 
@@ -875,8 +875,8 @@ class CatanEngine:
                     reward -= 0.02
                 else:
                     if card == DevCard.VICTORY_POINT:
-                        player.revealed_vp_cards += 1
-                        player.dev_victory_points += 1
+                        player.hidden_vp_cards += 1
+                        player.update_victory_points()
                         self._update_special_awards()
                         reward += 0.28
                     else:
@@ -1088,9 +1088,9 @@ class CatanEngine:
             "board": {
                 "tiles": [self._serialize_tile(tile) for tile in self.board.tiles],
             },
-            "player": self.players[current_player].as_dict(),
+            "player": self.players[current_player].as_dict(private=True),
             "players": {
-                pid: self.players[pid].as_dict()
+                pid: self.players[pid].as_dict(private=False)
                 for pid in self.players
             },
             "trade": self.trade_manager.get_pending_trade(),
