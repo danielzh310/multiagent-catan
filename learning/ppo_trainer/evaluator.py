@@ -250,6 +250,20 @@ class Evaluator:
                 city_mask[0, action["vertex"]] = 1.0
             elif action_type == ActionType.MOVE_ROBBER and "tile" in action:
                 robber_mask[0, action["tile"]] = 1.0
+            elif action_type == ActionType.DISCARD_CARDS:
+                current_player = self.env.get_current_player_id()
+                required = int(self.env.engine.robber_discard_required.get(current_player, 0))
+                player_resources = self.env.engine.players[current_player].resources
+                for idx in range(min(int(player_resources.get(Resource.WOOD, 0)), required) + 1):
+                    discard_wood_mask[0, idx] = 1.0
+                for idx in range(min(int(player_resources.get(Resource.BRICK, 0)), required) + 1):
+                    discard_brick_mask[0, idx] = 1.0
+                for idx in range(min(int(player_resources.get(Resource.SHEEP, 0)), required) + 1):
+                    discard_sheep_mask[0, idx] = 1.0
+                for idx in range(min(int(player_resources.get(Resource.WHEAT, 0)), required) + 1):
+                    discard_wheat_mask[0, idx] = 1.0
+                for idx in range(min(int(player_resources.get(Resource.ORE, 0)), required) + 1):
+                    discard_ore_mask[0, idx] = 1.0
 
         return {
             "action_type": action_type_mask,
@@ -346,20 +360,36 @@ class Evaluator:
 
         if action_type == ActionType.DISCARD_CARDS:
             current_player = self.env.get_current_player_id()
-            required = self.env.engine.robber_discard_required.get(current_player, 0)
+            required = int(self.env.engine.robber_discard_required.get(current_player, 0))
             player_resources = self.env.engine.players[current_player].resources
 
-            resource_order = [Resource.WOOD, Resource.BRICK, Resource.SHEEP, Resource.WHEAT, Resource.ORE]
-            discard = {r: 0 for r in resource_order}
-            remaining = required
-
-            for resource in resource_order:
-                if remaining <= 0:
-                    break
-                available = int(player_resources.get(resource, 0))
-                take = min(available, remaining)
-                discard[resource] = take
-                remaining -= take
+            discard = {
+                Resource.WOOD: min(int(action_dict["discard_wood"].squeeze().cpu().item()), int(player_resources.get(Resource.WOOD, 0))),
+                Resource.BRICK: min(int(action_dict["discard_brick"].squeeze().cpu().item()), int(player_resources.get(Resource.BRICK, 0))),
+                Resource.SHEEP: min(int(action_dict["discard_sheep"].squeeze().cpu().item()), int(player_resources.get(Resource.SHEEP, 0))),
+                Resource.WHEAT: min(int(action_dict["discard_wheat"].squeeze().cpu().item()), int(player_resources.get(Resource.WHEAT, 0))),
+                Resource.ORE: min(int(action_dict["discard_ore"].squeeze().cpu().item()), int(player_resources.get(Resource.ORE, 0))),
+            }
+            total = sum(discard.values())
+            if total > required:
+                overflow = total - required
+                for resource in [Resource.ORE, Resource.WHEAT, Resource.SHEEP, Resource.BRICK, Resource.WOOD]:
+                    if overflow <= 0:
+                        break
+                    reducible = min(discard[resource], overflow)
+                    discard[resource] -= reducible
+                    overflow -= reducible
+            elif total < required:
+                remaining = required - total
+                for resource in [Resource.WOOD, Resource.BRICK, Resource.SHEEP, Resource.WHEAT, Resource.ORE]:
+                    if remaining <= 0:
+                        break
+                    available = int(player_resources.get(resource, 0)) - discard[resource]
+                    if available <= 0:
+                        continue
+                    add = min(available, remaining)
+                    discard[resource] += add
+                    remaining -= add
 
             return {"type": "discard_cards", "resources": discard}
 

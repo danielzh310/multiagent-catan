@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import List, Optional
 
-from core.constants import PlayerId, Resource, COST_BUILD_ROAD, COST_BUILD_SETTLEMENT, COST_BUILD_CITY
+from core.constants import PlayerId, Resource, DevCard, COST_BUILD_ROAD, COST_BUILD_SETTLEMENT, COST_BUILD_CITY, COST_BUY_DEV_CARD, cost_to_dict
 from core.engine import CatanEngine
 from core.phase_router import ControllerType, TurnPhase
 
@@ -90,6 +90,8 @@ class CatanEnv:
 
         if phase == TurnPhase.MAIN_ACTION:
             if self.engine.robber_pending:
+                if self.engine.robber_discard_queue:
+                    return self._get_legal_discard_actions(current_player)
                 current_robber_tile = next((t.id for t in self.engine.board.tiles if t.has_robber), None)
                 moves = []
                 for t in self.engine.board.tiles:
@@ -140,6 +142,41 @@ class CatanEnv:
             for vertex_id in self.engine.settlement_positions[player_id]:
                 actions.append({"type": "build_city", "vertex": vertex_id})
 
+        if player.can_pay_cost(COST_BUY_DEV_CARD) and self.engine.dev_card_deck:
+            actions.append({"type": "buy_dev_card"})
+
+        if player.can_play_dev_card(DevCard.KNIGHT):
+            current_robber_tile = next((t.id for t in self.engine.board.tiles if t.has_robber), None)
+            for tile in self.engine.board.tiles:
+                if tile.id != current_robber_tile:
+                    actions.append({"type": "play_dev_card", "card": int(DevCard.KNIGHT), "tile": tile.id})
+        if player.can_play_dev_card(DevCard.ROAD_BUILDING):
+            valid_roads = self.engine.get_valid_road_connections(player_id)
+            if valid_roads:
+                actions.append({
+                    "type": "play_dev_card",
+                    "card": int(DevCard.ROAD_BUILDING),
+                    "connection_1": valid_roads[0],
+                    "connection_2": valid_roads[1] if len(valid_roads) > 1 else None,
+                })
+        if player.can_play_dev_card(DevCard.INVENTION):
+            resources = [Resource.WOOD, Resource.BRICK, Resource.SHEEP, Resource.WHEAT, Resource.ORE]
+            for resource_1 in resources:
+                for resource_2 in resources:
+                    actions.append({
+                        "type": "play_dev_card",
+                        "card": int(DevCard.INVENTION),
+                        "resource_1": int(resource_1),
+                        "resource_2": int(resource_2),
+                    })
+        if player.can_play_dev_card(DevCard.MONOPOLY):
+            for resource in (Resource.WOOD, Resource.BRICK, Resource.SHEEP, Resource.WHEAT, Resource.ORE):
+                actions.append({
+                    "type": "play_dev_card",
+                    "card": int(DevCard.MONOPOLY),
+                    "resource": int(resource),
+                })
+
         actions.extend(self._get_legal_bank_trades(player_id))
         actions.append({"type": "end_main_action"})
         return actions
@@ -157,7 +194,8 @@ class CatanEnv:
         ]
 
         for give in resources:
-            if player.resources.get(give, 0) < 4:
+            rate = self.engine._best_maritime_rate(player_id, give)
+            if player.resources.get(give, 0) < rate:
                 continue
             for receive in resources:
                 if give == receive:
@@ -166,9 +204,30 @@ class CatanEnv:
                     "type": "bank_trade",
                     "give": give,
                     "receive": receive,
+                    "rate": rate,
                 })
 
         return actions
+
+    def _get_legal_discard_actions(self, player_id: PlayerId) -> List[dict]:
+        required = int(self.engine.robber_discard_required.get(player_id, 0))
+        if required <= 0:
+            return []
+
+        player = self.engine.players[player_id]
+        resources = [Resource.WOOD, Resource.BRICK, Resource.SHEEP, Resource.WHEAT, Resource.ORE]
+        return [{
+            "type": "discard_cards",
+            "required": required,
+            "available": {resource.name: int(player.resources.get(resource, 0)) for resource in resources},
+        }]
+
+    def _can_afford_resources(self, resources: dict, cost: tuple) -> bool:
+        cost_dict = cost_to_dict(cost)
+        for resource, amount in cost_dict.items():
+            if resources.get(resource, 0) < amount:
+                return False
+        return True
 
     def _get_legal_trade_proposals(self, player_id: PlayerId) -> List[dict]:
         actions = [{"type": "skip_trade"}]

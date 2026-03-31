@@ -36,6 +36,7 @@ class AgentState:
 
     resources: Dict[Resource, int] = field(default_factory=empty_hand)
     dev_cards: List[DevCard] = field(default_factory=list)
+    new_dev_cards: List[DevCard] = field(default_factory=list)
 
     played_dev_card_this_turn: bool = False
 
@@ -43,6 +44,7 @@ class AgentState:
     roads: List[int] = field(default_factory=list)
 
     revealed_vp_cards: int = 0
+    played_knights: int = 0
 
     n_settlements: int = 0
     n_cities: int = 0
@@ -53,15 +55,20 @@ class AgentState:
     victory_points: int = 0
 
     def reset_turn_flags(self) -> None:
+        if self.new_dev_cards:
+            self.dev_cards.extend(self.new_dev_cards)
+            self.new_dev_cards = []
         self.played_dev_card_this_turn = False
 
     def reset_for_new_game(self) -> None:
         self.resources = empty_hand()
         self.dev_cards = []
+        self.new_dev_cards = []
         self.played_dev_card_this_turn = False
         self.buildings = []
         self.roads = []
         self.revealed_vp_cards = 0
+        self.played_knights = 0
         self.n_settlements = 0
         self.n_cities = 0
         self.n_roads = 0
@@ -107,8 +114,11 @@ class AgentState:
             return 0
         return total // 2
 
-    def add_dev_card(self, card: DevCard) -> None:
-        self.dev_cards.append(card)
+    def add_dev_card(self, card: DevCard, playable: bool = False) -> None:
+        if playable:
+            self.dev_cards.append(card)
+        else:
+            self.new_dev_cards.append(card)
 
     def count_dev_card(self, card: DevCard) -> int:
         return sum(1 for c in self.dev_cards if c == card)
@@ -154,12 +164,13 @@ class AgentState:
         return {
             "player_id": self.player_id.name,
             "resources": {resource.name: self.resources.get(resource, 0) for resource in COLLECTABLE_RESOURCES},
-            "dev_cards": [card.name for card in self.dev_cards],
+            "dev_cards": [card.name for card in (self.dev_cards + self.new_dev_cards)],
             "roads": list(self.roads),
             "num_buildings": self.num_settlements() + self.num_cities(),
             "num_settlements": self.num_settlements(),
             "num_cities": self.num_cities(),
             "num_roads": self.num_roads(),
+            "played_knights": int(self.played_knights),
             "bonus_vp": int(self.bonus_vp),
             "dev_victory_points": int(self.dev_victory_points),
             "victory_points": int(self.victory_points),

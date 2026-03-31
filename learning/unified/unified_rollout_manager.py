@@ -10,12 +10,147 @@ from environment.catan_env import CatanEnv
 
 
 class UnifiedRolloutManager:
+    MAX_GAMEPLAY_ACTIONS = 256
+    GAMEPLAY_FEATURE_DIM = 32
+
     def __init__(self, num_envs: int, device: str = "cpu", enable_trading: bool = True):
         self.num_envs = num_envs
         self.device = device
         self.enable_trading = enable_trading
         self.envs = [CatanEnv(enable_trading=enable_trading) for _ in range(num_envs)]
         self.obs = [env.reset() for env in self.envs]
+
+    def _resource_slot(self, resource_value: Any) -> int:
+        if resource_value is None:
+            return -1
+        try:
+            return int(Resource(resource_value))
+        except (ValueError, TypeError):
+            return -1
+
+    def _dev_card_slot(self, card_value: Any) -> int:
+        if card_value is None:
+            return -1
+        try:
+            return int(card_value)
+        except (ValueError, TypeError):
+            return -1
+
+    def _encode_gameplay_action(self, action: Dict[str, Any], env: CatanEnv) -> List[float]:
+        features = [0.0] * self.GAMEPLAY_FEATURE_DIM
+        action_type = action.get("type", "")
+        action_types = {
+            "build_settlement": 0,
+            "build_road": 1,
+            "build_city": 2,
+            "buy_dev_card": 3,
+            "play_dev_card": 4,
+            "bank_trade": 5,
+            "move_robber": 6,
+            "discard_cards": 7,
+            "end_main_action": 8,
+            "end_turn": 9,
+            "roll": 10,
+            "skip_trade": 11,
+        }
+        action_type_idx = action_types.get(action_type)
+        if action_type_idx is not None and action_type_idx < 12:
+            features[action_type_idx] = 1.0
+
+        current_player = env.get_current_player_id()
+        player = env.engine.players[current_player]
+        victory_points = float(player.update_victory_points())
+
+        features[12] = victory_points / 10.0
+        features[13] = float(player.n_settlements) / 5.0
+        features[14] = float(player.n_cities) / 4.0
+        features[15] = float(player.n_roads) / 15.0
+
+        if "vertex" in action:
+            features[16] = float(action["vertex"]) / 64.0
+        if "connection" in action:
+            features[17] = float(action["connection"]) / 128.0
+        if "tile" in action:
+            features[18] = float(action["tile"]) / 19.0
+
+        give_slot = self._resource_slot(action.get("give"))
+        receive_slot = self._resource_slot(action.get("receive"))
+        resource_slot = self._resource_slot(action.get("resource"))
+        resource_1_slot = self._resource_slot(action.get("resource_1"))
+        resource_2_slot = self._resource_slot(action.get("resource_2"))
+
+        if give_slot >= 0:
+            features[19 + give_slot] = 1.0
+        if receive_slot >= 0:
+            features[24 + receive_slot] = 1.0
+        if resource_slot >= 0:
+            features[29] = float(resource_slot + 1) / 5.0
+        if resource_1_slot >= 0:
+            features[30] = float(resource_1_slot + 1) / 5.0
+        if resource_2_slot >= 0:
+            features[31] = float(resource_2_slot + 1) / 5.0
+
+        return features
+
+    def _build_gameplay_candidates(self, env: CatanEnv, legal_actions: List[Dict[str, Any]]) -> tuple[torch.Tensor, torch.Tensor]:
+        candidates = torch.zeros(
+            (1, self.MAX_GAMEPLAY_ACTIONS, self.GAMEPLAY_FEATURE_DIM),
+            dtype=torch.float32,
+            device=self.device,
+        )
+        mask = torch.zeros((1, self.MAX_GAMEPLAY_ACTIONS), dtype=torch.bool, device=self.device)
+
+        capped_actions = legal_actions[: self.MAX_GAMEPLAY_ACTIONS]
+        for idx, action in enumerate(capped_actions):
+            candidates[0, idx] = torch.tensor(
+                self._encode_gameplay_action(action, env),
+                dtype=torch.float32,
+                device=self.device,
+            )
+            mask[0, idx] = True
+
+        if not capped_actions:
+            mask[0, 0] = True
+
+        return candidates, mask
+
+    def _resolve_discard_action(self, action: Dict[str, Any]) -> Dict[str, Any]:
+        required = int(action.get("required", 0))
+        available = action.get("available", {})
+
+        ordered_resources = sorted(
+            available.items(),
+            key=lambda item: (-int(item[1]), item[0]),
+        )
+
+        resources_to_discard: Dict[Resource, int] = {
+            Resource.WOOD: 0,
+            Resource.BRICK: 0,
+            Resource.SHEEP: 0,
+            Resource.WHEAT: 0,
+            Resource.ORE: 0,
+        }
+
+        remaining = required
+        for resource_name, count in ordered_resources:
+            if remaining <= 0:
+                break
+            take = min(int(count), remaining)
+            if take <= 0:
+                continue
+            try:
+                resource = Resource[resource_name]
+            except KeyError:
+                continue
+            resources_to_discard[resource] = take
+            remaining -= take
+
+        if remaining > 0:
+            return action
+
+        resolved = dict(action)
+        resolved["resources"] = resources_to_discard
+        return resolved
 
     def _phase_name(self, env: CatanEnv) -> str:
         phase = env.get_phase()
@@ -53,6 +188,8 @@ class UnifiedRolloutManager:
                 float(state.get("bonus_vp", 0)),
                 float(state.get("dev_victory_points", 0)),
                 float(dev_cards_val),
+                float(state.get("played_knights", 0)),
+                float(state.get("revealed_vp_cards", 0)),
             ]
             vec += [0.0] * (64 - len(vec))
             return vec[:64]
@@ -106,11 +243,20 @@ class UnifiedRolloutManager:
         stage = game.get("initial_placement_stage")
         board_vec[0, 14] = 1.0 if stage == "settlement" else 0.0
         board_vec[0, 15] = 1.0 if stage == "road" else 0.0
+        board_vec[0, 16] = float(game.get("dev_card_deck_size", 0))
+        board_vec[0, 17] = 1.0 if game.get("longest_road_owner") == env.get_current_player_id() else 0.0
+        board_vec[0, 18] = 1.0 if game.get("largest_army_owner") == env.get_current_player_id() else 0.0
+        board_vec[0, 19] = float(len(env.engine.robber_discard_queue))
+        board_vec[0, 20] = float(env.engine.robber_discard_required.get(env.get_current_player_id(), 0))
+
+        gameplay_candidates, gameplay_mask = self._build_gameplay_candidates(env, legal_actions)
 
         return {
             "board": board_vec,
             "self": self_vec,
             "opponent": torch.tensor([op_vec], dtype=torch.float32, device=self.device),
+            "gameplay_candidates": gameplay_candidates,
+            "gameplay_mask": gameplay_mask,
         }
 
     def _one_hot_trade_vector(self, idx: int) -> Dict[Resource, int]:
@@ -137,11 +283,14 @@ class UnifiedRolloutManager:
             return {"type": "end_main_action"}
 
         if phase == TurnPhase.SETUP:
-            mapped_idx = int(action_idx) % len(legal_actions)
+            mapped_idx = min(max(int(action_idx), 0), len(legal_actions) - 1)
             return legal_actions[mapped_idx]
 
-        mapped_idx = int(action_idx) % len(legal_actions)
-        return legal_actions[mapped_idx]
+        mapped_idx = min(max(int(action_idx), 0), len(legal_actions) - 1)
+        chosen_action = legal_actions[mapped_idx]
+        if chosen_action.get("type") == "discard_cards":
+            return self._resolve_discard_action(chosen_action)
+        return chosen_action
 
     def _decode_trade(self, action_dict: Dict[str, torch.Tensor], env: CatanEnv) -> dict:
         if not self.enable_trading:

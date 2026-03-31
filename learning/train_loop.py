@@ -89,6 +89,8 @@ class UnifiedPPOTrainer:
             "board": torch.cat([x["obs"]["board"] for x in storage], dim=0).to(self.device),
             "self": torch.cat([x["obs"]["self"] for x in storage], dim=0).to(self.device),
             "opponent": torch.cat([x["obs"]["opponent"] for x in storage], dim=0).to(self.device),
+            "gameplay_candidates": torch.cat([x["obs"]["gameplay_candidates"] for x in storage], dim=0).to(self.device),
+            "gameplay_mask": torch.cat([x["obs"]["gameplay_mask"] for x in storage], dim=0).to(self.device),
         }
 
     def _compute_returns_advantages(self, rewards: torch.Tensor, values: torch.Tensor, dones: torch.Tensor):

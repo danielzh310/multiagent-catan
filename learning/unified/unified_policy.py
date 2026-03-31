@@ -12,12 +12,22 @@ class UnifiedActionHeads(nn.Module):
     def __init__(
         self,
         hidden_dim: int,
-        gameplay_actions: int = 128,
+        gameplay_feature_dim: int = 32,
         trade_targets: int = 3,
         resources: int = 5,
     ):
         super().__init__()
-        self.gameplay_head = nn.Linear(hidden_dim, gameplay_actions)
+        self.gameplay_action_encoder = nn.Sequential(
+            nn.Linear(gameplay_feature_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU(),
+        )
+        self.gameplay_scorer = nn.Sequential(
+            nn.Linear(hidden_dim * 2, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, 1),
+        )
 
         self.trade_engage_head = nn.Linear(hidden_dim, 2)
         self.trade_response_head = nn.Linear(hidden_dim, 4)
@@ -25,9 +35,14 @@ class UnifiedActionHeads(nn.Module):
         self.trade_offer_head = nn.Linear(hidden_dim, resources)
         self.trade_request_head = nn.Linear(hidden_dim, resources)
 
-    def forward(self, trunk: torch.Tensor) -> Dict[str, torch.Tensor]:
+    def forward(self, trunk: torch.Tensor, gameplay_candidates: torch.Tensor, gameplay_mask: torch.Tensor) -> Dict[str, torch.Tensor]:
+        candidate_emb = self.gameplay_action_encoder(gameplay_candidates)
+        repeated_trunk = trunk.unsqueeze(1).expand(-1, candidate_emb.shape[1], -1)
+        gameplay_logits = self.gameplay_scorer(torch.cat([repeated_trunk, candidate_emb], dim=-1)).squeeze(-1)
+        gameplay_logits = gameplay_logits.masked_fill(~gameplay_mask.bool(), -1e9)
+
         return {
-            "gameplay": self.gameplay_head(trunk),
+            "gameplay": gameplay_logits,
             "trade_engage": self.trade_engage_head(trunk),
             "trade_response": self.trade_response_head(trunk),
             "trade_target": self.trade_target_head(trunk),
@@ -94,7 +109,11 @@ class UnifiedPolicy(nn.Module):
         obs: Dict[str, torch.Tensor],
     ) -> tuple[Dict[str, torch.Tensor], torch.Tensor, Dict[str, torch.Tensor]]:
         trunk, need_pred = self.encode(obs)
-        logits = self.action_heads(trunk)
+        logits = self.action_heads(
+            trunk,
+            obs["gameplay_candidates"],
+            obs["gameplay_mask"],
+        )
         value = self.value_head(trunk)
         tom_outputs = {"need_pred": need_pred}
         return logits, value, tom_outputs

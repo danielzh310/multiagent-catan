@@ -318,6 +318,11 @@ class RolloutManager:
         city_mask = torch.ones(1, 54, dtype=torch.float32, device=self.device) * 1e-8
         robber_mask = torch.ones(1, 19, dtype=torch.float32, device=self.device) * 1e-8
         trade_mask = torch.ones(1, 2, dtype=torch.float32, device=self.device)
+        discard_wood_mask = torch.ones(1, 8, dtype=torch.float32, device=self.device) * 1e-8
+        discard_brick_mask = torch.ones(1, 8, dtype=torch.float32, device=self.device) * 1e-8
+        discard_sheep_mask = torch.ones(1, 8, dtype=torch.float32, device=self.device) * 1e-8
+        discard_wheat_mask = torch.ones(1, 8, dtype=torch.float32, device=self.device) * 1e-8
+        discard_ore_mask = torch.ones(1, 8, dtype=torch.float32, device=self.device) * 1e-8
 
         string_to_action_type = {
             "end_turn": ActionType.END_TURN,
@@ -353,6 +358,20 @@ class RolloutManager:
                 city_mask[0, action["vertex"]] = 1.0
             elif action_type == ActionType.MOVE_ROBBER and "tile" in action:
                 robber_mask[0, action["tile"]] = 1.0
+            elif action_type == ActionType.DISCARD_CARDS:
+                current_player = env.get_current_player_id()
+                required = int(env.engine.robber_discard_required.get(current_player, 0))
+                player_resources = env.engine.players[current_player].resources
+                for idx in range(min(int(player_resources.get(Resource.WOOD, 0)), required) + 1):
+                    discard_wood_mask[0, idx] = 1.0
+                for idx in range(min(int(player_resources.get(Resource.BRICK, 0)), required) + 1):
+                    discard_brick_mask[0, idx] = 1.0
+                for idx in range(min(int(player_resources.get(Resource.SHEEP, 0)), required) + 1):
+                    discard_sheep_mask[0, idx] = 1.0
+                for idx in range(min(int(player_resources.get(Resource.WHEAT, 0)), required) + 1):
+                    discard_wheat_mask[0, idx] = 1.0
+                for idx in range(min(int(player_resources.get(Resource.ORE, 0)), required) + 1):
+                    discard_ore_mask[0, idx] = 1.0
 
         return {
             "action_type": action_type_mask,
@@ -361,6 +380,11 @@ class RolloutManager:
             "city": city_mask,
             "robber": robber_mask,
             "trade": trade_mask,
+            "discard_wood": discard_wood_mask,
+            "discard_brick": discard_brick_mask,
+            "discard_sheep": discard_sheep_mask,
+            "discard_wheat": discard_wheat_mask,
+            "discard_ore": discard_ore_mask,
         }
 
     def _decode_action(self, env, action_dict):
@@ -444,20 +468,36 @@ class RolloutManager:
 
         if action_type == ActionType.DISCARD_CARDS:
             current_player = env.get_current_player_id()
-            required = env.engine.robber_discard_required.get(current_player, 0)
+            required = int(env.engine.robber_discard_required.get(current_player, 0))
             player_resources = env.engine.players[current_player].resources
 
-            resource_order = [Resource.WOOD, Resource.BRICK, Resource.SHEEP, Resource.WHEAT, Resource.ORE]
-            discard = {r: 0 for r in resource_order}
-            remaining = required
-
-            for resource in resource_order:
-                if remaining <= 0:
-                    break
-                available = int(player_resources.get(resource, 0))
-                take = min(available, remaining)
-                discard[resource] = take
-                remaining -= take
+            discard = {
+                Resource.WOOD: min(int(action_dict["discard_wood"].squeeze().cpu().item()), int(player_resources.get(Resource.WOOD, 0))),
+                Resource.BRICK: min(int(action_dict["discard_brick"].squeeze().cpu().item()), int(player_resources.get(Resource.BRICK, 0))),
+                Resource.SHEEP: min(int(action_dict["discard_sheep"].squeeze().cpu().item()), int(player_resources.get(Resource.SHEEP, 0))),
+                Resource.WHEAT: min(int(action_dict["discard_wheat"].squeeze().cpu().item()), int(player_resources.get(Resource.WHEAT, 0))),
+                Resource.ORE: min(int(action_dict["discard_ore"].squeeze().cpu().item()), int(player_resources.get(Resource.ORE, 0))),
+            }
+            total = sum(discard.values())
+            if total > required:
+                overflow = total - required
+                for resource in [Resource.ORE, Resource.WHEAT, Resource.SHEEP, Resource.BRICK, Resource.WOOD]:
+                    if overflow <= 0:
+                        break
+                    reducible = min(discard[resource], overflow)
+                    discard[resource] -= reducible
+                    overflow -= reducible
+            elif total < required:
+                remaining = required - total
+                for resource in [Resource.WOOD, Resource.BRICK, Resource.SHEEP, Resource.WHEAT, Resource.ORE]:
+                    if remaining <= 0:
+                        break
+                    available = int(player_resources.get(resource, 0)) - discard[resource]
+                    if available <= 0:
+                        continue
+                    add = min(available, remaining)
+                    discard[resource] += add
+                    remaining -= add
 
             return {"type": "discard_cards", "resources": discard}
 
