@@ -12,6 +12,8 @@ from environment.catan_env import CatanEnv
 class UnifiedRolloutManager:
     MAX_GAMEPLAY_ACTIONS = 256
     GAMEPLAY_FEATURE_DIM = 40
+    MAX_TRADE_ACTIONS = 128
+    TRADE_FEATURE_DIM = 32
 
     def __init__(self, num_envs: int, device: str = "cpu", enable_trading: bool = True):
         self.num_envs = num_envs
@@ -127,6 +129,89 @@ class UnifiedRolloutManager:
         for idx, action in enumerate(capped_actions):
             candidates[0, idx] = torch.tensor(
                 self._encode_gameplay_action(action, env),
+                dtype=torch.float32,
+                device=self.device,
+            )
+            mask[0, idx] = True
+
+        if not capped_actions:
+            mask[0, 0] = True
+
+        return candidates, mask
+
+    def _encode_trade_action(self, action: Dict[str, Any], env: CatanEnv) -> List[float]:
+        features = [0.0] * self.TRADE_FEATURE_DIM
+        action_type = action.get("type", "")
+        action_types = {
+            "skip_trade": 0,
+            "propose_trade": 1,
+            "accept_trade": 2,
+            "reject_trade": 3,
+            "counter_trade": 4,
+        }
+        action_type_idx = action_types.get(action_type)
+        if action_type_idx is not None:
+            features[action_type_idx] = 1.0
+
+        current_player = env.get_current_player_id()
+        player = env.engine.players[current_player]
+        features[5] = float(player.update_victory_points()) / 10.0
+        features[6] = float(sum(int(v) for v in player.resources.values())) / 20.0
+
+        pending = env.engine.trade_manager.get_pending_trade()
+        if pending is not None:
+            features[7] = 1.0
+            features[8] = float(pending.counter_count) / 3.0
+            features[9] = float(int(pending.proposer)) / 3.0
+            features[10] = float(int(pending.target)) / 3.0
+
+        target = action.get("target")
+        if target is not None:
+            features[11 + int(target)] = 1.0
+
+        offer = action.get("offer") or action.get("counter_offer") or {}
+        request = action.get("request") or action.get("counter_request") or {}
+
+        for resource, amount in offer.items():
+            slot = self._resource_slot(resource)
+            if slot >= 0:
+                features[15 + slot] = float(amount)
+
+        for resource, amount in request.items():
+            slot = self._resource_slot(resource)
+            if slot >= 0:
+                features[20 + slot] = float(amount)
+
+        features[25] = float(sum(int(v) for v in offer.values())) / 4.0
+        features[26] = float(sum(int(v) for v in request.values())) / 4.0
+
+        response_type = action.get("response_type", "")
+        if response_type == "accept":
+            features[27] = 1.0
+        elif response_type == "reject":
+            features[28] = 1.0
+        elif response_type == "counter":
+            features[29] = 1.0
+
+        if action_type == "counter_trade":
+            features[30] = 1.0
+        if action_type == "propose_trade":
+            features[31] = 1.0
+
+        return features
+
+    def _build_trade_candidates(self, env: CatanEnv, legal_actions: List[Dict[str, Any]]) -> tuple[torch.Tensor, torch.Tensor]:
+        candidates = torch.zeros(
+            (1, self.MAX_TRADE_ACTIONS, self.TRADE_FEATURE_DIM),
+            dtype=torch.float32,
+            device=self.device,
+        )
+        mask = torch.zeros((1, self.MAX_TRADE_ACTIONS), dtype=torch.bool, device=self.device)
+
+        capped_actions = legal_actions[: self.MAX_TRADE_ACTIONS]
+        for idx, action in enumerate(capped_actions):
+            candidates[0, idx] = torch.tensor(
+                self._encode_trade_action(action, env),
                 dtype=torch.float32,
                 device=self.device,
             )
@@ -273,6 +358,7 @@ class UnifiedRolloutManager:
         board_vec[0, 20] = float(env.engine.robber_discard_required.get(env.get_current_player_id(), 0))
 
         gameplay_candidates, gameplay_mask = self._build_gameplay_candidates(env, legal_actions)
+        trade_candidates, trade_mask = self._build_trade_candidates(env, legal_actions)
 
         return {
             "board": board_vec,
@@ -280,6 +366,8 @@ class UnifiedRolloutManager:
             "opponent": torch.tensor([op_vec], dtype=torch.float32, device=self.device),
             "gameplay_candidates": gameplay_candidates,
             "gameplay_mask": gameplay_mask,
+            "trade_candidates": trade_candidates,
+            "trade_mask": trade_mask,
         }
 
     def _one_hot_trade_vector(self, idx: int) -> Dict[Resource, int]:
@@ -315,61 +403,21 @@ class UnifiedRolloutManager:
             return self._resolve_discard_action(chosen_action)
         return chosen_action
 
-    def _decode_trade(self, action_dict: Dict[str, torch.Tensor], env: CatanEnv) -> dict:
+    def _decode_trade(self, action_idx: int, env: CatanEnv) -> dict:
         if not self.enable_trading:
             phase = env.get_phase()
             if phase == TurnPhase.TRADE_RESPOND:
                 return {"type": "reject_trade", "response_type": "reject"}
             return {"type": "skip_trade"}
 
-        phase = env.get_phase()
-
-        engage = int(action_dict["engage_trade"].item())
-        response = int(action_dict["trade_response"].item())
-
-        if engage == 0:
+        legal_actions = env.get_legal_actions()
+        if not legal_actions:
+            if env.get_phase() == TurnPhase.TRADE_RESPOND:
+                return {"type": "reject_trade", "response_type": "reject"}
             return {"type": "skip_trade"}
 
-        if phase == TurnPhase.TRADE_PROPOSE:
-            players = [PlayerId.WHITE, PlayerId.BLUE, PlayerId.ORANGE, PlayerId.RED]
-            current_player = env.get_current_player_id()
-            legal_targets = [p for p in players if p != current_player]
-            if not legal_targets:
-                return {"type": "skip_trade"}
-
-            target_idx = int(action_dict["target"].item()) % len(legal_targets)
-            target = legal_targets[target_idx]
-
-            offer_idx = int(action_dict["offer"].item())
-            request_idx = int(action_dict["request"].item())
-
-            return {
-                "type": "propose_trade",
-                "target": target,
-                "offer": self._one_hot_trade_vector(offer_idx),
-                "request": self._one_hot_trade_vector(request_idx),
-            }
-
-        if phase == TurnPhase.TRADE_RESPOND:
-            if response == 0:
-                return {"type": "accept_trade", "response_type": "accept"}
-
-            if response == 1:
-                return {"type": "reject_trade", "response_type": "reject"}
-
-            if response == 2:
-                offer_idx = int(action_dict["offer"].item())
-                request_idx = int(action_dict["request"].item())
-                return {
-                    "type": "counter_trade",
-                    "response_type": "counter",
-                    "counter_offer": self._one_hot_trade_vector(offer_idx),
-                    "counter_request": self._one_hot_trade_vector(request_idx),
-                }
-
-            return {"type": "reject_trade", "response_type": "reject"}
-
-        return {"type": "skip_trade"}
+        mapped_idx = min(max(int(action_idx), 0), len(legal_actions) - 1)
+        return legal_actions[mapped_idx]
 
     def collect(self, policy, steps: int = 128) -> List[Dict[str, Any]]:
         storage: List[Dict[str, Any]] = []
@@ -396,7 +444,7 @@ class UnifiedRolloutManager:
                 if phase_name == "gameplay":
                     env_action = self._decode_gameplay(int(action_dict["gameplay_action"].item()), env)
                 else:
-                    env_action = self._decode_trade(action_dict, env)
+                    env_action = self._decode_trade(int(action_dict["trade_action"].item()), env)
 
                 _, reward, done, info = env.step(env_action)
 

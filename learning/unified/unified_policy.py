@@ -13,8 +13,7 @@ class UnifiedActionHeads(nn.Module):
         self,
         hidden_dim: int,
         gameplay_feature_dim: int = 40,
-        trade_targets: int = 3,
-        resources: int = 5,
+        trade_feature_dim: int = 32,
     ):
         super().__init__()
         self.gameplay_action_encoder = nn.Sequential(
@@ -29,25 +28,39 @@ class UnifiedActionHeads(nn.Module):
             nn.Linear(hidden_dim, 1),
         )
 
-        self.trade_engage_head = nn.Linear(hidden_dim, 2)
-        self.trade_response_head = nn.Linear(hidden_dim, 4)
-        self.trade_target_head = nn.Linear(hidden_dim, trade_targets)
-        self.trade_offer_head = nn.Linear(hidden_dim, resources)
-        self.trade_request_head = nn.Linear(hidden_dim, resources)
+        self.trade_action_encoder = nn.Sequential(
+            nn.Linear(trade_feature_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU(),
+        )
+        self.trade_scorer = nn.Sequential(
+            nn.Linear(hidden_dim * 2, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, 1),
+        )
 
-    def forward(self, trunk: torch.Tensor, gameplay_candidates: torch.Tensor, gameplay_mask: torch.Tensor) -> Dict[str, torch.Tensor]:
+    def forward(
+        self,
+        trunk: torch.Tensor,
+        gameplay_candidates: torch.Tensor,
+        gameplay_mask: torch.Tensor,
+        trade_candidates: torch.Tensor,
+        trade_mask: torch.Tensor,
+    ) -> Dict[str, torch.Tensor]:
         candidate_emb = self.gameplay_action_encoder(gameplay_candidates)
         repeated_trunk = trunk.unsqueeze(1).expand(-1, candidate_emb.shape[1], -1)
         gameplay_logits = self.gameplay_scorer(torch.cat([repeated_trunk, candidate_emb], dim=-1)).squeeze(-1)
         gameplay_logits = gameplay_logits.masked_fill(~gameplay_mask.bool(), -1e9)
 
+        trade_candidate_emb = self.trade_action_encoder(trade_candidates)
+        repeated_trade_trunk = trunk.unsqueeze(1).expand(-1, trade_candidate_emb.shape[1], -1)
+        trade_logits = self.trade_scorer(torch.cat([repeated_trade_trunk, trade_candidate_emb], dim=-1)).squeeze(-1)
+        trade_logits = trade_logits.masked_fill(~trade_mask.bool(), -1e9)
+
         return {
             "gameplay": gameplay_logits,
-            "trade_engage": self.trade_engage_head(trunk),
-            "trade_response": self.trade_response_head(trunk),
-            "trade_target": self.trade_target_head(trunk),
-            "trade_offer": self.trade_offer_head(trunk),
-            "trade_request": self.trade_request_head(trunk),
+            "trade": trade_logits,
         }
 
 
@@ -93,7 +106,6 @@ class UnifiedPolicy(nn.Module):
         self.trade_value_head = nn.Linear(hidden_dim, 1)
         self.action_heads = UnifiedActionHeads(
             hidden_dim=hidden_dim,
-            resources=resources,
         )
 
     def encode(self, obs: Dict[str, torch.Tensor]) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -115,6 +127,8 @@ class UnifiedPolicy(nn.Module):
             trunk,
             obs["gameplay_candidates"],
             obs["gameplay_mask"],
+            obs["trade_candidates"],
+            obs["trade_mask"],
         )
         tom_outputs = {"need_pred": need_pred}
         return logits, trunk, tom_outputs
@@ -135,42 +149,10 @@ class UnifiedPolicy(nn.Module):
 
             return value, {"gameplay_action": action}, {"gameplay_action": log_prob}, tom_outputs
 
-        engage_dist = torch.distributions.Categorical(logits=logits["trade_engage"])
-        response_dist = torch.distributions.Categorical(logits=logits["trade_response"])
-        target_dist = torch.distributions.Categorical(logits=logits["trade_target"])
-        offer_dist = torch.distributions.Categorical(logits=logits["trade_offer"])
-        request_dist = torch.distributions.Categorical(logits=logits["trade_request"])
-
-        if deterministic:
-            engage = torch.argmax(logits["trade_engage"], dim=-1)
-            response = torch.argmax(logits["trade_response"], dim=-1)
-            target = torch.argmax(logits["trade_target"], dim=-1)
-            offer = torch.argmax(logits["trade_offer"], dim=-1)
-            request = torch.argmax(logits["trade_request"], dim=-1)
-        else:
-            engage = engage_dist.sample()
-            response = response_dist.sample()
-            target = target_dist.sample()
-            offer = offer_dist.sample()
-            request = request_dist.sample()
-
-        action_dict = {
-            "engage_trade": engage,
-            "trade_response": response,
-            "target": target,
-            "offer": offer,
-            "request": request,
-        }
-
-        log_prob_dict = {
-            "engage_trade": engage_dist.log_prob(engage),
-            "trade_response": response_dist.log_prob(response),
-            "target": target_dist.log_prob(target),
-            "offer": offer_dist.log_prob(offer),
-            "request": request_dist.log_prob(request),
-        }
-
-        return value, action_dict, log_prob_dict, tom_outputs
+        dist = torch.distributions.Categorical(logits=logits["trade"])
+        action = torch.argmax(logits["trade"], dim=-1) if deterministic else dist.sample()
+        log_prob = dist.log_prob(action)
+        return value, {"trade_action": action}, {"trade_action": log_prob}, tom_outputs
 
     def evaluate_actions(self, obs: Dict[str, torch.Tensor], actions: Dict[str, torch.Tensor], phase: str):
         logits, trunk, tom_outputs = self.forward(obs)
@@ -182,26 +164,7 @@ class UnifiedPolicy(nn.Module):
             entropy = dist.entropy().mean()
             return {"gameplay_action": log_prob}, entropy, value, tom_outputs
 
-        d_engage = torch.distributions.Categorical(logits=logits["trade_engage"])
-        d_response = torch.distributions.Categorical(logits=logits["trade_response"])
-        d_target = torch.distributions.Categorical(logits=logits["trade_target"])
-        d_offer = torch.distributions.Categorical(logits=logits["trade_offer"])
-        d_request = torch.distributions.Categorical(logits=logits["trade_request"])
-
-        log_prob_dict = {
-            "engage_trade": d_engage.log_prob(actions["engage_trade"]),
-            "trade_response": d_response.log_prob(actions["trade_response"]),
-            "target": d_target.log_prob(actions["target"]),
-            "offer": d_offer.log_prob(actions["offer"]),
-            "request": d_request.log_prob(actions["request"]),
-        }
-
-        entropy = (
-            d_engage.entropy()
-            + d_response.entropy()
-            + d_target.entropy()
-            + d_offer.entropy()
-            + d_request.entropy()
-        ).mean() / 5.0
-
-        return log_prob_dict, entropy, value, tom_outputs
+        dist = torch.distributions.Categorical(logits=logits["trade"])
+        log_prob = dist.log_prob(actions["trade_action"])
+        entropy = dist.entropy().mean()
+        return {"trade_action": log_prob}, entropy, value, tom_outputs
