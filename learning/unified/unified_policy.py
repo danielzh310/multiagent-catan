@@ -57,7 +57,7 @@ class UnifiedPolicy(nn.Module):
         board_dim: int = 64,
         self_dim: int = 64,
         opponent_dim: int = 64,
-        hidden_dim: int = 128,
+        hidden_dim: int = 192,
         resources: int = 5,
     ):
         super().__init__()
@@ -79,6 +79,7 @@ class UnifiedPolicy(nn.Module):
             nn.Linear(hidden_dim * 3, hidden_dim),
             nn.ReLU(),
             nn.Linear(hidden_dim, hidden_dim),
+            nn.LayerNorm(hidden_dim),
             nn.ReLU(),
         )
 
@@ -88,7 +89,8 @@ class UnifiedPolicy(nn.Module):
             num_resources=resources,
         )
 
-        self.value_head = nn.Linear(hidden_dim, 1)
+        self.gameplay_value_head = nn.Linear(hidden_dim, 1)
+        self.trade_value_head = nn.Linear(hidden_dim, 1)
         self.action_heads = UnifiedActionHeads(
             hidden_dim=hidden_dim,
             resources=resources,
@@ -114,12 +116,17 @@ class UnifiedPolicy(nn.Module):
             obs["gameplay_candidates"],
             obs["gameplay_mask"],
         )
-        value = self.value_head(trunk)
         tom_outputs = {"need_pred": need_pred}
-        return logits, value, tom_outputs
+        return logits, trunk, tom_outputs
+
+    def _phase_value(self, trunk: torch.Tensor, phase: str) -> torch.Tensor:
+        if phase == "gameplay":
+            return self.gameplay_value_head(trunk)
+        return self.trade_value_head(trunk)
 
     def act(self, obs: Dict[str, torch.Tensor], phase: str, deterministic: bool = False):
-        logits, value, tom_outputs = self.forward(obs)
+        logits, trunk, tom_outputs = self.forward(obs)
+        value = self._phase_value(trunk, phase)
 
         if phase == "gameplay":
             dist = torch.distributions.Categorical(logits=logits["gameplay"])
@@ -166,7 +173,8 @@ class UnifiedPolicy(nn.Module):
         return value, action_dict, log_prob_dict, tom_outputs
 
     def evaluate_actions(self, obs: Dict[str, torch.Tensor], actions: Dict[str, torch.Tensor], phase: str):
-        logits, value, tom_outputs = self.forward(obs)
+        logits, trunk, tom_outputs = self.forward(obs)
+        value = self._phase_value(trunk, phase)
 
         if phase == "gameplay":
             dist = torch.distributions.Categorical(logits=logits["gameplay"])

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import random
 from collections import deque
 from typing import Dict, List
 
@@ -479,6 +480,8 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--num-updates", type=int, default=200)
     parser.add_argument("--num-envs", type=int, default=8)
     parser.add_argument("--rollout-steps", type=int, default=192)
+    parser.add_argument("--hidden-dim", type=int, default=192)
+    parser.add_argument("--seed", type=int, default=7)
     parser.add_argument("--device", type=str, default="cpu")
     parser.add_argument("--checkpoint-dir", type=str, default="./checkpoints")
     return parser
@@ -487,7 +490,12 @@ def build_arg_parser() -> argparse.ArgumentParser:
 def train(args: argparse.Namespace) -> None:
     device = args.device
 
-    policy = UnifiedPolicy().to(device)
+    random.seed(args.seed)
+    torch.manual_seed(args.seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(args.seed)
+
+    policy = UnifiedPolicy(hidden_dim=args.hidden_dim).to(device)
     trainer = UnifiedPPOTrainer(policy=policy, device=device)
     rollout_manager = UnifiedRolloutManager(num_envs=args.num_envs, device=device)
     league = LeagueManager(checkpoint_dir=args.checkpoint_dir, frozen_ratio=0.2)
@@ -503,7 +511,10 @@ def train(args: argparse.Namespace) -> None:
     best_trade_score = float("-inf")
     best_trade_score_update = -1
 
-    print(f"Starting unified PPO training for {args.num_updates} updates")
+    print(
+        f"Starting unified PPO training for {args.num_updates} updates "
+        f"(envs={args.num_envs}, rollout_steps={args.rollout_steps}, hidden_dim={args.hidden_dim}, seed={args.seed})"
+    )
 
     for update in range(args.num_updates):
         progress = update / float(max(args.num_updates - 1, 1))
