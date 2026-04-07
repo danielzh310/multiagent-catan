@@ -92,6 +92,8 @@ class UnifiedPPOTrainer:
             "opponent": torch.cat([x["obs"]["opponent"] for x in storage], dim=0).to(self.device),
             "gameplay_candidates": torch.cat([x["obs"]["gameplay_candidates"] for x in storage], dim=0).to(self.device),
             "gameplay_mask": torch.cat([x["obs"]["gameplay_mask"] for x in storage], dim=0).to(self.device),
+            "trade_candidates": torch.cat([x["obs"]["trade_candidates"] for x in storage], dim=0).to(self.device),
+            "trade_mask": torch.cat([x["obs"]["trade_mask"] for x in storage], dim=0).to(self.device),
         }
 
     def _compute_returns_advantages(self, rewards: torch.Tensor, values: torch.Tensor, dones: torch.Tensor):
@@ -172,19 +174,9 @@ class UnifiedPPOTrainer:
             need_mask = None
         else:
             actions = {
-                "engage_trade": torch.cat([storage[i]["action"]["engage_trade"] for i in idxs], dim=0).to(self.device),
-                "trade_response": torch.cat([storage[i]["action"]["trade_response"] for i in idxs], dim=0).to(self.device),
-                "target": torch.cat([storage[i]["action"]["target"] for i in idxs], dim=0).to(self.device),
-                "offer": torch.cat([storage[i]["action"]["offer"] for i in idxs], dim=0).to(self.device),
-                "request": torch.cat([storage[i]["action"]["request"] for i in idxs], dim=0).to(self.device),
+                "trade_action": torch.cat([storage[i]["action"]["trade_action"] for i in idxs], dim=0).to(self.device),
             }
-            old_log_prob = (
-                torch.cat([storage[i]["log_prob"]["engage_trade"] for i in idxs], dim=0).to(self.device)
-                + torch.cat([storage[i]["log_prob"]["trade_response"] for i in idxs], dim=0).to(self.device)
-                + torch.cat([storage[i]["log_prob"]["target"] for i in idxs], dim=0).to(self.device)
-                + torch.cat([storage[i]["log_prob"]["offer"] for i in idxs], dim=0).to(self.device)
-                + torch.cat([storage[i]["log_prob"]["request"] for i in idxs], dim=0).to(self.device)
-            )
+            old_log_prob = torch.cat([storage[i]["log_prob"]["trade_action"] for i in idxs], dim=0).to(self.device)
             need_targets, need_mask = self._trade_targets(storage, idxs)
 
         return {
@@ -239,13 +231,7 @@ class UnifiedPPOTrainer:
                 if phase_name == "gameplay":
                     mb_actions = {"gameplay_action": actions["gameplay_action"][mb]}
                 else:
-                    mb_actions = {
-                        "engage_trade": actions["engage_trade"][mb],
-                        "trade_response": actions["trade_response"][mb],
-                        "target": actions["target"][mb],
-                        "offer": actions["offer"][mb],
-                        "request": actions["request"][mb],
-                    }
+                    mb_actions = {"trade_action": actions["trade_action"][mb]}
 
                 log_prob_dict, entropy, new_values, tom_outputs = self.policy.evaluate_actions(
                     obs=mb_obs,
@@ -256,13 +242,7 @@ class UnifiedPPOTrainer:
                 if phase_name == "gameplay":
                     new_log_prob = log_prob_dict["gameplay_action"]
                 else:
-                    new_log_prob = (
-                        log_prob_dict["engage_trade"]
-                        + log_prob_dict["trade_response"]
-                        + log_prob_dict["target"]
-                        + log_prob_dict["offer"]
-                        + log_prob_dict["request"]
-                    )
+                    new_log_prob = log_prob_dict["trade_action"]
 
                 ratio = torch.exp(new_log_prob - mb_old_log_prob)
                 surr1 = ratio * mb_advantages
