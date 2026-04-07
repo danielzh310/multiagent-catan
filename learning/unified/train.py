@@ -10,7 +10,8 @@ import torch
 
 from ..league.league_manager import LeagueManager
 from ..rewards.reward_shaper import RewardShaper
-from ..trade.trade_labeler import build_batch_need_targets
+from ..trade.trade_labeler import build_batch_need_targets, resource_dict_to_tensor, RESOURCE_ORDER
+from ..trade.trade_reward import accepted_trade_reward, rejected_trade_reward, skipped_trade_reward, estimate_trade_surplus
 from .unified_policy import UnifiedPolicy
 from .unified_rollout_manager import UnifiedRolloutManager
 
@@ -439,13 +440,49 @@ def apply_shaped_rewards(
             else:
                 consecutive_skips = 0
 
-            shaped_reward = reward_shaper.trade_step_reward(
-                action_type=action_type,
-                reward_signal=float(item["reward"]),
-                consecutive_skips=consecutive_skips,
-                tom_loss=0.0,
-                curriculum_scale=curriculum_scale,
-            )
+        if item["phase"] == "trade":
+            env_action = item.get("env_action", {})
+            action_type = env_action.get("type", "skip_trade")
+
+            if action_type == "skip_trade":
+                consecutive_skips += 1
+            else:
+                consecutive_skips = 0
+
+            # Use bilateral trade rewards for accepted trades
+            if action_type == "accept_trade":
+                # Extract trade details for surplus calculation
+                proposer_offer = env_action.get("offer", {})
+                proposer_request = env_action.get("request", {})
+
+                # Calculate opponent need scores based on predicted needs
+                opponent_need_scores = None
+                if "tom_outputs" in item and "need_pred" in item["tom_outputs"]:
+                    need_pred = item["tom_outputs"]["need_pred"]
+                    # Convert tensor to dict mapping Resource to need probability
+                    opponent_need_scores = {
+                        resource: float(need_pred[i])
+                        for i, resource in enumerate(RESOURCE_ORDER)
+                    }
+
+                # Use bilateral surplus-based reward
+                shaped_reward = accepted_trade_reward(proposer_offer, proposer_request, opponent_need_scores)
+            elif action_type == "reject_trade":
+                shaped_reward = rejected_trade_reward()
+            elif action_type == "skip_trade":
+                shaped_reward = skipped_trade_reward()
+            else:
+                # For other trade actions, use basic reward shaping
+                shaped_reward = reward_shaper.trade_step_reward(
+                    action_type=action_type,
+                    reward_signal=float(item["reward"]),
+                    consecutive_skips=consecutive_skips,
+                    tom_loss=0.0,
+                    curriculum_scale=curriculum_scale,
+                )
+
+            # Apply curriculum scaling to bilateral rewards too
+            shaped_reward *= float(curriculum_scale)
             new_item["reward"] = shaped_reward
         else:
             new_item["reward"] = float(item["reward"])

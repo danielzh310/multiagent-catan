@@ -459,6 +459,7 @@ class UnifiedRolloutManager:
                         "done": bool(done),
                         "info": info,
                         "env_action": env_action,
+                        "tom_outputs": {k: v.detach().cpu().clone() for k, v in tom_outputs.items()} if tom_outputs else {},
                     }
                 )
 

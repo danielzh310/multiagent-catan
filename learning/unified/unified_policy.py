@@ -34,8 +34,11 @@ class UnifiedActionHeads(nn.Module):
             nn.Linear(hidden_dim, hidden_dim),
             nn.ReLU(),
         )
+        # Bilateral trade scorer incorporates opponent needs for joint optimization
         self.trade_scorer = nn.Sequential(
-            nn.Linear(hidden_dim * 2, hidden_dim),
+            nn.Linear(hidden_dim * 3, hidden_dim),  # trunk + candidate + opponent_needs
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim),
             nn.ReLU(),
             nn.Linear(hidden_dim, 1),
         )
@@ -47,6 +50,7 @@ class UnifiedActionHeads(nn.Module):
         gameplay_mask: torch.Tensor,
         trade_candidates: torch.Tensor,
         trade_mask: torch.Tensor,
+        opponent_needs: torch.Tensor | None = None,
     ) -> Dict[str, torch.Tensor]:
         candidate_emb = self.gameplay_action_encoder(gameplay_candidates)
         repeated_trunk = trunk.unsqueeze(1).expand(-1, candidate_emb.shape[1], -1)
@@ -55,7 +59,17 @@ class UnifiedActionHeads(nn.Module):
 
         trade_candidate_emb = self.trade_action_encoder(trade_candidates)
         repeated_trade_trunk = trunk.unsqueeze(1).expand(-1, trade_candidate_emb.shape[1], -1)
-        trade_logits = self.trade_scorer(torch.cat([repeated_trade_trunk, trade_candidate_emb], dim=-1)).squeeze(-1)
+
+        # Bilateral trade optimization: condition on opponent needs for joint surplus
+        if opponent_needs is not None:
+            # Expand opponent needs to match trade candidates
+            expanded_opponent_needs = opponent_needs.unsqueeze(1).expand(-1, trade_candidate_emb.shape[1], -1)
+            trade_input = torch.cat([repeated_trade_trunk, trade_candidate_emb, expanded_opponent_needs], dim=-1)
+        else:
+            # Fallback to basic scoring if no opponent needs available
+            trade_input = torch.cat([repeated_trade_trunk, trade_candidate_emb], dim=-1)
+
+        trade_logits = self.trade_scorer(trade_input).squeeze(-1)
         trade_logits = trade_logits.masked_fill(~trade_mask.bool(), -1e9)
 
         return {
@@ -129,6 +143,7 @@ class UnifiedPolicy(nn.Module):
             obs["gameplay_mask"],
             obs["trade_candidates"],
             obs["trade_mask"],
+            opponent_needs=need_pred,  # Pass opponent needs for bilateral trade optimization
         )
         tom_outputs = {"need_pred": need_pred}
         return logits, trunk, tom_outputs
