@@ -60,6 +60,7 @@ class UnifiedPPOTrainer:
         self.value_clip_param = value_clip_param
         self.value_loss_coef = value_loss_coef
 
+        self.entropy_coef_start = entropy_coef_start
         self.entropy_coef_end = entropy_coef_end
         self.entropy_hold_fraction = entropy_hold_fraction
 
