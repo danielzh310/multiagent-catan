@@ -17,10 +17,14 @@ if PROJECT_ROOT not in sys.path:
 from learning.league.league_manager import LeagueManager
 from learning.rewards.reward_shaper import RewardShaper
 from learning.trade.trade_labeler import build_batch_need_targets, RESOURCE_ORDER
-from learning.trade.trade_reward import accepted_trade_reward, rejected_trade_reward, skipped_trade_reward
+from learning.unified.unified_trade_reward import (
+    unified_accepted_trade_reward,
+    unified_rejected_trade_reward,
+    unified_skipped_trade_reward,
+)
 from learning.unified.unified_policy import UnifiedPolicy
 from learning.unified.unified_rollout_manager import UnifiedRolloutManager
-#python learning.unified.train.py --num-updates 2 > training_log.txt
+#python learning/unified/train.py --num-updates 2 > training_log.txt
 
 class UnifiedPPOTrainer:
     def __init__(
@@ -56,7 +60,6 @@ class UnifiedPPOTrainer:
         self.value_clip_param = value_clip_param
         self.value_loss_coef = value_loss_coef
 
-        self.entropy_coef_start = entropy_coef_start
         self.entropy_coef_end = entropy_coef_end
         self.entropy_hold_fraction = entropy_hold_fraction
 
@@ -441,45 +444,43 @@ def apply_shaped_rewards(
             env_action = item.get("env_action", {})
             action_type = env_action.get("type", "skip_trade")
 
+            # Update consecutive_skips counter
             if action_type == "skip_trade":
                 consecutive_skips += 1
             else:
                 consecutive_skips = 0
 
-            # Use bilateral trade rewards for accepted trades
+            # Determine the base reward signal for the trade action
+            reward_signal = float(item["reward"])
             if action_type == "accept_trade":
-                # Extract trade details for surplus calculation
+                # For accepted trades, the base reward is the bilateral surplus
                 proposer_offer = env_action.get("offer", {})
                 proposer_request = env_action.get("request", {})
-
-                # Calculate opponent need scores based on predicted needs
                 opponent_need_scores = None
                 if "tom_outputs" in item and "need_pred" in item["tom_outputs"]:
-                    need_pred = item["tom_outputs"]["need_pred"].view(-1)
-                    # Convert tensor to dict mapping Resource to need probability
-                    opponent_need_scores = {
-                        resource: float(need_pred[i])
-                        for i, resource in enumerate(RESOURCE_ORDER)
-                    }
-
-                # Use bilateral surplus-based reward
-                shaped_reward = accepted_trade_reward(proposer_offer, proposer_request, opponent_need_scores)
+                    if item["tom_outputs"]["need_pred"].numel() > 0:
+                        need_pred = item["tom_outputs"]["need_pred"].view(-1)
+                        opponent_need_scores = {
+                            resource: float(need_pred[i])
+                            for i, resource in enumerate(RESOURCE_ORDER)
+                        }
+                reward_signal = unified_accepted_trade_reward(proposer_offer, proposer_request, opponent_need_scores)
             elif action_type == "reject_trade":
-                shaped_reward = rejected_trade_reward()
+                # For rejected trades, the base reward is 0.0 from trade_reward.py
+                reward_signal = unified_rejected_trade_reward()
             elif action_type == "skip_trade":
-                shaped_reward = skipped_trade_reward()
-            else:
-                # For other trade actions, use basic reward shaping
-                shaped_reward = reward_shaper.trade_step_reward(
-                    action_type=action_type,
-                    reward_signal=float(item["reward"]),
-                    consecutive_skips=consecutive_skips,
-                    tom_loss=0.0,
-                    curriculum_scale=curriculum_scale,
-                )
+                # For skipped trades, the base reward is 0.0 from trade_reward.py
+                reward_signal = unified_skipped_trade_reward()
+            # For propose_trade and counter_trade, reward_signal remains float(item["reward"]) (typically 0.0)
 
-            # Apply curriculum scaling to bilateral rewards too
-            shaped_reward *= float(curriculum_scale)
+            shaped_reward = reward_shaper.trade_step_reward(
+                action_type=action_type,
+                reward_signal=reward_signal,
+                consecutive_skips=consecutive_skips,
+                tom_loss=0.0, # ToM loss is applied in the PPO total loss, not here.
+                curriculum_scale=curriculum_scale,
+            )
+
             new_item["reward"] = shaped_reward
         else:
             new_item["reward"] = float(item["reward"])

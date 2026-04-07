@@ -81,14 +81,17 @@ def accepted_trade_reward(
     ensuring trade learning doesn't dominate gameplay learning.
     """
     bilateral_surplus = estimate_trade_surplus(proposer_offer, proposer_request, opponent_need_scores)
-    return 0.008 + bilateral_surplus  # Much smaller base reward
+    #return 0.008 + bilateral_surplus  # Much smaller base reward
+    return 0.0 + bilateral_surplus  # No fixed base reward, only surplus
 
 
 def rejected_trade_reward() -> float:
     """Small penalty for rejecting trades to encourage participation without dominating learning."""
-    return -0.001
+    #return -0.001
+    return 0.0  # No penalty for rejection to avoid discouraging strategic rejections
 
 
 def skipped_trade_reward() -> float:
     """Very small penalty for skipping trades."""
-    return -0.0003
+    #return -0.0003
+    return 0.0  # No penalty for skipping to avoid discouraging strategic skipping
