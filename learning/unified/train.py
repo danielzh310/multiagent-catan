@@ -440,15 +440,6 @@ def apply_shaped_rewards(
             else:
                 consecutive_skips = 0
 
-        if item["phase"] == "trade":
-            env_action = item.get("env_action", {})
-            action_type = env_action.get("type", "skip_trade")
-
-            if action_type == "skip_trade":
-                consecutive_skips += 1
-            else:
-                consecutive_skips = 0
-
             # Use bilateral trade rewards for accepted trades
             if action_type == "accept_trade":
                 # Extract trade details for surplus calculation
