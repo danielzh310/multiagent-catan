@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from learning.gameplay.gameplay_policy import GameplayPolicy
+from .gameplay_policy import GameplayPolicy
 
 
 def build_gameplay_model(device: str = "cpu") -> GameplayPolicy:

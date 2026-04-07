@@ -36,25 +36,19 @@ class HybridRolloutManager:
 
         return "auto"
 
-    def _build_gameplay_obs(self, env: CatanEnv) -> torch.Tensor:
-        raw = env.build_gameplay_observation()
+    def _build_gameplay_obs(self, env: CatanEnv) -> Dict[str, torch.Tensor]:
+        """Build gameplay observation dictionary for DQN policy."""
+        # Get raw observation from environment
+        raw_obs = env.build_gameplay_observation()
 
-        flat = torch.tensor(
-            [float(raw["turn_number"]) % 100] * 64,
-            dtype=torch.float32,
-            device=self.device,
-        ).unsqueeze(0)
-
-        return flat
-
-    def _build_trade_obs(self, env: CatanEnv) -> Dict[str, torch.Tensor]:
-        def zeros(shape):
-            return torch.zeros(shape, dtype=torch.float32, device=self.device)
-
-        return {
-            "board": zeros((1, 64)),
-            "self": zeros((1, 64)),
-            "opponent": zeros((1, 64)),
+        # Convert to tensor format expected by DQN policy
+        obs = {
+            "board": torch.tensor(raw_obs["board_state"], dtype=torch.float32, device=self.device).unsqueeze(0),
+            "self": torch.tensor(raw_obs["self_state"], dtype=torch.float32, device=self.device).unsqueeze(0),
+            "opponent": torch.tensor(raw_obs["opponent_state"], dtype=torch.float32, device=self.device).unsqueeze(0),
+            "gameplay_candidates": torch.tensor(raw_obs["gameplay_candidates"], dtype=torch.float32, device=self.device).unsqueeze(0),
+            "gameplay_mask": torch.tensor(raw_obs["gameplay_mask"], dtype=torch.float32, device=self.device).unsqueeze(0),
+            # Add dummy trade_history for consistent structure
             "trade_history": {
                 "proposer_ids": torch.zeros((1, 4), dtype=torch.long, device=self.device),
                 "target_ids": torch.zeros((1, 4), dtype=torch.long, device=self.device),
@@ -65,6 +59,35 @@ class HybridRolloutManager:
                 "turn_numbers": torch.zeros((1, 4), dtype=torch.float32, device=self.device),
             },
         }
+
+        return obs
+
+    def _build_trade_obs(self, env: CatanEnv) -> Dict[str, torch.Tensor]:
+        """Build trade observation dictionary for PPO policy."""
+        # Get raw observation from environment
+        raw_obs = env.build_trade_observation()
+
+        # Convert to tensor format - ensure same keys as gameplay for batching
+        obs = {
+            "board": torch.tensor(raw_obs["board_state"], dtype=torch.float32, device=self.device).unsqueeze(0),
+            "self": torch.tensor(raw_obs["self_state"], dtype=torch.float32, device=self.device).unsqueeze(0),
+            "opponent": torch.tensor(raw_obs["opponent_state"], dtype=torch.float32, device=self.device).unsqueeze(0),
+            # Add dummy values for gameplay keys that trade obs doesn't have
+            "gameplay_candidates": torch.zeros((1, 10, 40), dtype=torch.float32, device=self.device),  # dummy
+            "gameplay_mask": torch.zeros((1, 10), dtype=torch.float32, device=self.device),  # dummy
+            # Trade-specific data
+            "trade_history": {
+                "proposer_ids": torch.tensor(raw_obs["trade_history"]["proposer_ids"], dtype=torch.long, device=self.device).unsqueeze(0),
+                "target_ids": torch.tensor(raw_obs["trade_history"]["target_ids"], dtype=torch.long, device=self.device).unsqueeze(0),
+                "response_types": torch.tensor(raw_obs["trade_history"]["response_types"], dtype=torch.long, device=self.device).unsqueeze(0),
+                "offers": torch.tensor(raw_obs["trade_history"]["offers"], dtype=torch.float32, device=self.device).unsqueeze(0),
+                "requests": torch.tensor(raw_obs["trade_history"]["requests"], dtype=torch.float32, device=self.device).unsqueeze(0),
+                "accepted_flags": torch.tensor(raw_obs["trade_history"]["accepted_flags"], dtype=torch.float32, device=self.device).unsqueeze(0),
+                "turn_numbers": torch.tensor(raw_obs["trade_history"]["turn_numbers"], dtype=torch.float32, device=self.device).unsqueeze(0),
+            },
+        }
+
+        return obs
 
     def _default_empty_trade_vector(self) -> Dict[Resource, int]:
         return {

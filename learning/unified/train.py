@@ -8,11 +8,11 @@ from typing import Dict, List
 
 import torch
 
-from learning.league.league_manager import LeagueManager
-from learning.rewards.reward_shaper import RewardShaper
-from learning.trade.trade_labeler import build_batch_need_targets
-from learning.unified.unified_policy import UnifiedPolicy
-from learning.unified.unified_rollout_manager import UnifiedRolloutManager
+from ..league.league_manager import LeagueManager
+from ..rewards.reward_shaper import RewardShaper
+from ..trade.trade_labeler import build_batch_need_targets
+from .unified_policy import UnifiedPolicy
+from .unified_rollout_manager import UnifiedRolloutManager
 
 
 class UnifiedPPOTrainer:

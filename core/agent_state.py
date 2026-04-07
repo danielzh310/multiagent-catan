@@ -37,6 +37,7 @@ class AgentState:
     resources: Dict[Resource, int] = field(default_factory=empty_hand)
     dev_cards: List[DevCard] = field(default_factory=list)
     new_dev_cards: List[DevCard] = field(default_factory=list)
+    played_dev_cards_sequence: List[DevCard] = field(default_factory=list)
 
     played_dev_card_this_turn: bool = False
 
@@ -52,6 +53,7 @@ class AgentState:
     n_roads: int = 0
 
     bonus_vp: int = 0
+    longest_road_length: int = 0
     dev_victory_points: int = 0
     victory_points: int = 0
 
@@ -65,6 +67,7 @@ class AgentState:
         self.resources = empty_hand()
         self.dev_cards = []
         self.new_dev_cards = []
+        self.played_dev_cards_sequence = []
         self.played_dev_card_this_turn = False
         self.buildings = []
         self.roads = []
@@ -75,6 +78,7 @@ class AgentState:
         self.n_cities = 0
         self.n_roads = 0
         self.bonus_vp = 0
+        self.longest_road_length = 0
         self.dev_victory_points = 0
         self.victory_points = 0
 
@@ -138,6 +142,7 @@ class AgentState:
             if owned_card == card:
                 self.dev_cards.pop(i)
                 self.played_dev_card_this_turn = True
+                self.played_dev_cards_sequence.append(card)
                 return
 
         raise ValueError(f"Dev card {card} not found in hand.")
@@ -179,11 +184,14 @@ class AgentState:
             "player_id": self.player_id.name,
             "resources": {resource.name: self.resources.get(resource, 0) for resource in COLLECTABLE_RESOURCES},
             "dev_cards": dev_cards_value,
+            "played_dev_card_this_turn": self.played_dev_card_this_turn,
+            "played_dev_cards_sequence": [c.name for c in self.played_dev_cards_sequence],
             "roads": list(self.roads),
             "num_buildings": self.num_settlements() + self.num_cities(),
             "num_settlements": self.num_settlements(),
             "num_cities": self.num_cities(),
             "num_roads": self.num_roads(),
+            "longest_road_length": int(self.longest_road_length),
             "hidden_vp_cards": int(self.hidden_vp_cards) if private else 0,
             "played_knights": int(self.played_knights),
             "bonus_vp": int(self.bonus_vp),

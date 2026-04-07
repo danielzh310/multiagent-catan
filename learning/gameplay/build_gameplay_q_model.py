@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Dict, Any
 
-from learning.dqn.dqn_trainer import DQNTrainer
+from ..dqn.dqn_trainer import DQNTrainer
 
 
 def build_gameplay_q_model(config: Dict[str, Any]) -> DQNTrainer:

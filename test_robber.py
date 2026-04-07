@@ -43,14 +43,14 @@ def test_7_forces_discard_and_robber_move_and_steal():
 
     # White must discard 4 as action now.
     assert engine.robber_discard_required[PlayerId.WHITE] == 4
-    assert engine.robber_discard_order == [PlayerId.WHITE]
+    assert engine.robber_discard_queue == [PlayerId.WHITE]
 
     discard_reward = engine.apply_gameplay_action({"type": "discard_cards", "resources": {Resource.WOOD: 2, Resource.BRICK: 2}})
     assert discard_reward == 0
     white_total = sum(engine.players[PlayerId.WHITE].resources.values())
     assert white_total == 5
 
-    assert engine.robber_discard_order == []
+    assert engine.robber_discard_queue == []
 
     # Move robber to the selected target tile and steal from BLUE (only adjacent with resources)
     engine._move_robber(target_tile.id)
@@ -118,7 +118,7 @@ def test_7_discard_as_action_then_robber_move():
     engine.phase_router.set_phase(TurnPhase.MAIN_ACTION)
 
     assert engine.robber_discard_required[PlayerId.WHITE] == 5
-    assert engine.robber_discard_order == [PlayerId.WHITE]
+    assert engine.robber_discard_queue == [PlayerId.WHITE]
 
     # invalid resource selection: too few
     bad_reward = engine.apply_gameplay_action({"type": "discard_cards", "resources": {Resource.WOOD: 2, Resource.BRICK: 1}})
@@ -128,7 +128,7 @@ def test_7_discard_as_action_then_robber_move():
     good_reward = engine.apply_gameplay_action({"type": "discard_cards", "resources": {Resource.WOOD: 2, Resource.BRICK: 2, Resource.SHEEP: 1}})
     assert good_reward == 0
     assert PlayerId.WHITE not in engine.robber_discard_required
-    assert engine.robber_discard_order == []
+    assert engine.robber_discard_queue == []
 
     target_tile = next(t for t in engine.board.tiles if not t.has_robber)
     vertex = target_tile.vertices[0]

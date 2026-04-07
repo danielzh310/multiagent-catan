@@ -5,7 +5,7 @@ from typing import Dict, Tuple
 import torch
 import torch.nn as nn
 
-from learning.networks.opponent_need_predictor import OpponentNeedPredictor
+from ..networks.opponent_need_predictor import OpponentNeedPredictor
 
 
 class UnifiedActionHeads(nn.Module):

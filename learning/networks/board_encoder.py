@@ -10,8 +10,8 @@ This module:
 import torch
 import torch.nn as nn
 
-from learning.networks.attention import MultiHeadAttention
-from learning.networks.network_utils import clone_module, init_linear
+from .attention import MultiHeadAttention
+from .network_utils import clone_module, init_linear
 
 
 class FeedForwardBlock(nn.Module):

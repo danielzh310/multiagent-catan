@@ -10,6 +10,7 @@ from core.constants import (
     COST_BUILD_CITY,
     COST_BUY_DEV_CARD,
     COST_BUILD_ROAD,
+    COLLECTABLE_RESOURCES,
     COST_BUILD_SETTLEMENT,
     DEV_CARD_COUNTS,
     DevCard,
@@ -17,6 +18,7 @@ from core.constants import (
     PlayerId,
     Resource,
     VP_LARGEST_ARMY,
+    RESOURCE_SUPPLY_COUNTS,
     VP_LONGEST_ROUTE,
     VICTORY_POINTS_TARGET,
     LONGEST_ROUTE_MIN_LENGTH,
@@ -85,6 +87,7 @@ class CatanEngine:
         self.robber_move_pending_player: Optional[PlayerId] = None
 
         self.winner: Optional[PlayerId] = None
+        self.resource_bank = dict(RESOURCE_SUPPLY_COUNTS)
 
     def reset(self):
         for player in self.players.values():
@@ -134,6 +137,7 @@ class CatanEngine:
             self.board.move_robber_to_tile(desert.id)
 
         self.winner = None
+        self.resource_bank = dict(RESOURCE_SUPPLY_COUNTS)
 
     def get_valid_settlement_vertices(self, player_id: PlayerId, require_road: bool = True) -> List[int]:
         return self.board.get_valid_settlement_vertices(
@@ -239,7 +243,10 @@ class CatanEngine:
 
     def _attempt_pay_cost(self, player: AgentState, cost: tuple) -> bool:
         if player.can_pay_cost(cost):
+            cost_dict = cost_to_dict(cost)
             player.pay_cost(cost)
+            for resource, amount in cost_dict.items():
+                self.resource_bank[resource] += amount
             player.update_victory_points()
             return True
         return False
@@ -339,15 +346,11 @@ class CatanEngine:
 
         player.play_dev_card(card)
 
-        if card == DevCard.VICTORY_POINT:
-            player.hidden_vp_cards += 1
-            self._update_special_awards()
-            return 0.45
-
         if card == DevCard.KNIGHT:
             player.played_knights += 1
             target_tile_id = action.get("tile") if action is not None else None
-            self._move_robber_for_knight(player_id, target_tile_id=target_tile_id)
+            victim_id = action.get("victim") if action is not None else None
+            self._move_robber_for_knight(player_id, target_tile_id=target_tile_id, victim_id=victim_id)
             self._update_special_awards()
             return 0.10
 
@@ -380,7 +383,9 @@ class CatanEngine:
             if len(resources) != 2:
                 resources = self._choose_invention_resources(player_id)
             for resource in resources:
-                player.add_resource(resource, 1)
+                if self.resource_bank.get(resource, 0) > 0:
+                    player.add_resource(resource, 1)
+                    self.resource_bank[resource] -= 1
             return 0.08
 
         if card == DevCard.MONOPOLY:
@@ -446,6 +451,9 @@ class CatanEngine:
             player.bonus_vp = 0
 
         road_lengths = {player_id: self._longest_road_length(player_id) for player_id in self.players}
+        for player_id, length in road_lengths.items():
+            self.players[player_id].longest_road_length = length
+
         eligible_roads = {
             player_id: length for player_id, length in road_lengths.items()
             if length >= LONGEST_ROUTE_MIN_LENGTH
@@ -502,20 +510,39 @@ class CatanEngine:
         if dice_value == 7:
             return
 
+        payouts: Dict[Resource, Dict[PlayerId, int]] = {r: {} for r in COLLECTABLE_RESOURCES}
+        demands: Dict[Resource, int] = {r: 0 for r in COLLECTABLE_RESOURCES}
+
         tiles = self.board.get_tiles_for_roll(dice_value)
 
         for tile in tiles:
+            resource = tile.resource
+            if resource == Resource.DESERT:
+                continue
+
             for vertex in tile.vertices:
                 if vertex.building is None:
                     continue
 
                 owner = vertex.building.owner
-                player = self.players[owner]
-
+                amount = 0
                 if vertex.building.type == BuildingType.SETTLEMENT:
-                    player.resources[tile.resource] += 1
+                    amount = 1
                 elif vertex.building.type == BuildingType.CITY:
-                    player.resources[tile.resource] += 2
+                    amount = 2
+
+                if amount > 0:
+                    payouts[resource][owner] = payouts[resource].get(owner, 0) + amount
+                    demands[resource] += amount
+
+        for resource, total_demand in demands.items():
+            # According to Catan rules, if the bank cannot pay out the total amount of a resource
+            # for a given roll, then no player receives any of that resource. This can happen if
+            # the resource supply in the bank is depleted.
+            if self.resource_bank.get(resource, 0) >= total_demand:
+                for player_id, amount in payouts[resource].items():
+                    self.players[player_id].add_resource(resource, amount)
+                    self.resource_bank[resource] -= amount
 
     def _discard_half_random(self, player: AgentState) -> Dict[Resource, int]:
         total = sum(int(v) for v in player.resources.values())
@@ -577,7 +604,7 @@ class CatanEngine:
             "stolen_resource": None,
         }
 
-    def _move_robber(self, target_tile_id: int):
+    def _move_robber(self, target_tile_id: int, victim_id: Optional[PlayerId] = None):
         if target_tile_id < 0 or target_tile_id >= len(self.board.tiles):
             return
 
@@ -600,10 +627,15 @@ class CatanEngine:
         stolen_from = None
         stolen_resource = None
         if adjacent_owners:
-            victim_id = self.random.choice(list(adjacent_owners))
-            victim = self.players[victim_id]
+            victim_to_rob_id = None
+            if victim_id is not None and victim_id in adjacent_owners:
+                victim_to_rob_id = victim_id
+            else:
+                victim_to_rob_id = self.random.choice(list(adjacent_owners))
+
+            victim = self.players[victim_to_rob_id]
             stolen_resource = self._steal_one_random_resource(victim, thief)
-            stolen_from = victim_id if stolen_resource is not None else None
+            stolen_from = victim_to_rob_id if stolen_resource is not None else None
 
         self.robber_pending = False
         self.robber_move_pending_player = None
@@ -618,7 +650,9 @@ class CatanEngine:
             "stolen_resource": stolen_resource.name if stolen_resource is not None else None,
         }
 
-    def _move_robber_for_knight(self, player_id: PlayerId, target_tile_id: Optional[int] = None):
+    def _move_robber_for_knight(
+        self, player_id: PlayerId, target_tile_id: Optional[int] = None, victim_id: Optional[PlayerId] = None
+    ):
         if target_tile_id is None:
             target_tile_id = self._choose_robber_target_tile(player_id)
         if target_tile_id is None or not (0 <= target_tile_id < len(self.board.tiles)):
@@ -641,10 +675,15 @@ class CatanEngine:
         stolen_from = None
         stolen_resource = None
         if adjacent_owners:
-            victim_id = self.random.choice(list(adjacent_owners))
-            victim = self.players[victim_id]
+            victim_to_rob_id = None
+            if victim_id is not None and victim_id in adjacent_owners:
+                victim_to_rob_id = victim_id
+            else:
+                victim_to_rob_id = self.random.choice(list(adjacent_owners))
+
+            victim = self.players[victim_to_rob_id]
             stolen_resource = self._steal_one_random_resource(victim, thief)
-            stolen_from = victim_id if stolen_resource is not None else None
+            stolen_from = victim_to_rob_id if stolen_resource is not None else None
 
         self.last_robber_event = {
             "rolled_seven": False,
@@ -657,9 +696,13 @@ class CatanEngine:
 
     def _assign_initial_settlement_resources(self, vertex_id: int, player_id: PlayerId) -> None:
         player = self.players[player_id]
-        resources = self.board.get_player_starting_resources_from_second_settlement(vertex_id)
-        for resource, amount in resources.items():
-            player.add_resource(resource, amount)
+        vertex = self.board.vertices[vertex_id]
+        for tile in vertex.tiles:
+            resource = tile.resource
+            if resource != Resource.DESERT:
+                if self.resource_bank.get(resource, 0) > 0:
+                    player.add_resource(resource, 1)
+                    self.resource_bank[resource] -= 1
 
     def _apply_discard_action(self, player_id: PlayerId, resources: Dict[Resource, int]) -> float:
         required = int(self.robber_discard_required.get(player_id, 0))
@@ -678,7 +721,8 @@ class CatanEngine:
         player = self.players[player_id]
         for resource, amount in resources.items():
             if int(amount) > 0:
-                player.resources[resource] -= int(amount)
+                player.remove_resource(resource, int(amount))
+                self.resource_bank[resource] += int(amount)
 
         discard_log = {resource.name: int(amount) for resource, amount in resources.items() if int(amount) > 0}
         self.last_robber_event["discarded"][str(player_id)] = discard_log
@@ -696,13 +740,17 @@ class CatanEngine:
         rate = self._best_maritime_rate(player_id, give)
         if player.resources.get(give, 0) < rate:
             return -0.02
+        if self.resource_bank.get(receive, 0) < 1:
+            return -0.02
 
         before_resources = dict(player.resources)
         before_readiness = self._build_readiness_score(before_resources)
         before_diversity = sum(1 for value in before_resources.values() if int(value) > 0)
 
         player.resources[give] -= rate
+        self.resource_bank[give] += rate
         player.resources[receive] += 1
+        self.resource_bank[receive] -= 1
 
         after_resources = dict(player.resources)
         after_readiness = self._build_readiness_score(after_resources)
@@ -905,12 +953,13 @@ class CatanEngine:
                 reward -= 0.02
             else:
                 tile_id = action.get("tile")
+                victim_id = action.get("victim")
                 if tile_id is None or not isinstance(tile_id, int) or not (0 <= tile_id < len(self.board.tiles)):
                     reward -= 0.02
                 elif self.board.tiles[tile_id].has_robber:
                     reward -= 0.02
                 else:
-                    self._move_robber(tile_id)
+                    self._move_robber(tile_id, victim_id=victim_id)
                     reward += 0.03
 
         elif action_type == "end_turn":
@@ -1055,6 +1104,14 @@ class CatanEngine:
                 self.winner = player_id
                 return
 
+    def _serialize_port(self, port) -> dict:
+        return {
+            "id": port.id,
+            "resource": port.resource.name if port.resource else "GENERIC",
+            "exchange_rate": port.exchange_rate,
+            "vertices": [v.id for v in port.vertices],
+        }
+
     def _serialize_tile(self, tile) -> dict:
         return {
             "id": tile.id,
@@ -1084,9 +1141,11 @@ class CatanEngine:
                 "dev_card_deck_size": len(self.dev_card_deck),
                 "longest_road_owner": self.longest_road_owner,
                 "largest_army_owner": self.largest_army_owner,
+                "resource_bank": {r.name: v for r, v in self.resource_bank.items()},
             },
             "board": {
                 "tiles": [self._serialize_tile(tile) for tile in self.board.tiles],
+                "ports": [self._serialize_port(port) for port in self.board.ports],
             },
             "player": self.players[current_player].as_dict(private=True),
             "players": {

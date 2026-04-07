@@ -11,7 +11,7 @@ import math
 import torch
 import torch.nn as nn
 
-from learning.networks.network_utils import clone_module, init_linear
+from .network_utils import clone_module, init_linear
 
 
 class MultiHeadAttention(nn.Module):

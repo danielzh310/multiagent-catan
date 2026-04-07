@@ -26,10 +26,10 @@ class HybridCheckpointManager:
         checkpoint = {
             "step": step,
             "dqn": {
-                "q_network": dqn_trainer.q_network.state_dict(),
-                "target_q_network": dqn_trainer.target_q_network.state_dict(),
+                "policy": dqn_trainer.policy.state_dict(),
+                "target_policy": dqn_trainer.target_policy.state_dict(),
                 "optimizer": dqn_trainer.optimizer.state_dict(),
-                "train_step_count": getattr(dqn_trainer, "train_step_count", 0),
+                "train_step_count": dqn_trainer.train_step_count,
             },
             "trade": {
                 "policy": getattr(trade_trainer, "policy").state_dict(),
@@ -52,11 +52,10 @@ class HybridCheckpointManager:
     ) -> Dict[str, Any]:
         checkpoint = torch.load(path, map_location=map_location)
 
-        dqn_trainer.q_network.load_state_dict(checkpoint["dqn"]["q_network"])
-        dqn_trainer.target_q_network.load_state_dict(checkpoint["dqn"]["target_q_network"])
+        dqn_trainer.policy.load_state_dict(checkpoint["dqn"]["policy"])
+        dqn_trainer.target_policy.load_state_dict(checkpoint["dqn"]["target_policy"])
         dqn_trainer.optimizer.load_state_dict(checkpoint["dqn"]["optimizer"])
-        if "train_step_count" in checkpoint["dqn"]:
-            dqn_trainer.train_step_count = checkpoint["dqn"]["train_step_count"]
+        dqn_trainer.train_step_count = checkpoint["dqn"]["train_step_count"]
 
         trade_trainer.policy.load_state_dict(checkpoint["trade"]["policy"])
         trade_trainer.optimizer.load_state_dict(checkpoint["trade"]["optimizer"])

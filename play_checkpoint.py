@@ -47,9 +47,36 @@ def diff_resources(before, after):
     return out
 
 
+def format_ascii_board(env):
+    def fmt_tile(t_id):
+        tile = env.engine.board.tiles[t_id]
+        res = tile.resource.name[:2]
+        rob = "*" if getattr(tile, "has_robber", False) else " "
+        num = str(tile.number) if tile.number is not None else ""
+        return f"[{res}{rob}{num:>2}]"
+
+    r0 = [7, 12, 16]
+    r1 = [3, 8, 13, 17]
+    r2 = [0, 4, 9, 14, 18]
+    r3 = [1, 5, 10, 15]
+    r4 = [2, 6, 11]
+
+    lines = [
+        "ASCII BOARD:",
+        " " * 10 + "   ".join(fmt_tile(i) for i in r0),
+        " " * 5 + "   ".join(fmt_tile(i) for i in r1),
+        "" + "   ".join(fmt_tile(i) for i in r2),
+        " " * 5 + "   ".join(fmt_tile(i) for i in r3),
+        " " * 10 + "   ".join(fmt_tile(i) for i in r4),
+    ]
+    return "\n".join(lines)
+
+
 def format_board_state(env):
     lines = []
     lines.append("=== CURRENT BOARD STATE ===")
+    lines.append(format_ascii_board(env))
+    lines.append("")
     lines.append(f"phase={env.get_phase().name}")
     lines.append(f"current_player={env.get_current_player_id()}")
     lines.append(f"last_roll={env.get_last_roll()}")
@@ -62,6 +89,29 @@ def format_board_state(env):
     for i, tile in enumerate(env.engine.board.tiles):
         robber_str = " (ROBBER)" if tile.has_robber else ""
         lines.append(f"  tile_{i}: {tile.resource.name}@{tile.number}{robber_str}")
+    lines.append("")
+
+    # Show tile vertex mapping
+    lines.append("TILE VERTICES:")
+    lines.append("  (Corner order: [BottomRight, TopRight, Top, TopLeft, BottomLeft, Bottom])")
+    lines.append("       v2(Top)      ")
+    lines.append("   v3          v1   ")
+    lines.append("       [Tile]       ")
+    lines.append("   v4          v0   ")
+    lines.append("      v5(Bottom)    ")
+    for i, tile in enumerate(env.engine.board.tiles):
+        v_ids = [f"{v.id:02d}" for v in tile.vertices]
+        lines.append(f"  tile_{i:>2} ({tile.resource.name[:2]:>2}): [{', '.join(v_ids)}]")
+    lines.append("")
+
+    # Show ports
+    lines.append("PORTS:")
+    for port in env.engine.board.ports:
+        v1, v2 = port.vertices
+        shared_tiles = set(t.id for t in v1.tiles) & set(t.id for t in v2.tiles)
+        tile_id = list(shared_tiles)[0] if shared_tiles else None
+        res_str = "3:1" if port.resource is None else f"{port.resource.name} 2:1"
+        lines.append(f"  P{port.id}: {res_str} at V{v1.id}-V{v2.id} (Tile {tile_id})")
     lines.append("")
 
     # Show vertices and their buildings

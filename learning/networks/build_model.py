@@ -7,9 +7,9 @@ This file assembles:
 - policy/value network
 """
 
-from learning.networks.state_encoder import StateEncoder
-from learning.networks.action_heads import ActionHeads
-from learning.networks.policy_network import CatanPolicyNetwork
+from .state_encoder import StateEncoder
+from .action_heads import ActionHeads
+from .policy_network import CatanPolicyNetwork
 
 
 DEFAULT_TILE_FEATURE_DIM = 16

@@ -12,7 +12,7 @@ This design allows flexible, structured action spaces for Catan.
 import torch
 import torch.nn as nn
 
-from learning.probability_heads import CategoricalHead
+from .probability_heads import CategoricalHead
 from learning.networks.network_utils import init_linear
 
 

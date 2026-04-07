@@ -29,23 +29,40 @@ def moving_average(series: pd.Series, window: int = 10) -> pd.Series:
 
 
 def read_text_with_fallbacks(path: str) -> str:
-    encodings = ["utf-8", "utf-16", "utf-16-le", "utf-16-be", "latin-1"]
-    last_error = None
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"Could not find log file: {path}")
 
-    for encoding in encodings:
-        try:
-            with open(path, "r", encoding=encoding) as f:
-                return f.read()
-        except UnicodeDecodeError as e:
-            last_error = e
+    with open(path, "rb") as f:
+        raw = f.read()
 
-    raise UnicodeDecodeError(
-        "unknown",
-        b"",
-        0,
-        1,
-        f"Could not decode file with tried encodings. Last error: {last_error}",
-    )
+    if len(raw) == 0:
+        raise ValueError(f"Log file is empty: {path}")
+
+    if raw.startswith(b"\xff\xfe") or raw.startswith(b"\xfe\xff"):
+        text = raw.decode("utf-16")
+    else:
+        encodings = ["utf-8", "utf-16", "utf-16-le", "utf-16-be", "latin-1"]
+        text = None
+        last_error = None
+        for encoding in encodings:
+            try:
+                text = raw.decode(encoding)
+                break
+            except UnicodeDecodeError as e:
+                last_error = e
+
+        if text is None:
+            raise UnicodeDecodeError(
+                "unknown",
+                b"",
+                0,
+                1,
+                f"Could not decode file with tried encodings. Last error: {last_error}",
+            )
+
+    text = text.replace("\x00", "")
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    return text
 
 
 def parse_training_log(log_path: str) -> pd.DataFrame:

@@ -3,20 +3,19 @@ from __future__ import annotations
 import random
 from collections import deque
 from dataclasses import dataclass
-from typing import Deque, List, Optional
+from typing import Deque, List, Optional, Dict, Any
 
 import torch
 
 
 @dataclass
-class GameplayTransition:
-    obs: torch.Tensor
-    action: int
+class CatanTransition:
+    obs: Dict[str, torch.Tensor]
+    action: Dict[str, torch.Tensor]
     reward: float
-    next_obs: torch.Tensor
+    next_obs: Dict[str, torch.Tensor]
     done: bool
-    action_mask: torch.Tensor
-    next_action_mask: torch.Tensor
+    phase: str
 
 
 class ReplayBuffer:
@@ -28,7 +27,7 @@ class ReplayBuffer:
     ):
         self.capacity = capacity
         self.device = device
-        self.buffer: Deque[GameplayTransition] = deque(maxlen=capacity)
+        self.buffer: Deque[CatanTransition] = deque(maxlen=capacity)
         self.rng = random.Random(seed)
 
     def __len__(self) -> int:
@@ -36,18 +35,38 @@ class ReplayBuffer:
 
     def add(
         self,
-        obs: torch.Tensor,
-        action: int,
+        obs: Dict[str, Any],
+        action: Dict[str, Any],
         reward: float,
-        next_obs: torch.Tensor,
+        next_obs: Dict[str, Any],
         done: bool,
-        action_mask: torch.Tensor,
-        next_action_mask: torch.Tensor,
+        phase: str,
     ) -> None:
-        transition = GameplayTransition(
-            obs=obs.detach().cpu().clone(),
-            action=int(action),
+        # Convert to tensors if needed
+        obs_tensors = {k: torch.tensor(v, dtype=torch.float32).detach().cpu().clone()
+                      for k, v in obs.items()}
+        action_tensors = {k: torch.tensor(v, dtype=torch.long).detach().cpu().clone()
+                         for k, v in action.items()}
+        next_obs_tensors = {k: torch.tensor(v, dtype=torch.float32).detach().cpu().clone()
+                           for k, v in next_obs.items()}
+
+        transition = CatanTransition(
+            obs=obs_tensors,
+            action=action_tensors,
             reward=float(reward),
+            next_obs=next_obs_tensors,
+            done=bool(done),
+            phase=phase,
+        )
+        self.buffer.append(transition)
+
+    def sample(self, batch_size: int) -> List[CatanTransition]:
+        if len(self.buffer) < batch_size:
+            return list(self.buffer)
+        return self.rng.sample(list(self.buffer), batch_size)
+
+    def clear(self) -> None:
+        self.buffer.clear()
             next_obs=next_obs.detach().cpu().clone(),
             done=bool(done),
             action_mask=action_mask.detach().cpu().clone(),
@@ -55,32 +74,10 @@ class ReplayBuffer:
         )
         self.buffer.append(transition)
 
-    def sample(self, batch_size: int) -> dict:
+    def sample(self, batch_size: int) -> List[CatanTransition]:
         if len(self.buffer) < batch_size:
-            raise ValueError(
-                f"ReplayBuffer has {len(self.buffer)} transitions, "
-                f"but batch_size={batch_size} was requested."
-            )
-
-        batch: List[GameplayTransition] = self.rng.sample(list(self.buffer), batch_size)
-
-        obs = torch.cat([item.obs for item in batch], dim=0).to(self.device)
-        actions = torch.tensor([item.action for item in batch], dtype=torch.long, device=self.device)
-        rewards = torch.tensor([item.reward for item in batch], dtype=torch.float32, device=self.device)
-        next_obs = torch.cat([item.next_obs for item in batch], dim=0).to(self.device)
-        dones = torch.tensor([item.done for item in batch], dtype=torch.float32, device=self.device)
-        action_masks = torch.stack([item.action_mask for item in batch]).to(self.device)
-        next_action_masks = torch.stack([item.next_action_mask for item in batch]).to(self.device)
-
-        return {
-            "obs": obs,
-            "actions": actions,
-            "rewards": rewards,
-            "next_obs": next_obs,
-            "dones": dones,
-            "action_masks": action_masks,
-            "next_action_masks": next_action_masks,
-        }
+            return list(self.buffer)
+        return self.rng.sample(list(self.buffer), batch_size)
 
     def clear(self) -> None:
         self.buffer.clear()

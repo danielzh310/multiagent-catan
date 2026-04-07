@@ -4,9 +4,9 @@ import torch
 import torch.nn as nn
 from typing import Dict, Tuple, Optional
 
-from learning.trade.trade_history_encoder import TradeHistoryEncoder
-from learning.trade.cross_attention_fusion import CrossAttentionFusion
-from learning.trade.trade_heads import TradeActionHeads
+from .trade_history_encoder import TradeHistoryEncoder
+from .cross_attention_fusion import CrossAttentionFusion
+from .trade_heads import TradeActionHeads
 from learning.trade.tom_head import ToMHead
 
 

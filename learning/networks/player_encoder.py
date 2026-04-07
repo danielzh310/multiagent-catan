@@ -142,12 +142,15 @@ class OtherPlayerEncoder(nn.Module):
 
         self.relu = nn.ReLU()
 
-    def _encode_played_cards(self, played_dev_cards):
-        if isinstance(played_dev_cards, list):
-            lengths = [len(x) if len(x) > 0 else 1 for x in played_dev_cards]
-            padded = pad_sequence(played_dev_cards, batch_first=True).long()
+    def _encode_card_sequence(self, card_seq, attn_layer, proj_layer, norm_layer):
+        """
+        Encode one dev-card sequence.
+        """
+        if isinstance(card_seq, list):
+            lengths = [len(x) if len(x) > 0 else 1 for x in card_seq]
+            padded = pad_sequence(card_seq, batch_first=True).long()
         else:
-            padded = played_dev_cards.long()
+            padded = card_seq.long()
             lengths = (padded.shape[-1] - (padded == 0).sum(dim=-1)).cpu().tolist()
             lengths = [max(1, int(x)) for x in lengths]
 
@@ -159,21 +162,23 @@ class OtherPlayerEncoder(nn.Module):
         for b in range(batch_size):
             mask[b, :, :, :lengths[b]] = 1.0
 
-        reps = self.played_card_attn(embeds, embeds, embeds, mask=mask)
+        reps = attn_layer(embeds, embeds, embeds, mask=mask)
 
         token_mask = mask.squeeze(1).transpose(-1, -2).bool()
         reps = reps.masked_fill(~token_mask.expand_as(reps), 0.0)
 
         pooled = reps.sum(dim=1)
-        pooled = self.played_proj(pooled)
-        pooled = self.relu(self.norm_played(pooled))
+        pooled = proj_layer(pooled)
+        pooled = self.relu(norm_layer(pooled))
         return pooled
 
     def forward(self, main_input, played_dev_cards):
         main_out = self.main_fc(main_input)
         main_out = self.relu(self.norm_main(main_out))
 
-        played_out = self._encode_played_cards(played_dev_cards)
+        played_out = self._encode_card_sequence(
+            played_dev_cards, self.played_card_attn, self.played_proj, self.norm_played
+        )
 
         final_input = torch.cat([main_out, played_out], dim=-1)
         final_out = self.final_fc(final_input)

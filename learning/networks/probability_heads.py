@@ -13,7 +13,7 @@ in a consistent way.
 import torch
 import torch.nn as nn
 
-from learning.common_utils import AddBias, init_module
+from .common_utils import AddBias, init_module
 
 
 class FixedCategorical(torch.distributions.Categorical):
