@@ -4,23 +4,28 @@ from __future__ import annotations
 
 import argparse
 import os
+import sys
 import random
 from collections import deque
 from typing import Dict, List
 
 import torch
 
-from .hybrid_policy import HybridPolicy
-from .hybrid_rollout_manager import HybridRolloutManager
-from .hybrid_checkpoint import HybridCheckpointManager
-from ..dqn.dqn_policy import DQNBaselinePolicy
-from ..dqn.dqn_trainer import DQNTrainer
-from ..dqn.replay_buffer import ReplayBuffer
-from ..ppo_trainer.trainer import PPOTrainer
-from ..ppo_trainer.batch_processor import BatchProcessor
-from ..league.league_manager import LeagueManager
-from ..rewards.reward_shaper import RewardShaper
-from ..trade.trade_policy import TradePolicy
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
+from learning.hybrid.hybrid_policy import HybridPolicy
+from learning.hybrid.hybrid_rollout_manager import HybridRolloutManager
+from learning.hybrid.hybrid_checkpoint import HybridCheckpointManager
+from learning.dqn.dqn_policy import DQNBaselinePolicy
+from learning.dqn.dqn_trainer import DQNTrainer
+from learning.dqn.replay_buffer import ReplayBuffer
+from learning.ppo_trainer.trainer import PPOTrainer
+from learning.ppo_trainer.batch_processor import BatchProcessor
+from learning.league.league_manager import LeagueManager
+from learning.rewards.reward_shaper import RewardShaper
+from learning.trade.trade_policy import TradePolicy
 
 
 class HybridTrainer:

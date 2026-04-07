@@ -4,8 +4,8 @@ from typing import Any, Dict, Optional, Tuple
 
 import torch
 
-from ..dqn.dqn_policy import DQNBaselinePolicy
-from ..ppo_trainer.trainer import PPOTrainer  # Assuming this exists
+from learning.dqn.dqn_policy import DQNBaselinePolicy
+from learning.ppo_trainer import PPOTrainer  # Assuming this exists
 
 
 class HybridPolicy:

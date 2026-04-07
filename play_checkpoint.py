@@ -289,7 +289,7 @@ def run_single_unified_game(
         elif phase_name == "gameplay":
             env_action = env_manager._decode_gameplay(int(action_dict["gameplay_action"].item()), env)
         else:
-            env_action = env_manager._decode_trade(action_dict, env)
+            env_action = env_manager._decode_trade(int(action_dict["trade_action"].item()), env)
 
         next_obs, reward, done, info = env.step(env_action)
 

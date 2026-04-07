@@ -4,16 +4,23 @@ from __future__ import annotations
 
 import argparse
 import os
+import sys
 import random
 from collections import deque
 from typing import Dict, List, Any
 
 import torch
 
-from .dqn_policy import DQNBaselinePolicy
-from .dqn_trainer import DQNTrainer
-from .epsilon_scheduler import EpsilonScheduler
-from .replay_buffer import ReplayBuffer
+# allow running from project root
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
+from environment.catan_env import CatanEnv
+from learning.dqn.dqn_policy import DQNBaselinePolicy
+from learning.dqn.dqn_trainer import DQNTrainer
+from learning.dqn.epsilon_scheduler import EpsilonScheduler
+from learning.dqn.replay_buffer import ReplayBuffer
 
 
 def save_checkpoint(trainer: DQNTrainer, save_dir: str, step: int, prefix: str = "dqn_checkpoint") -> str:
@@ -121,9 +128,6 @@ def train(args: argparse.Namespace) -> None:
         f"(batch_size={args.batch_size}, buffer_size={args.buffer_size}, hidden_dim={args.hidden_dim}, seed={args.seed})"
     )
 
-    # Import environment here to avoid circular imports
-    from ...environment.catan_env import CatanEnv
-
     env = CatanEnv()
 
     for update in range(args.num_updates):
@@ -176,7 +180,5 @@ def train(args: argparse.Namespace) -> None:
 
 if __name__ == "__main__":
     parser = build_arg_parser()
-    args = parser.parse_args()
-    train(args)
     args = parser.parse_args()
     train(args)

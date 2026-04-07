@@ -5,7 +5,7 @@ from typing import Dict, Tuple
 import torch
 import torch.nn as nn
 
-from ..networks.opponent_need_predictor import OpponentNeedPredictor
+from learning.networks.opponent_need_predictor import OpponentNeedPredictor
 
 
 class UnifiedActionHeads(nn.Module):
@@ -14,6 +14,7 @@ class UnifiedActionHeads(nn.Module):
         hidden_dim: int,
         gameplay_feature_dim: int = 40,
         trade_feature_dim: int = 32,
+        num_resources: int = 5,
     ):
         super().__init__()
         self.gameplay_action_encoder = nn.Sequential(
@@ -36,7 +37,7 @@ class UnifiedActionHeads(nn.Module):
         )
         # Bilateral trade scorer incorporates opponent needs for joint optimization
         self.trade_scorer = nn.Sequential(
-            nn.Linear(hidden_dim * 3, hidden_dim),  # trunk + candidate + opponent_needs
+            nn.Linear(hidden_dim * 2 + num_resources, hidden_dim),  # trunk + candidate + opponent_needs
             nn.ReLU(),
             nn.Linear(hidden_dim, hidden_dim),
             nn.ReLU(),
@@ -67,7 +68,10 @@ class UnifiedActionHeads(nn.Module):
             trade_input = torch.cat([repeated_trade_trunk, trade_candidate_emb, expanded_opponent_needs], dim=-1)
         else:
             # Fallback to basic scoring if no opponent needs available
-            trade_input = torch.cat([repeated_trade_trunk, trade_candidate_emb], dim=-1)
+            num_res = self.trade_scorer[0].in_features - (trunk.shape[-1] * 2)
+            device = trade_candidate_emb.device
+            dummy_needs = torch.zeros(trade_candidate_emb.shape[0], trade_candidate_emb.shape[1], num_res, device=device)
+            trade_input = torch.cat([repeated_trade_trunk, trade_candidate_emb, dummy_needs], dim=-1)
 
         trade_logits = self.trade_scorer(trade_input).squeeze(-1)
         trade_logits = trade_logits.masked_fill(~trade_mask.bool(), -1e9)
@@ -120,6 +124,7 @@ class UnifiedPolicy(nn.Module):
         self.trade_value_head = nn.Linear(hidden_dim, 1)
         self.action_heads = UnifiedActionHeads(
             hidden_dim=hidden_dim,
+            num_resources=resources,
         )
 
     def encode(self, obs: Dict[str, torch.Tensor]) -> Tuple[torch.Tensor, torch.Tensor]:

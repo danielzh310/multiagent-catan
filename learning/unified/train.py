@@ -2,19 +2,25 @@ from __future__ import annotations
 
 import argparse
 import os
+import sys
 import random
 from collections import deque
 from typing import Dict, List
 
 import torch
 
-from ..league.league_manager import LeagueManager
-from ..rewards.reward_shaper import RewardShaper
-from ..trade.trade_labeler import build_batch_need_targets, resource_dict_to_tensor, RESOURCE_ORDER
-from ..trade.trade_reward import accepted_trade_reward, rejected_trade_reward, skipped_trade_reward, estimate_trade_surplus
-from .unified_policy import UnifiedPolicy
-from .unified_rollout_manager import UnifiedRolloutManager
+# allow running from project root
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
+from learning.league.league_manager import LeagueManager
+from learning.rewards.reward_shaper import RewardShaper
+from learning.trade.trade_labeler import build_batch_need_targets, RESOURCE_ORDER
+from learning.trade.trade_reward import accepted_trade_reward, rejected_trade_reward, skipped_trade_reward
+from learning.unified.unified_policy import UnifiedPolicy
+from learning.unified.unified_rollout_manager import UnifiedRolloutManager
+#python learning.unified.train.py --num-updates 2 > training_log.txt
 
 class UnifiedPPOTrainer:
     def __init__(
@@ -449,7 +455,7 @@ def apply_shaped_rewards(
                 # Calculate opponent need scores based on predicted needs
                 opponent_need_scores = None
                 if "tom_outputs" in item and "need_pred" in item["tom_outputs"]:
-                    need_pred = item["tom_outputs"]["need_pred"]
+                    need_pred = item["tom_outputs"]["need_pred"].view(-1)
                     # Convert tensor to dict mapping Resource to need probability
                     opponent_need_scores = {
                         resource: float(need_pred[i])

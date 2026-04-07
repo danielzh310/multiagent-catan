@@ -1,0 +1,26 @@
+Starting unified PPO training for 2 updates (envs=8, rollout_steps=192, hidden_dim=192, seed=7)
+
+Update 0
+rollouts | gameplay=579 trade=784
+reward   | gameplay=0.0425 (avg=0.0425) trade=0.0016 (avg=0.0016)
+trade actions | propose=154 accept=56 reject=62 counter=496 skip=16
+trade rates   | propose=0.196 accept=0.071 reject=0.079 counter=0.633 skip=0.020
+ppo gameplay | policy=0.0059 value=1.2795 entropy=0.9573 (avg=0.9573)
+ppo trade    | policy=0.0168 value=0.0367 entropy=2.5302 (avg=2.5302) tom=1.609490
+ppo total    | loss=0.3819 entropy_coef=0.001200 gamma=0.94000 tom_coef=0.02000 trade_score=0.0199
+saved best-trade checkpoint -> ./checkpoints/unified_best_trade_1.pt
+saved best-score checkpoint -> ./checkpoints/unified_best_score_1.pt
+
+Update 1
+rollouts | gameplay=497 trade=856
+reward   | gameplay=0.0059 (avg=0.0242) trade=0.0145 (avg=0.0081)
+trade actions | propose=174 accept=57 reject=55 counter=562 skip=8
+trade rates   | propose=0.203 accept=0.067 reject=0.064 counter=0.657 skip=0.009
+ppo gameplay | policy=0.8584 value=0.5868 entropy=0.6473 (avg=0.8023)
+ppo trade    | policy=-0.5014 value=0.6183 entropy=2.6415 (avg=2.5858) tom=1.608785
+ppo total    | loss=0.7535 entropy_coef=0.000750 gamma=0.99500 tom_coef=0.06000 trade_score=0.0334
+saved best-trade checkpoint -> ./checkpoints/unified_best_trade_2.pt
+saved best-score checkpoint -> ./checkpoints/unified_best_score_2.pt
+best trade reward checkpoint update: 2 value=0.014460
+best trade score checkpoint update: 2 value=0.033420
+training complete
