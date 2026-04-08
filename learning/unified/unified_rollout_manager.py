@@ -15,12 +15,13 @@ class UnifiedRolloutManager:
     MAX_TRADE_ACTIONS = 128
     TRADE_FEATURE_DIM = 32
 
-    def __init__(self, num_envs: int, device: str = "cpu", enable_trading: bool = True):
+    def __init__(self, num_envs: int, device: str = "cpu", enable_trading: bool = True, max_steps: int | None = None):
         self.num_envs = num_envs
         self.device = device
         self.enable_trading = enable_trading
-        self.envs = [CatanEnv(enable_trading=enable_trading) for _ in range(num_envs)]
+        self.envs = [CatanEnv(enable_trading=enable_trading, max_steps=max_steps) for _ in range(num_envs)]
         self.obs = [env.reset() for env in self.envs]
+        self.game_stats_buffer: List[Dict] = []
 
     def _resource_slot(self, resource_value: Any) -> int:
         if resource_value is None:
@@ -423,46 +424,152 @@ class UnifiedRolloutManager:
         storage: List[Dict[str, Any]] = []
 
         for _ in range(steps):
+            # This holds data for each env for the current step. It's reset each step to prevent stale data.
+            current_step_env_data: List[Dict[str, Any]] = [{} for _ in range(self.num_envs)]
+            gameplay_obs_list = []
+            trade_obs_list = []
+            gameplay_env_indices = []
+            trade_env_indices = []
+
+            # Phase 1: Collect observations and identify phases for all active environments
             for i, env in enumerate(self.envs):
                 phase_name = self._phase_name(env)
+                current_step_env_data[i]["phase"] = phase_name
 
+                # Handle "auto" phases immediately as they don't require policy decisions
                 if phase_name == "auto":
+                    # For auto-phase, we still need a full transition record for the PPO update.
+                    obs_tensor_dict = self._build_obs(env)
                     _, reward, done, info = env.step(None)
+
+                    # Store results for auto-phase environments
+                    current_step_env_data[i]["obs"] = obs_tensor_dict
+                    current_step_env_data[i]["value"] = torch.tensor([[0.0]], device=self.device)  # Dummy value for GAE
+                    current_step_env_data[i]["reward"] = float(reward)
+                    current_step_env_data[i]["done"] = bool(done)
+                    current_step_env_data[i]["info"] = info
+                    current_step_env_data[i]["env_action"] = None  # No explicit action for auto-phase
+
+                    # Update environment observation for next step
                     if done:
                         self.obs[i] = env.reset()
                     else:
                         self.obs[i] = env.get_observation()
-                    continue
+                    continue  # Skip policy interaction for auto-phase
 
-                obs = self._build_obs(env)
+                # For gameplay and trade phases, build observations and queue them for batch processing
+                obs_tensor_dict = self._build_obs(env)
+                current_step_env_data[i]["obs"] = obs_tensor_dict  # Store the tensor dict for later
+
+                if phase_name == "gameplay":
+                    gameplay_obs_list.append(obs_tensor_dict)
+                    gameplay_env_indices.append(i)
+                elif phase_name == "trade":
+                    trade_obs_list.append(obs_tensor_dict)
+                    trade_env_indices.append(i)
+
+            # Phase 2: Batch observations and get actions from the policy for the gameplay phase
+            if gameplay_obs_list:
+                # Stack observations from multiple environments into a single batch
+                batch_gameplay_obs = {
+                    k: torch.cat([o[k] for o in gameplay_obs_list], dim=0)
+                    for k in gameplay_obs_list[0].keys()
+                }
+
+                # Get actions for the entire batch from the policy (GPU computation)
                 value, action_dict, log_prob_dict, tom_outputs = policy.act(
-                    obs=obs,
-                    phase=phase_name,
+                    obs=batch_gameplay_obs,
+                    phase="gameplay",
                     deterministic=False,
                 )
 
-                if phase_name == "gameplay":
-                    env_action = self._decode_gameplay(int(action_dict["gameplay_action"].item()), env)
-                else:
-                    env_action = self._decode_trade(int(action_dict["trade_action"].item()), env)
+                # Unbatch results and store them back into current_step_env_data for individual environments
+                for j, env_idx in enumerate(gameplay_env_indices):
+                    current_step_env_data[env_idx]["value"] = value[j:j+1].detach().clone()
+                    current_step_env_data[env_idx]["action"] = {k: v[j:j+1].detach().clone() for k, v in action_dict.items()}
+                    current_step_env_data[env_idx]["log_prob"] = {k: v[j:j+1].detach().clone() for k, v in log_prob_dict.items()}
+                    current_step_env_data[env_idx]["tom_outputs"] = {k: v[j:j+1].detach().clone() for k, v in tom_outputs.items()} if tom_outputs else {}
 
+            # Phase 3: Batch observations and get actions from the policy for the trade phase
+            if trade_obs_list:
+                batch_trade_obs = {
+                    k: torch.cat([o[k] for o in trade_obs_list], dim=0)
+                    for k in trade_obs_list[0].keys()
+                }
+
+                value, action_dict, log_prob_dict, tom_outputs = policy.act(
+                    obs=batch_trade_obs,
+                    phase="trade",
+                    deterministic=False,
+                )
+
+                for j, env_idx in enumerate(trade_env_indices):
+                    current_step_env_data[env_idx]["value"] = value[j:j+1].detach().clone()
+                    current_step_env_data[env_idx]["action"] = {k: v[j:j+1].detach().clone() for k, v in action_dict.items()}
+                    current_step_env_data[env_idx]["log_prob"] = {k: v[j:j+1].detach().clone() for k, v in log_prob_dict.items()}
+                    current_step_env_data[env_idx]["tom_outputs"] = {k: v[j:j+1].detach().clone() for k, v in tom_outputs.items()} if tom_outputs else {}
+
+            # Phase 4: Apply actions to environments and store transitions
+            for i, env in enumerate(self.envs):
+                env_data = current_step_env_data[i]
+                phase_name = env_data["phase"]
+
+                if phase_name == "auto":
+                    # Auto-phase items need dummy action/log_prob for consistency
+                    env_data["action"] = {"gameplay_action": torch.tensor([-1], device=self.device), "trade_action": torch.tensor([-1], device=self.device)}
+                    env_data["log_prob"] = {"gameplay_action": torch.tensor([0.0], device=self.device), "trade_action": torch.tensor([0.0], device=self.device)}
+                    env_data["tom_outputs"] = {}
+
+                    # Capture game stats if done
+                    if env_data["done"]:
+                        self.game_stats_buffer.append({
+                            "winner": env.engine.winner,
+                            "total_steps": env.get_step_count(),
+                            "completed_naturally": (env.engine.winner is not None)
+                        })
+                    storage.append(env_data)
+                    continue
+
+                # Retrieve policy outputs for this specific environment
+                obs_for_storage = env_data["obs"]
+                value_for_storage = env_data["value"]
+                action_dict_for_storage = env_data["action"]
+                log_prob_dict_for_storage = env_data["log_prob"]
+                tom_outputs_for_storage = env_data["tom_outputs"]
+
+                # Decode the action for the environment step
+                if phase_name == "gameplay":
+                    env_action = self._decode_gameplay(int(action_dict_for_storage["gameplay_action"].item()), env)
+                else:  # phase_name == "trade"
+                    env_action = self._decode_trade(int(action_dict_for_storage["trade_action"].item()), env)
+
+                # Step the environment
                 _, reward, done, info = env.step(env_action)
 
+                # Capture game stats if done
+                if done:
+                    self.game_stats_buffer.append({
+                        "winner": env.engine.winner,
+                        "total_steps": env.get_step_count(),
+                        "completed_naturally": (env.engine.winner is not None)
+                    })
+                # Store the complete transition
                 storage.append(
                     {
-                        "obs": {k: v.detach().cpu().clone() for k, v in obs.items()},
+                        "obs": {k: v.detach().clone() for k, v in obs_for_storage.items()},
                         "phase": phase_name,
-                        "action": {k: v.detach().cpu().clone() for k, v in action_dict.items()},
-                        "log_prob": {k: v.detach().cpu().clone() for k, v in log_prob_dict.items()},
-                        "value": value.detach().cpu().clone(),
+                        "action": {k: v.detach().clone() for k, v in action_dict_for_storage.items()},
+                        "log_prob": {k: v.detach().clone() for k, v in log_prob_dict_for_storage.items()},
+                        "value": value_for_storage.detach().clone(),
                         "reward": float(reward),
                         "done": bool(done),
                         "info": info,
                         "env_action": env_action,
-                        "tom_outputs": {k: v.detach().cpu().clone() for k, v in tom_outputs.items()} if tom_outputs else {},
+                        "tom_outputs": {k: v.detach().clone() for k, v in tom_outputs_for_storage.items()} if tom_outputs_for_storage else {},
                     }
                 )
 
+                # Handle environment reset
                 if done:
                     self.obs[i] = env.reset()
                 else:

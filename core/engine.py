@@ -56,16 +56,7 @@ class CatanEngine:
         self.initial_placement_phase = False
         self.initial_placement_index = 0
         self.initial_placement_stage = "settlement"
-        self.initial_placement_order = [
-            PlayerId.WHITE,
-            PlayerId.BLUE,
-            PlayerId.ORANGE,
-            PlayerId.RED,
-            PlayerId.RED,
-            PlayerId.ORANGE,
-            PlayerId.BLUE,
-            PlayerId.WHITE,
-        ]
+        self.initial_placement_order: List[PlayerId] = [] # Will be populated in reset()
 
         self.robber_pending = False
         self.last_roll: Optional[int] = None
@@ -103,6 +94,10 @@ class CatanEngine:
 
         self.current_player_idx = 0
         self.turn_number = 0
+        
+        # Shuffle the main player order for the entire game
+        self.random.shuffle(self.player_order)
+        self.initial_placement_order = list(self.player_order) + list(reversed(self.player_order))
 
         self.initial_placement_phase = True
         self.initial_placement_index = 0

@@ -10,15 +10,27 @@ from core.phase_router import ControllerType, TurnPhase
 class CatanEnv:
     MAX_DISCARD_ACTIONS = 64
 
-    def __init__(self, seed: Optional[int] = None, enable_trading: bool = True):
+    def __init__(self, seed: Optional[int] = None, enable_trading: bool = True, max_steps: int | None = None):
         self.engine = CatanEngine(seed=seed, enable_trading=enable_trading)
+        self.max_steps = max_steps
+        self.step_count = 0
 
     def reset(self) -> dict:
         self.engine.reset()
+        self.step_count = 0
         return self.get_observation()
 
     def step(self, action: Optional[dict]):
+        self.step_count += 1
         obs, reward, done, info = self.engine.step(action)
+
+        # Check for truncation. The game is 'done' if there's a winner or it's truncated.
+        is_truncated = False
+        if self.max_steps is not None and self.step_count >= self.max_steps:
+            is_truncated = True
+
+        final_done = done or is_truncated
+        info["truncated"] = is_truncated
 
         decision = self.engine.phase_router.get_controller(self.engine)
         obs["controller"] = {
@@ -29,7 +41,7 @@ class CatanEnv:
         }
         obs["legal_actions"] = self.get_legal_actions()
 
-        return obs, reward, done, info
+        return obs, reward, final_done, info
 
     def get_observation(self) -> dict:
         obs = self.engine.get_observation()
@@ -47,6 +59,9 @@ class CatanEnv:
 
     def get_current_player_id(self) -> PlayerId:
         return self.engine.get_current_player_id()
+
+    def get_step_count(self) -> int:
+        return self.step_count
 
     def get_phase(self) -> TurnPhase:
         return self.engine.phase_router.get_phase()

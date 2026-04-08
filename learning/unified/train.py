@@ -24,6 +24,8 @@ from learning.unified.unified_trade_reward import (
 )
 from learning.unified.unified_policy import UnifiedPolicy
 from learning.unified.unified_rollout_manager import UnifiedRolloutManager
+
+from core.constants import PlayerId
 #python learning/unified/train.py --num-updates 2 > training_log.txt
 
 class UnifiedPPOTrainer:
@@ -49,7 +51,7 @@ class UnifiedPPOTrainer:
         tom_loss_coef_end: float = 0.06,
         max_grad_norm: float = 0.25,
         ppo_epochs: int = 3,
-        mini_batch_size: int = 256,
+        mini_batch_size: int = 512,
     ):
         self.policy = policy.to(device)
         self.device = device
@@ -482,7 +484,7 @@ def apply_shaped_rewards(
                 curriculum_scale=curriculum_scale,
             )
 
-            new_item["reward"] = shaped_reward
+            new_item["reward"] = shaped_reward # curriculum_scale is already applied inside trade_step_reward
         else:
             new_item["reward"] = float(item["reward"])
 
@@ -493,10 +495,11 @@ def apply_shaped_rewards(
 
 def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Unified PPO training loop")
-    parser.add_argument("--num-updates", type=int, default=200)
-    parser.add_argument("--num-envs", type=int, default=8)
-    parser.add_argument("--rollout-steps", type=int, default=192)
+    parser.add_argument("--num-updates", type=int, default=1000)
+    parser.add_argument("--num-envs", type=int, default=64)
+    parser.add_argument("--rollout-steps", type=int, default=64)
     parser.add_argument("--hidden-dim", type=int, default=192)
+    parser.add_argument("--max-game-steps", type=int, default=2500, help="Maximum steps per game before truncation")
     parser.add_argument("--seed", type=int, default=7)
     parser.add_argument("--device", type=str, default="cpu")
     parser.add_argument("--checkpoint-dir", type=str, default="./checkpoints")
@@ -513,7 +516,7 @@ def train(args: argparse.Namespace) -> None:
 
     policy = UnifiedPolicy(hidden_dim=args.hidden_dim).to(device)
     trainer = UnifiedPPOTrainer(policy=policy, device=device)
-    rollout_manager = UnifiedRolloutManager(num_envs=args.num_envs, device=device)
+    rollout_manager = UnifiedRolloutManager(num_envs=args.num_envs, device=device, max_steps=args.max_game_steps)
     league = LeagueManager(checkpoint_dir=args.checkpoint_dir, frozen_ratio=0.2)
     reward_shaper = RewardShaper()
 
@@ -537,6 +540,22 @@ def train(args: argparse.Namespace) -> None:
         trainer.set_progress(progress)
 
         raw_storage = rollout_manager.collect(policy=policy, steps=args.rollout_steps)
+
+        # Process game statistics from completed games in this rollout
+        game_summaries = rollout_manager.game_stats_buffer
+        rollout_manager.game_stats_buffer = [] # Clear the buffer for the next rollout
+
+        total_games_played = 0
+        agent_wins = 0
+        games_cut_off = 0
+
+        for summary in game_summaries:
+            total_games_played += 1
+            if summary["winner"] == PlayerId.WHITE: # Assuming PlayerId.WHITE is the trained agent
+                agent_wins += 1
+            if not summary["completed_naturally"]:
+                games_cut_off += 1
+
         storage = apply_shaped_rewards(raw_storage, reward_shaper, progress=progress)
 
         stats = compute_rollout_stats(storage)
@@ -559,6 +578,14 @@ def train(args: argparse.Namespace) -> None:
             + 0.020 * stats["trade_counter_rate"]
             - 0.025 * stats["trade_skip_rate"]
         )
+
+        # Print game statistics
+        if total_games_played > 0:
+            win_rate = agent_wins / total_games_played
+            cut_off_rate = games_cut_off / total_games_played
+            print(f"Game Stats   | Total Games: {total_games_played}, Agent Wins: {agent_wins} ({win_rate:.2%}), Games Cut Off: {games_cut_off} ({cut_off_rate:.2%})")
+        else:
+            print("Game Stats   | No games completed in this rollout.")
 
         print(f"\nUpdate {update}")
         print(
