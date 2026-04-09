@@ -535,119 +535,123 @@ def train(args: argparse.Namespace) -> None:
         f"(envs={args.num_envs}, rollout_steps={args.rollout_steps}, hidden_dim={args.hidden_dim}, seed={args.seed})"
     )
 
-    for update in range(args.num_updates):
-        progress = update / float(max(args.num_updates - 1, 1))
-        trainer.set_progress(progress)
+    try:
+        for update in range(args.num_updates):
+            progress = update / float(max(args.num_updates - 1, 1))
+            trainer.set_progress(progress)
 
-        raw_storage = rollout_manager.collect(policy=policy, steps=args.rollout_steps)
+            raw_storage = rollout_manager.collect(policy=policy, steps=args.rollout_steps)
 
-        # Process game statistics from completed games in this rollout
-        game_summaries = rollout_manager.game_stats_buffer
-        rollout_manager.game_stats_buffer = [] # Clear the buffer for the next rollout
+            # Process game statistics from completed games in this rollout
+            game_summaries = rollout_manager.game_stats_buffer
+            rollout_manager.game_stats_buffer = [] # Clear the buffer for the next rollout
 
-        total_games_played = 0
-        agent_wins = 0
-        games_cut_off = 0
+            total_games_played = 0
+            agent_wins = 0
+            games_cut_off = 0
 
-        for summary in game_summaries:
-            total_games_played += 1
-            if summary["winner"] == PlayerId.WHITE: # Assuming PlayerId.WHITE is the trained agent
-                agent_wins += 1
-            if not summary["completed_naturally"]:
-                games_cut_off += 1
+            for summary in game_summaries:
+                total_games_played += 1
+                if summary["winner"] == PlayerId.WHITE: # Assuming PlayerId.WHITE is the trained agent
+                    agent_wins += 1
+                if not summary["completed_naturally"]:
+                    games_cut_off += 1
 
-        storage = apply_shaped_rewards(raw_storage, reward_shaper, progress=progress)
+            storage = apply_shaped_rewards(raw_storage, reward_shaper, progress=progress)
 
-        stats = compute_rollout_stats(storage)
-        metrics = trainer.update(storage)
+            stats = compute_rollout_stats(storage)
+            metrics = trainer.update(storage)
 
-        gameplay_reward_window.append(stats["gameplay_reward_mean"])
-        trade_reward_window.append(stats["trade_reward_mean"])
-        gameplay_entropy_window.append(metrics["gameplay_entropy"])
-        trade_entropy_window.append(metrics["trade_entropy"])
+            gameplay_reward_window.append(stats["gameplay_reward_mean"])
+            trade_reward_window.append(stats["trade_reward_mean"])
+            gameplay_entropy_window.append(metrics["gameplay_entropy"])
+            trade_entropy_window.append(metrics["trade_entropy"])
 
-        avg_gameplay_reward = sum(gameplay_reward_window) / len(gameplay_reward_window)
-        avg_trade_reward = sum(trade_reward_window) / len(trade_reward_window)
-        avg_gameplay_entropy = sum(gameplay_entropy_window) / len(gameplay_entropy_window)
-        avg_trade_entropy = sum(trade_entropy_window) / len(trade_entropy_window)
+            avg_gameplay_reward = sum(gameplay_reward_window) / len(gameplay_reward_window)
+            avg_trade_reward = sum(trade_reward_window) / len(trade_reward_window)
+            avg_gameplay_entropy = sum(gameplay_entropy_window) / len(gameplay_entropy_window)
+            avg_trade_entropy = sum(trade_entropy_window) / len(trade_entropy_window)
 
-        trade_score = (
-            stats["trade_reward_mean"]
-            + 0.020 * stats["trade_propose_rate"]
-            + 0.030 * stats["trade_accept_rate"]
-            + 0.020 * stats["trade_counter_rate"]
-            - 0.025 * stats["trade_skip_rate"]
-        )
+            trade_score = (
+                stats["trade_reward_mean"]
+                + 0.020 * stats["trade_propose_rate"]
+                + 0.030 * stats["trade_accept_rate"]
+                + 0.020 * stats["trade_counter_rate"]
+                - 0.025 * stats["trade_skip_rate"]
+            )
 
-        # Print game statistics
-        if total_games_played > 0:
-            win_rate = agent_wins / total_games_played
-            cut_off_rate = games_cut_off / total_games_played
-            print(f"Game Stats   | Total Games: {total_games_played}, Agent Wins: {agent_wins} ({win_rate:.2%}), Games Cut Off: {games_cut_off} ({cut_off_rate:.2%})")
-        else:
-            print("Game Stats   | No games completed in this rollout.")
+            # Print game statistics
+            if total_games_played > 0:
+                win_rate = agent_wins / total_games_played
+                cut_off_rate = games_cut_off / total_games_played
+                print(f"Game Stats   | Total Games: {total_games_played}, Agent Wins: {agent_wins} ({win_rate:.2%}), Games Cut Off: {games_cut_off} ({cut_off_rate:.2%})")
+            else:
+                print("Game Stats   | No games completed in this rollout.")
 
-        print(f"\nUpdate {update}")
-        print(
-            f"rollouts | gameplay={stats['gameplay_rollouts']} "
-            f"trade={stats['trade_rollouts']}"
-        )
-        print(
-            f"reward   | gameplay={stats['gameplay_reward_mean']:.4f} (avg={avg_gameplay_reward:.4f}) "
-            f"trade={stats['trade_reward_mean']:.4f} (avg={avg_trade_reward:.4f})"
-        )
-        print(
-            f"trade actions | propose={stats['trade_propose_count']} "
-            f"accept={stats['trade_accept_count']} "
-            f"reject={stats['trade_reject_count']} "
-            f"counter={stats['trade_counter_count']} "
-            f"skip={stats['trade_skip_count']}"
-        )
-        print(
-            f"trade rates   | propose={stats['trade_propose_rate']:.3f} "
-            f"accept={stats['trade_accept_rate']:.3f} "
-            f"reject={stats['trade_reject_rate']:.3f} "
-            f"counter={stats['trade_counter_rate']:.3f} "
-            f"skip={stats['trade_skip_rate']:.3f}"
-        )
-        print(
-            f"ppo gameplay | policy={metrics['gameplay_policy_loss']:.4f} "
-            f"value={metrics['gameplay_value_loss']:.4f} "
-            f"entropy={metrics['gameplay_entropy']:.4f} (avg={avg_gameplay_entropy:.4f})"
-        )
-        print(
-            f"ppo trade    | policy={metrics['trade_policy_loss']:.4f} "
-            f"value={metrics['trade_value_loss']:.4f} "
-            f"entropy={metrics['trade_entropy']:.4f} (avg={avg_trade_entropy:.4f}) "
-            f"tom={metrics['tom_loss']:.6f}"
-        )
-        print(
-            f"ppo total    | loss={metrics['total_loss']:.4f} "
-            f"entropy_coef={metrics['entropy_coef']:.6f} "
-            f"gamma={metrics['gamma']:.5f} "
-            f"tom_coef={metrics['tom_loss_coef']:.5f} "
-            f"trade_score={trade_score:.4f}"
-        )
+            print(f"\nUpdate {update}")
+            print(
+                f"rollouts | gameplay={stats['gameplay_rollouts']} "
+                f"trade={stats['trade_rollouts']}"
+            )
+            print(
+                f"reward   | gameplay={stats['gameplay_reward_mean']:.4f} (avg={avg_gameplay_reward:.4f}) "
+                f"trade={stats['trade_reward_mean']:.4f} (avg={avg_trade_reward:.4f})"
+            )
+            print(
+                f"trade actions | propose={stats['trade_propose_count']} "
+                f"accept={stats['trade_accept_count']} "
+                f"reject={stats['trade_reject_count']} "
+                f"counter={stats['trade_counter_count']} "
+                f"skip={stats['trade_skip_count']}"
+            )
+            print(
+                f"trade rates   | propose={stats['trade_propose_rate']:.3f} "
+                f"accept={stats['trade_accept_rate']:.3f} "
+                f"reject={stats['trade_reject_rate']:.3f} "
+                f"counter={stats['trade_counter_rate']:.3f} "
+                f"skip={stats['trade_skip_rate']:.3f}"
+            )
+            print(
+                f"ppo gameplay | policy={metrics['gameplay_policy_loss']:.4f} "
+                f"value={metrics['gameplay_value_loss']:.4f} "
+                f"entropy={metrics['gameplay_entropy']:.4f} (avg={avg_gameplay_entropy:.4f})"
+            )
+            print(
+                f"ppo trade    | policy={metrics['trade_policy_loss']:.4f} "
+                f"value={metrics['trade_value_loss']:.4f} "
+                f"entropy={metrics['trade_entropy']:.4f} (avg={avg_trade_entropy:.4f}) "
+                f"tom={metrics['tom_loss']:.6f}"
+            )
+            print(
+                f"ppo total    | loss={metrics['total_loss']:.4f} "
+                f"entropy_coef={metrics['entropy_coef']:.6f} "
+                f"gamma={metrics['gamma']:.5f} "
+                f"tom_coef={metrics['tom_loss_coef']:.5f} "
+                f"trade_score={trade_score:.4f}"
+            )
 
-        if stats["trade_reward_mean"] > best_trade_reward:
-            best_trade_reward = stats["trade_reward_mean"]
-            best_trade_update = update + 1
-            best_path = save_checkpoint(policy, args.checkpoint_dir, update + 1, prefix="unified_best_trade")
-            print(f"saved best-trade checkpoint -> {best_path}")
+            if stats["trade_reward_mean"] > best_trade_reward:
+                best_trade_reward = stats["trade_reward_mean"]
+                best_trade_update = update + 1
+                best_path = save_checkpoint(policy, args.checkpoint_dir, update + 1, prefix="unified_best_trade")
+                print(f"saved best-trade checkpoint -> {best_path}")
 
-        if trade_score > best_trade_score:
-            best_trade_score = trade_score
-            best_trade_score_update = update + 1
-            score_path = save_checkpoint(policy, args.checkpoint_dir, update + 1, prefix="unified_best_score")
-            print(f"saved best-score checkpoint -> {score_path}")
+            if trade_score > best_trade_score:
+                best_trade_score = trade_score
+                best_trade_score_update = update + 1
+                score_path = save_checkpoint(policy, args.checkpoint_dir, update + 1, prefix="unified_best_score")
+                print(f"saved best-score checkpoint -> {score_path}")
 
-        if (update + 1) % 20 == 0:
-            path = save_checkpoint(policy, args.checkpoint_dir, update + 1)
-            league.maybe_add_checkpoint(path, update + 1)
-            print(f"saved checkpoint -> {path}")
+            if (update + 1) % 20 == 0:
+                path = save_checkpoint(policy, args.checkpoint_dir, update + 1)
+                league.maybe_add_checkpoint(path, update + 1)
+                print(f"saved checkpoint -> {path}")
 
-    print(f"best trade reward checkpoint update: {best_trade_update} value={best_trade_reward:.6f}")
-    print(f"best trade score checkpoint update: {best_trade_score_update} value={best_trade_score:.6f}")
+        print(f"best trade reward checkpoint update: {best_trade_update} value={best_trade_reward:.6f}")
+        print(f"best trade score checkpoint update: {best_trade_score_update} value={best_trade_score:.6f}")
+    finally:
+        rollout_manager.close()
+
     print("training complete")
 
 

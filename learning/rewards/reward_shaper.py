@@ -15,10 +15,10 @@ class RewardWeights:
     diversity_weight: float = 0.008
     build_progress_weight: float = 0.015
 
-    trade_accept_bonus: float = 0.002  # Reduced to prevent over-accepting
-    trade_propose_bonus: float = 0.004  # Reduced to prevent over-proposing
-    trade_counter_bonus: float = -0.004  # Retain penalty for countering spam
-    trade_reject_penalty: float = -0.001 # Reduced penalty for rejecting to allow strategic rejections without harsh punishment
+    trade_accept_bonus: float = 0.0 #0.002  # Reduced to prevent over-accepting
+    trade_propose_bonus: float = 0.002  # Reduced to prevent over-proposing
+    trade_counter_bonus: float = 0.0 #-0.001  # Retain penalty for countering spam
+    trade_reject_penalty: float = 0.0 #-0.001 # Reduced penalty for rejecting to allow strategic rejections without harsh punishment
     trade_skip_penalty: float = 0.0 # Neutral for single skip, to remove disincentive
     repeated_skip_penalty: float = -0.001 # reduced penalty for consecutive skips
 
