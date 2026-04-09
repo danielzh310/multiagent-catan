@@ -32,14 +32,26 @@ class DQNGameplayHead(nn.Module):
 
 
 class DQNTradeHead(nn.Module):
-    def __init__(self, hidden_dim: int, trade_targets: int = 3, resources: int = 5):
+    def __init__(self, hidden_dim: int, trade_feature_dim: int = 32):
         super().__init__()
-        # For DQN baseline, we'll use a simplified trade representation
-        # Just output Q-values for trade actions as a flat vector
-        self.trade_q_head = nn.Linear(hidden_dim, 2 + 4 + trade_targets + resources + resources)  # engage + response + target + offer + request
+        self.trade_action_encoder = nn.Sequential(
+            nn.Linear(trade_feature_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU(),
+        )
+        self.trade_scorer = nn.Sequential(
+            nn.Linear(hidden_dim * 2, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, 1),
+        )
 
-    def forward(self, trunk: torch.Tensor) -> torch.Tensor:
-        return self.trade_q_head(trunk)
+    def forward(self, trunk: torch.Tensor, trade_candidates: torch.Tensor, trade_mask: torch.Tensor) -> torch.Tensor:
+        candidate_emb = self.trade_action_encoder(trade_candidates)
+        repeated_trunk = trunk.unsqueeze(1).expand(-1, candidate_emb.shape[1], -1)
+        q_values = self.trade_scorer(torch.cat([repeated_trunk, candidate_emb], dim=-1)).squeeze(-1)
+        q_values = q_values.masked_fill(~trade_mask.bool(), -1e9)
+        return q_values
 
 
 class DQNBaselinePolicy(nn.Module):
@@ -89,7 +101,7 @@ class DQNBaselinePolicy(nn.Module):
 
         # Action heads
         self.gameplay_head = DQNGameplayHead(hidden_dim=hidden_dim)
-        self.trade_head = DQNTradeHead(hidden_dim=hidden_dim, resources=resources)
+        self.trade_head = DQNTradeHead(hidden_dim=hidden_dim)
 
         # Simplified need predictor for ToM (optional for baseline)
         self.need_predictor = OpponentNeedPredictor(
@@ -107,6 +119,14 @@ class DQNBaselinePolicy(nn.Module):
         trunk = self.fusion(combined)
         return trunk
 
+    def act(self, obs: Dict[str, torch.Tensor], phase: str, epsilon: float = 0.0) -> Dict[str, torch.Tensor]:
+        """Selects an action based on the phase, using epsilon-greedy exploration."""
+        if phase == "gameplay":
+            action_dict, _ = self.get_gameplay_action(obs, epsilon)
+        else:
+            action_dict, _ = self.get_trade_action(obs, epsilon)
+        return action_dict
+
     def get_gameplay_action(
         self,
         obs: Dict[str, torch.Tensor],
@@ -120,7 +140,7 @@ class DQNBaselinePolicy(nn.Module):
         )
 
         if torch.rand(1).item() < epsilon:
-            valid_actions = torch.nonzero(obs["gameplay_mask"] > 0, as_tuple=False).squeeze(-1)
+            valid_actions = torch.nonzero(obs["gameplay_mask"].squeeze(0) > 0, as_tuple=False).squeeze(-1)
             action_idx = valid_actions[torch.randint(0, len(valid_actions), (1,))].item()
         else:
             action_idx = q_values.argmax().item()
@@ -133,17 +153,18 @@ class DQNBaselinePolicy(nn.Module):
         epsilon: float = 0.0,
     ) -> Tuple[Dict[str, torch.Tensor], torch.Tensor]:
         trunk = self.encode(obs)
-        q_values = self.trade_head(trunk)
+        q_values = self.trade_head(
+            trunk=trunk,
+            trade_candidates=obs["trade_candidates"],
+            trade_mask=obs["trade_mask"],
+        )
 
-        # For simplicity, treat all trade actions as a single flat Q-value vector
-        # In practice, you'd need to handle the structured action space properly
         if torch.rand(1).item() < epsilon:
-            action_idx = torch.randint(0, q_values.shape[-1], (1,)).item()
+            valid_actions = torch.nonzero(obs["trade_mask"].squeeze(0) > 0, as_tuple=False).squeeze(-1)
+            action_idx = valid_actions[torch.randint(0, len(valid_actions), (1,))].item()
         else:
             action_idx = q_values.argmax().item()
 
-        # Convert flat action index back to structured action (simplified)
-        # This is a major simplification - real trade actions are more complex
         return {"trade_action": torch.tensor([action_idx])}, q_values
 
     def get_value(self, obs: Dict[str, torch.Tensor], phase: str) -> torch.Tensor:

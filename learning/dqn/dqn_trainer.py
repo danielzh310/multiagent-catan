@@ -61,7 +61,11 @@ class DQNTrainer:
             )
         else:
             trunk = self.policy.encode(obs)
-            return self.policy.trade_head(trunk)
+            return self.policy.trade_head(
+                trunk=trunk,
+                trade_candidates=obs["trade_candidates"],
+                trade_mask=obs["trade_mask"],
+            )
 
     def compute_target_q_values(self, next_obs: Dict[str, torch.Tensor], phase: str) -> torch.Tensor:
         with torch.no_grad():
@@ -75,60 +79,82 @@ class DQNTrainer:
                 return q_values
             else:
                 trunk = self.target_policy.encode(next_obs)
-                return self.target_policy.trade_head(trunk)
+                return self.target_policy.trade_head(
+                    trunk=trunk,
+                    trade_candidates=next_obs["trade_candidates"],
+                    trade_mask=next_obs["trade_mask"],
+                )
 
     def update(self, batch: Dict[str, Any]) -> Dict[str, float]:
+        """
+        Update the DQN policy using a batch of experiences.
+        This method processes gameplay and trade phases separately in a vectorized manner
+        and uses Double DQN for calculating the target Q-values.
+        """
         obs = batch["obs"]
         actions = batch["actions"]
-        rewards = batch["rewards"]
+        rewards = batch["rewards"].to(self.device)
         next_obs = batch["next_obs"]
-        dones = batch["dones"]
+        dones = batch["dones"].to(self.device)
         phases = batch["phases"]
 
-        # Handle both gameplay and trade phases
-        q_values = []
-        target_q_values = []
+        total_loss = torch.tensor(0.0, device=self.device)
+        all_q_values = []
+        all_target_q_values = []
 
-        for i in range(len(phases)):
-            phase = phases[i]
-            obs_i = {k: v[i:i+1] for k, v in obs.items()}
-            next_obs_i = {k: v[i:i+1] for k, v in next_obs.items()}
+        for phase_name in ["gameplay", "trade"]:
+            if phase_name not in actions or actions[phase_name].numel() == 0:
+                continue
 
-            q_vals = self.compute_q_values(obs_i, phase)
-            target_q_vals = self.compute_target_q_values(next_obs_i, phase)
+            indices = torch.tensor([i for i, p in enumerate(phases) if p == phase_name], device=self.device, dtype=torch.long)
+            if indices.numel() == 0:
+                continue
 
-            if phase == "gameplay":
-                action_idx = actions["gameplay_action"][i]
-                q_val = q_vals[0, action_idx]
-                max_next_q = target_q_vals.max().item()
-            else:
-                action_idx = actions["trade_action"][i]
-                q_val = q_vals[0, action_idx]
-                max_next_q = target_q_vals.max().item()
+            phase_obs = {k: v[indices] for k, v in obs.items()}
+            phase_next_obs = {k: v[indices] for k, v in next_obs.items()}
+            phase_rewards = rewards[indices]
+            phase_dones = dones[indices]
+            phase_actions = actions[phase_name].to(self.device).unsqueeze(1)
 
-            q_values.append(q_val)
-            target_q = rewards[i] + self.gamma * (1.0 - dones[i]) * max_next_q
-            target_q_values.append(target_q)
+            # 1. Get Q-values for the actions that were actually taken
+            current_q_vals_all = self.compute_q_values(phase_obs, phase_name)
+            current_q_vals = current_q_vals_all.gather(1, phase_actions)
 
-        q_values = torch.stack(q_values)
-        target_q_values = torch.tensor(target_q_values, device=self.device)
+            # 2. Compute target Q-values using Double DQN
+            with torch.no_grad():
+                # Select best action using the online network
+                next_q_vals_online = self.compute_q_values(phase_next_obs, phase_name)
+                best_next_actions = next_q_vals_online.argmax(dim=1, keepdim=True)
 
-        loss = self.loss_fn(q_values, target_q_values)
+                # Evaluate that action using the target network
+                next_q_vals_target = self.compute_target_q_values(phase_next_obs, phase_name)
+                max_next_q = next_q_vals_target.gather(1, best_next_actions)
+
+                # Compute the TD target
+                td_target = phase_rewards.unsqueeze(1) + self.gamma * (1.0 - phase_dones.unsqueeze(1)) * max_next_q
+
+            loss = self.loss_fn(current_q_vals, td_target)
+            total_loss += loss
+
+            all_q_values.append(current_q_vals.detach())
+            all_target_q_values.append(td_target.detach())
+
+        if total_loss.item() == 0.0:
+            return {"td_loss": 0.0, "q_mean": 0.0, "target_q_mean": 0.0}
 
         self.optimizer.zero_grad()
-        loss.backward()
+        total_loss.backward()
         torch.nn.utils.clip_grad_norm_(self.policy.parameters(), 1.0)
         self.optimizer.step()
 
         self.train_step_count += 1
-
         if self.train_step_count % self.target_update_freq == 0:
             self.target_policy.load_state_dict(self.policy.state_dict())
 
         return {
-            "td_loss": loss.item(),
-            "q_mean": q_values.mean().item(),
-            "target_q_mean": target_q_values.mean().item(),
+            "td_loss": total_loss.item(),
+            "q_mean": torch.cat(all_q_values).mean().item() if all_q_values else 0.0,
+            "target_q_mean": torch.cat(all_target_q_values).mean().item() if all_target_q_values else 0.0,
         }
 
     def act(
