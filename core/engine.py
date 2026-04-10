@@ -828,11 +828,6 @@ class CatanEngine:
 
             return -0.02
 
-        before_vp = self._vp(player_id)
-        before_diversity = self._resource_diversity(player_id)
-        before_resource_total = self._resource_total(player_id)
-        before_readiness = self._build_readiness_score(dict(player.resources))
-
         if self.phase_router.get_phase() == TurnPhase.MAIN_ACTION and self.robber_pending:
             if self.robber_discard_queue:
                 if action_type != "discard_cards":
@@ -974,20 +969,6 @@ class CatanEngine:
 
         self._check_winner()
 
-        after_vp = self._vp(player_id)
-        after_diversity = self._resource_diversity(player_id)
-        after_resource_total = self._resource_total(player_id)
-        after_readiness = self._build_readiness_score(dict(player.resources))
-
-        reward += 0.30 * max(after_vp - before_vp, 0)
-        reward += 0.01 * max(after_diversity - before_diversity, 0)
-        reward += 0.005 * max(after_resource_total - before_resource_total, 0)
-        reward += 0.04 * max(after_readiness - before_readiness, 0.0)
-        if before_vp >= 8 and action_type in {"bank_trade", "end_main_action"} and after_vp == before_vp:
-            reward -= 0.03
-        if before_vp >= 8:
-            reward += 0.08 * max(after_readiness - before_readiness, 0.0)
-
         return reward
 
     def apply_trade_proposal(self, action: Optional[dict]) -> float:
@@ -1046,7 +1027,7 @@ class CatanEngine:
 
         return reward
 
-    def apply_trade_response(self, action: Optional[dict]) -> float:
+    def apply_trade_response(self, action: Optional[dict]) -> tuple[float, dict]:
         if not self.enable_trading:
             self.phase_router.set_phase(TurnPhase.END_TURN)
             return 0.0
@@ -1056,7 +1037,7 @@ class CatanEngine:
         pending = self.trade_manager.get_pending_trade()
         if pending is None:
             self.phase_router.complete_trade_respond_phase(self)
-            return reward
+            return reward, {}
 
         response_player = pending.target
 
@@ -1069,6 +1050,7 @@ class CatanEngine:
                 counter_request=action.get("counter_request"),
             )
 
+        trade_info = {}
         responded = self.trade_manager.respond_to_trade(
             players=self.players,
             response_player=response_player,
@@ -1076,10 +1058,13 @@ class CatanEngine:
         )
 
         if response.response_type == "accept" and responded:
+            trade_info = {"trade_details": pending.to_dict()}
             reward += 0.02
         elif response.response_type == "counter" and responded:
+            trade_info = {"trade_details": pending.to_dict()}
             reward += 0.004
         elif response.response_type == "reject":
+            trade_info = {"trade_details": pending.to_dict()}
             reward -= 0.003
         else:
             reward -= 0.008
@@ -1090,7 +1075,7 @@ class CatanEngine:
         self._check_winner()
         self.phase_router.complete_trade_respond_phase(self)
 
-        return reward
+        return reward, trade_info
 
     def _check_winner(self):
         for player_id, player in self.players.items():
@@ -1155,8 +1140,16 @@ class CatanEngine:
         if self.winner is not None:
             return self.get_observation(), 0.0, True, {}
 
+        acting_player_id = self.get_current_player_id()
+        pre_step_player = self.players[acting_player_id]
+        pre_step_stats = {
+            "vp": float(pre_step_player.update_victory_points()),
+            "resources": {k: int(v) for k, v in pre_step_player.resources.items()},
+        }
+
         phase = self.phase_router.get_phase()
         reward = 0.0
+        trade_info = {}
 
         if phase == TurnPhase.SETUP:
             reward = self.apply_gameplay_action(action)
@@ -1167,17 +1160,31 @@ class CatanEngine:
         elif phase == TurnPhase.TRADE_PROPOSE:
             reward = self.apply_trade_proposal(action)
         elif phase == TurnPhase.TRADE_RESPOND:
-            reward = self.apply_trade_response(action)
+            reward, trade_info = self.apply_trade_response(action)
         elif phase == TurnPhase.END_TURN:
             reward = self.apply_gameplay_action({"type": "end_turn"})
 
         obs = self.get_observation()
         done = self.winner is not None
 
+        post_step_player = self.players[acting_player_id]
+        post_step_stats = {
+            "vp": float(post_step_player.update_victory_points()),
+            "resources": {k: int(v) for k, v in post_step_player.resources.items()},
+        }
+        info = {
+            "acting_player_id": acting_player_id,
+            "pre_step_stats": pre_step_stats,
+            "post_step_stats": post_step_stats,
+            "winner": self.winner,
+        }
+        if trade_info:
+            info.update(trade_info)
+
         if done:
-            if self.winner == self.get_current_player_id():
+            if self.winner == acting_player_id:
                 reward += 1.0
             else:
                 reward -= 1.0
-        
-        return obs, reward, done, {}
+
+        return obs, reward, done, info
