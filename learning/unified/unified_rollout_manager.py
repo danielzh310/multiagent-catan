@@ -277,11 +277,11 @@ class AsyncVectorEnv:
 
         ctx = mp.get_context("spawn")
         process_factory = getattr(ctx, "Process")
-        pipes: List[Any] = []
-        procs: List[mp.Process] = []
+        self._pipes: List[Connection] = []
+        self._procs: List[mp.Process] = []
 
         for w in range(self.num_workers):
-            parent_conn, child_conn = mp.Pipe(duplex=True)
+            parent_conn, child_conn = ctx.Pipe(duplex=True)
             proc = process_factory(
                 target=_worker,
                 args=(w, self._worker_env_indices[w], child_conn, enable_trading, max_steps),
@@ -289,11 +289,8 @@ class AsyncVectorEnv:
             )
             proc.start()
             child_conn.close()  # close child end in parent
-            pipes.append(parent_conn)  # type: ignore[arg-type]
-            procs.append(proc)
-
-        self._pipes = pipes
-        self._procs = procs
+            self._pipes.append(parent_conn) # type: ignore
+            self._procs.append(proc)
 
     def _dispatch(self, cmd: str, payloads: Dict[int, List]) -> Dict[int, Any]:
         """
