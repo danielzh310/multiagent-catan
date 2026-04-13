@@ -21,6 +21,7 @@ def _sigmoid(x: float) -> float:
 def unified_accepted_trade_reward(
     proposer_offer: Dict[Resource, int] | None,
     proposer_request: Dict[Resource, int] | None,
+    accepter_resources: Dict[Resource, int] | None,
     opponent_need_scores: Dict[Resource, float] | None = None,
 ) -> float:
     """
@@ -28,7 +29,7 @@ def unified_accepted_trade_reward(
     This is specific to the Unified PPO model to align with its design.
     """
     # S = bilateral_surplus
-    bilateral_surplus = estimate_trade_surplus(proposer_offer, proposer_request, opponent_need_scores)
+    bilateral_surplus = estimate_trade_surplus(proposer_offer, proposer_request, accepter_resources, opponent_need_scores)
 
     # α * σ(S)
     return TRADE_REWARD_ALPHA * _sigmoid(bilateral_surplus)

@@ -11,12 +11,12 @@ import torch
 
 # allow running from project root
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-if PROJECT_ROOT not in sys.path:
+if PROJECT_ROOT not in sys.path: # type: ignore
     sys.path.insert(0, PROJECT_ROOT)
 
 from learning.league.league_manager import LeagueManager
-from learning.rewards.reward_shaper import RewardShaper
-from learning.trade.trade_labeler import build_batch_need_targets, RESOURCE_ORDER
+from learning.rewards.reward_shaper import RewardShaper # type: ignore
+from learning.trade.trade_labeler import build_batch_need_targets, build_need_target_from_trade_event, RESOURCE_ORDER # type: ignore
 from learning.unified.unified_trade_reward import (
     unified_accepted_trade_reward,
     unified_rejected_trade_reward,
@@ -427,6 +427,7 @@ def apply_shaped_rewards(
     storage: List[Dict],
     reward_shaper: RewardShaper,
     progress: float,
+    policy_need_predictor: Optional[torch.nn.Module] = None,
     trade_curriculum_fraction: float = 0.55,
     trade_reward_scale_start: float = 0.35,
     trade_reward_scale_end: float = 1.00,
@@ -446,6 +447,7 @@ def apply_shaped_rewards(
         if item["phase"] == "trade":
             env_action = item.get("env_action", {})
             action_type = env_action.get("type", "skip_trade")
+            trade_details = item.get("info", {}).get("trade_details", {})
 
             # Update consecutive_skips counter
             if action_type == "skip_trade":
@@ -457,9 +459,11 @@ def apply_shaped_rewards(
             reward_signal = float(item["reward"])
             if action_type == "accept_trade":
                 # For accepted trades, the base reward is the bilateral surplus
-                proposer_offer = env_action.get("offer", {})
-                proposer_request = env_action.get("request", {})
+                proposer_offer = trade_details.get("offer", {})
+                proposer_request = trade_details.get("request", {})
+                accepter_resources = item.get("info", {}).get("pre_step_stats", {}).get("resources")
                 opponent_need_scores = None
+
                 if "tom_outputs" in item and "need_pred" in item["tom_outputs"]:
                     if item["tom_outputs"]["need_pred"].numel() > 0:
                         need_pred = item["tom_outputs"]["need_pred"].view(-1)
@@ -467,7 +471,9 @@ def apply_shaped_rewards(
                             resource: float(need_pred[i])
                             for i, resource in enumerate(RESOURCE_ORDER)
                         }
-                reward_signal = unified_accepted_trade_reward(proposer_offer, proposer_request, opponent_need_scores)
+                reward_signal = unified_accepted_trade_reward(
+                    proposer_offer, proposer_request, accepter_resources, opponent_need_scores
+                )
             elif action_type == "reject_trade":
                 # For rejected trades, the base reward is 0.0 from trade_reward.py
                 reward_signal = unified_rejected_trade_reward()
@@ -476,17 +482,67 @@ def apply_shaped_rewards(
                 reward_signal = unified_skipped_trade_reward()
             # For propose_trade and counter_trade, reward_signal remains float(item["reward"]) (typically 0.0)
 
+            # Calculate ToM loss for immediate reward shaping
+            tom_loss_val = 0.0
+            if policy_need_predictor is not None and "tom_outputs" in item and "need_pred" in item["tom_outputs"]:
+                need_pred = item["tom_outputs"]["need_pred"] # Shape [1, 5]
+
+                # Construct a single trade event dict for build_need_target_from_trade_event
+                # The 'offer' here refers to what the *target* (agent) received.
+                # The 'counter_request' refers to what the *target* (agent) requested in a counter.
+                trade_event_for_target = {
+                    "response_type": action_type.replace("_trade", ""), # "accept", "reject", "counter"
+                    "offer": trade_details.get("offer", {}), # Original offer from proposer, which is what agent received
+                    "counter_request": env_action.get("counter_request", {}), # What agent requested if it countered
+                }
+
+                # build_need_target_from_trade_event returns a single target tensor and a float mask
+                need_target_single, need_mask_single = build_need_target_from_trade_event(trade_event_for_target)
+
+                # need_pred is [1, 5], need_target_single is [5].
+                # Need to wrap them in batch dimension for compute_loss.
+                need_target_batch = need_target_single.unsqueeze(0).to(need_pred.device)
+
+                # The policy's need_predictor (OpponentNeedPredictor) expects tensors for
+                # predictions and targets, not dictionaries.
+                raw_tom_loss = policy_need_predictor.compute_loss(
+                    need_pred, need_target_batch
+                )
+                tom_loss_val = raw_tom_loss.item() * need_mask_single # Scale by the confidence mask
+
             shaped_reward = reward_shaper.trade_step_reward(
                 action_type=action_type,
                 reward_signal=reward_signal,
                 consecutive_skips=consecutive_skips,
-                tom_loss=0.0, # ToM loss is applied in the PPO total loss, not here.
+                tom_loss=tom_loss_val, # Now passing the calculated ToM loss
                 curriculum_scale=curriculum_scale,
             )
 
             new_item["reward"] = shaped_reward # curriculum_scale is already applied inside trade_step_reward
         else:
-            new_item["reward"] = float(item["reward"])
+            # For gameplay, use the dedicated shaper and add to the base action reward
+            info = item.get("info", {})
+            pre_stats = info.get("pre_step_stats")
+            post_stats = info.get("post_step_stats")
+
+            if pre_stats and post_stats:
+                acting_player_id = info.get("acting_player_id")
+                winner = info.get("winner")
+
+                won = item["done"] and winner is not None and winner == acting_player_id
+                lost = item["done"] and winner is not None and winner != acting_player_id
+
+                shaped_reward = reward_shaper.gameplay_step_reward(
+                    prev_vp=pre_stats["vp"],
+                    curr_vp=post_stats["vp"],
+                    prev_resources=pre_stats["resources"],
+                    curr_resources=post_stats["resources"],
+                    won=won,
+                    lost=lost,
+                )
+                new_item["reward"] = float(item["reward"]) + shaped_reward
+            else:
+                new_item["reward"] = float(item["reward"])
 
         shaped_storage.append(new_item)
 
@@ -495,11 +551,11 @@ def apply_shaped_rewards(
 
 def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Unified PPO training loop")
-    parser.add_argument("--num-updates", type=int, default=1000)
-    parser.add_argument("--num-envs", type=int, default=64)
-    parser.add_argument("--rollout-steps", type=int, default=64)
+    parser.add_argument("--num-updates", type=int, default=5000)
+    parser.add_argument("--num-envs", type=int, default=32)
+    parser.add_argument("--rollout-steps", type=int, default=128)
     parser.add_argument("--hidden-dim", type=int, default=192)
-    parser.add_argument("--max-game-steps", type=int, default=2500, help="Maximum steps per game before truncation")
+    parser.add_argument("--max-game-steps", type=int, default=3000, help="Maximum steps per game before truncation")
     parser.add_argument("--seed", type=int, default=7)
     parser.add_argument("--device", type=str, default="cpu")
     parser.add_argument("--checkpoint-dir", type=str, default="./checkpoints")
@@ -557,7 +613,7 @@ def train(args: argparse.Namespace) -> None:
                 if not summary["completed_naturally"]:
                     games_cut_off += 1
 
-            storage = apply_shaped_rewards(raw_storage, reward_shaper, progress=progress)
+            storage = apply_shaped_rewards(raw_storage, reward_shaper, progress=progress, policy_need_predictor=trainer.policy.need_predictor)
 
             stats = compute_rollout_stats(storage)
             metrics = trainer.update(storage)

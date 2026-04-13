@@ -19,6 +19,18 @@ class TradeProposal:
     phase_index: int
     counter_count: int = 0
 
+    def to_dict(self) -> dict:
+        return {
+            "proposer": self.proposer,
+            "target": self.target,
+            "offer": dict(self.offer),
+            "request": dict(self.request),
+            "turn_number": self.turn_number,
+            "phase_index": self.phase_index,
+            "counter_count": self.counter_count,
+        }
+
+
 
 @dataclass
 class TradeResponse:
