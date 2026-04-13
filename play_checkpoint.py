@@ -203,7 +203,7 @@ def run_single_unified_game(
 ):
     model.eval()
     env_manager = UnifiedRolloutManager(num_envs=1, device=device, enable_trading=not gameplay_only)
-    env = env_manager.envs[0]
+    env = env_manager.envs[0] 
 
     report = []
     total_steps = 0

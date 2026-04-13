@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import random
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, TypeAlias
 
 from core.constants import (
     NUMBER_TOKEN_COUNTS,
@@ -19,6 +19,9 @@ from core.connection import Connection
 from core.hex_tile import HexTile
 from core.port import Port
 from core.vertex import Vertex
+
+Coord: TypeAlias = Tuple[int, int]
+VertexKey: TypeAlias = Tuple[Coord, ...] | Tuple[str, Coord, int]
 
 
 class BoardLayout:
@@ -43,12 +46,12 @@ class BoardLayout:
         self.connections: List[Connection] = []
         self.ports: List[Port] = []
 
-        self.tile_coords: List[Tuple[int, int]] = []
+        self.tile_coords: List[Coord] = []
         self.vertex_to_ports: Dict[int, Port] = {}
 
         self._build_board()
 
-    def _build_board(self):
+    def _build_board(self) -> None:
         self._create_tiles()
         self._create_vertices()
         self._assign_tile_vertices()
@@ -56,8 +59,8 @@ class BoardLayout:
         self._assign_vertex_neighbors()
         self._create_ports()
 
-    def _create_tiles(self):
-        resources = []
+    def _create_tiles(self) -> None:
+        resources: List[Resource] = []
         for resource, count in TILE_RESOURCE_COUNTS.items():
             resources.extend([resource] * count)
 
@@ -80,7 +83,7 @@ class BoardLayout:
         else:
             random.shuffle(resources)
 
-        numbers = []
+        numbers: List[int] = []
         if self.fixed_setup:
             numbers = list(NUMBER_TOKEN_ORDER_FIXED)
         else:
@@ -104,22 +107,23 @@ class BoardLayout:
         if len(self.tiles) != NUM_TILES:
             raise ValueError(f"Expected {NUM_TILES} tiles, got {len(self.tiles)}")
 
-    def _create_vertices(self):
+    def _create_vertices(self) -> None:
         self.vertices = [Vertex(id=i) for i in range(NUM_VERTICES)]
 
-    def _assign_tile_vertices(self):
+    def _assign_tile_vertices(self) -> None:
         """
         Deduplicate shared corners by using neighboring hex coordinates.
         """
-        dirs = [(1, 0), (1, -1), (0, -1), (-1, 0), (-1, 1), (0, 1)]
+        dirs: List[Coord] = [(1, 0), (1, -1), (0, -1), (-1, 0), (-1, 1), (0, 1)]
         coord_set = set(self.tile_coords)
 
-        vertex_key_to_id: Dict[tuple, int] = {}
+        vertex_key_to_id: Dict[VertexKey, int] = {}
         next_vid = 0
 
         for tile in self.tiles:
-            q, r = tile.coord
-            tile_vertices = []
+            tile_coord: Coord = tile.coord
+            q, r = tile_coord
+            tile_vertices: List[Vertex] = []
 
             for i in range(6):
                 nbr1 = (q + dirs[i][0], r + dirs[i][1])
@@ -128,11 +132,11 @@ class BoardLayout:
                 neighbors = [n for n in (nbr1, nbr2) if n in coord_set]
 
                 if len(neighbors) == 2:
-                    key = tuple(sorted([tile.coord, neighbors[0], neighbors[1]]))
+                    key = tuple(sorted([tile_coord, neighbors[0], neighbors[1]]))
                 elif len(neighbors) == 1:
-                    key = tuple(sorted([tile.coord, neighbors[0]]))
+                    key = tuple(sorted([tile_coord, neighbors[0]]))
                 else:
-                    key = ("outer", tile.coord, i)
+                    key = ("outer", tile_coord, i)
 
                 if key not in vertex_key_to_id:
                     if next_vid >= len(self.vertices):
@@ -153,18 +157,20 @@ class BoardLayout:
         if next_vid != NUM_VERTICES:
             raise ValueError(f"Expected {NUM_VERTICES} vertices, generated {next_vid}")
 
-    def _create_connections(self):
+    def _create_connections(self) -> None:
         """
         Proper Catan board with 72 undirected edges.
         """
         self.connections = []
         connection_id = 0
-        seen = set()
+        seen: set[tuple[int, int]] = set()
 
         for tile in self.tiles:
             for i in range(6):
                 v1 = tile.vertices[i]
                 v2 = tile.vertices[(i + 1) % 6]
+                if v1.id is None or v2.id is None:
+                    raise RuntimeError("Vertices must have ids before connections are created")
                 edge_key = tuple(sorted((v1.id, v2.id)))
 
                 if edge_key in seen:
@@ -182,7 +188,7 @@ class BoardLayout:
         if len(self.connections) != NUM_CONNECTIONS:
             raise ValueError(f"Connections count must be {NUM_CONNECTIONS} (got {len(self.connections)})")
 
-    def _assign_vertex_neighbors(self):
+    def _assign_vertex_neighbors(self) -> None:
         for connection in self.connections:
             v1 = connection.v1
             v2 = connection.v2
@@ -193,13 +199,13 @@ class BoardLayout:
             if v1 not in v2.neighbors:
                 v2.neighbors.append(v1)
 
-    def _create_ports(self):
+    def _create_ports(self) -> None:
         """
         Create 9 ports and attach them to coastal vertex pairs around the shoreline.
         The exact resource ordering is still shuffled, but the attachment points now
         follow the perimeter ring instead of pairing vertices by sorted id.
         """
-        port_types = []
+        port_types: List[PortType] = []
         for port_type, count in PORT_COUNTS.items():
             port_types.extend([port_type] * count)
 
@@ -230,21 +236,29 @@ class BoardLayout:
             port.vertices = (v1, v2)
             self.ports.append(port)
 
+            if v1.id is None or v2.id is None:
+                raise RuntimeError("Port vertices must have ids")
             self.vertex_to_ports[v1.id] = port
             self.vertex_to_ports[v2.id] = port
 
     def _coastal_port_pairs(self, port_count: int) -> List[Tuple[Vertex, Vertex]]:
-        coastal_edges = []
+        coastal_edges: List[Connection] = []
         coastal_adjacency: Dict[int, List[int]] = {}
 
         for connection in self.connections:
             if len(connection.v1.tiles) >= 3 or len(connection.v2.tiles) >= 3:
                 continue
 
-            shared_tiles = set(tile.id for tile in connection.v1.tiles) & set(tile.id for tile in connection.v2.tiles)
+            shared_tiles = {
+                tile.id for tile in connection.v1.tiles if tile.id is not None
+            } & {
+                tile.id for tile in connection.v2.tiles if tile.id is not None
+            }
             if len(shared_tiles) != 1:
                 continue
 
+            if connection.v1.id is None or connection.v2.id is None or connection.id is None:
+                raise RuntimeError("Coastal edge vertices and connections must have ids")
             coastal_edges.append(connection)
             coastal_adjacency.setdefault(connection.v1.id, []).append(connection.id)
             coastal_adjacency.setdefault(connection.v2.id, []).append(connection.id)
@@ -256,12 +270,17 @@ class BoardLayout:
             coastal_edges,
             key=lambda edge: (
                 min(len(edge.v1.tiles), len(edge.v2.tiles)),
-                min(edge.v1.id, edge.v2.id),
+                min(
+                    edge.v1.id if edge.v1.id is not None else -1,
+                    edge.v2.id if edge.v2.id is not None else -1,
+                ),
                 edge.id,
             ),
         )
 
         ordered_edges = [start_edge]
+        if start_edge.id is None or start_edge.v2.id is None:
+            raise RuntimeError("Starting coastal edge must have ids")
         used_edges = {start_edge.id}
         current_vertex = start_edge.v2.id
 
@@ -277,12 +296,14 @@ class BoardLayout:
             next_edge_id = min(candidates)
             next_edge = self.get_connection_by_id(next_edge_id)
             ordered_edges.append(next_edge)
+            if next_edge.id is None or next_edge.v1.id is None or next_edge.v2.id is None:
+                raise RuntimeError("Coastal edge traversal requires ids")
             used_edges.add(next_edge.id)
             current_vertex = next_edge.v1.id if next_edge.v2.id == current_vertex else next_edge.v2.id
 
         if len(ordered_edges) != len(coastal_edges):
             remaining = [edge for edge in coastal_edges if edge.id not in used_edges]
-            ordered_edges.extend(sorted(remaining, key=lambda edge: edge.id))
+            ordered_edges.extend(sorted(remaining, key=lambda edge: edge.id if edge.id is not None else -1))
 
         chosen_indices = []
         total_edges = len(ordered_edges)
@@ -333,7 +354,12 @@ class BoardLayout:
 
     def get_vertices_adjacent_to_tile(self, tile_id: int) -> List[int]:
         tile = self.get_tile_by_id(tile_id)
-        return [vertex.id for vertex in tile.vertices]
+        vertex_ids: List[int] = []
+        for vertex in tile.vertices:
+            if vertex.id is None:
+                raise RuntimeError("Tile vertex must have an id")
+            vertex_ids.append(vertex.id)
+        return vertex_ids
 
     def get_player_starting_resources_from_second_settlement(self, vertex_id: int) -> Dict[Resource, int]:
         """
@@ -363,8 +389,10 @@ class BoardLayout:
         city_positions: dict[PlayerId, set] | None = None,
         require_road: bool = True,
     ) -> list[int]:
-        valid = []
+        valid: List[int] = []
         for vertex in self.vertices:
+            if vertex.id is None:
+                raise RuntimeError("Vertex must have an id")
             occupied = False
             for pid, positions in settlement_positions.items():
                 if vertex.id in positions:
@@ -395,8 +423,10 @@ class BoardLayout:
         road_positions: dict[PlayerId, set],
         city_positions: dict[PlayerId, set] | None = None,
     ) -> list[int]:
-        valid = []
+        valid: List[int] = []
         for conn in self.connections:
+            if conn.id is None:
+                raise RuntimeError("Connection must have an id")
             if conn.id in road_positions[player_id]:
                 continue
             if conn.can_build_road(

@@ -1,38 +1,41 @@
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 from core.constants import PlayerId
 
+if TYPE_CHECKING:
+    from core.vertex import Vertex
+
 
 class Connection:
-    def __init__(self, v1, v2, id=None):
-        self.id = id
-        self.v1 = v1
-        self.v2 = v2
+    def __init__(self, v1: "Vertex", v2: "Vertex", id: Optional[int] = None):
+        self.id: Optional[int] = id
+        self.v1: Vertex = v1
+        self.v2: Vertex = v2
         self.owner: Optional[PlayerId] = None
 
     def is_occupied(self) -> bool:
         return self.owner is not None
 
-    def connects(self, vertex) -> bool:
+    def connects(self, vertex: "Vertex") -> bool:
         return vertex == self.v1 or vertex == self.v2
 
-    def other_vertex(self, vertex):
+    def other_vertex(self, vertex: "Vertex") -> "Vertex":
         if vertex == self.v1:
             return self.v2
         if vertex == self.v2:
             return self.v1
         raise ValueError("Vertex not part of this connection.")
 
-    def _vertex_has_player_building(self, vertex, player_id: PlayerId, settlement_positions: dict, city_positions: dict | None = None) -> bool:
+    def _vertex_has_player_building(self, vertex: "Vertex", player_id: PlayerId, settlement_positions: dict, city_positions: dict | None = None) -> bool:
         if vertex.id in settlement_positions.get(player_id, set()):
             return True
         if city_positions is not None and vertex.id in city_positions.get(player_id, set()):
             return True
         return False
 
-    def _vertex_has_opponent_building(self, vertex, player_id: PlayerId, settlement_positions: dict, city_positions: dict | None = None) -> bool:
+    def _vertex_has_opponent_building(self, vertex: "Vertex", player_id: PlayerId, settlement_positions: dict, city_positions: dict | None = None) -> bool:
         for pid, positions in settlement_positions.items():
             if pid != player_id and vertex.id in positions:
                 return True
@@ -44,7 +47,7 @@ class Connection:
 
         return False
 
-    def _vertex_has_adjacent_player_road(self, vertex, player_id: PlayerId, road_positions: dict) -> bool:
+    def _vertex_has_adjacent_player_road(self, vertex: "Vertex", player_id: PlayerId, road_positions: dict) -> bool:
         for conn in vertex.edges:
             if conn.id == self.id:
                 continue
@@ -93,7 +96,7 @@ class Connection:
 
     def blocks_player_route_at_vertex(
         self,
-        vertex,
+        vertex: "Vertex",
         player_id: PlayerId,
         settlement_positions: dict,
         city_positions: dict | None = None,

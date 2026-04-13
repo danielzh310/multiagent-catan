@@ -9,12 +9,12 @@ import torch
 import torch.nn as nn
 
 
-def clone_module(module, num_copies):
+def clone_module(module: nn.Module, num_copies: int) -> nn.ModuleList:
     """Return a ModuleList of deep-copied modules."""
     return nn.ModuleList([copy.deepcopy(module) for _ in range(num_copies)])
 
 
-def init_linear(layer, gain=1.0):
+def init_linear(layer: nn.Module, gain: float = 1.0) -> nn.Linear:
     """Orthogonal init for a linear layer."""
     if not isinstance(layer, nn.Linear):
         raise TypeError("init_linear expects nn.Linear")
@@ -34,20 +34,23 @@ class ValueNormalizer(nn.Module):
     to normalize and denormalize value targets.
     """
 
+    mean: torch.Tensor
+    std: torch.Tensor
+
     def __init__(self, mean=0.0, std=1.0):
         super().__init__()
         self.register_buffer("mean", torch.tensor(float(mean), dtype=torch.float32))
         self.register_buffer("std", torch.tensor(float(std), dtype=torch.float32))
 
-    def normalize(self, values):
+    def normalize(self, values: torch.Tensor) -> torch.Tensor:
         """Normalize values."""
         return (values - self.mean) / (self.std + 1e-6)
 
-    def denormalize(self, values):
+    def denormalize(self, values: torch.Tensor) -> torch.Tensor:
         """Undo normalization."""
         return self.mean + values * self.std
 
-    def set_stats(self, mean, std):
+    def set_stats(self, mean: float, std: float) -> None:
         """Update stored statistics."""
         self.mean.fill_(float(mean))
         self.std.fill_(float(std))

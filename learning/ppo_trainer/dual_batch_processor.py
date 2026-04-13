@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, List
+from typing import Any, Dict, List, Tuple
 
 import torch
 
@@ -30,7 +30,7 @@ class DualBatchProcessor:
         self.normalize_returns = normalize_returns
         self.advantage_clip = advantage_clip
 
-    def process_gameplay_rollouts(self, rollouts: List[dict]) -> Dict[str, torch.Tensor]:
+    def process_gameplay_rollouts(self, rollouts: List[dict]) -> Dict[str, Any]:
         if len(rollouts) == 0:
             return {}
 
@@ -54,7 +54,7 @@ class DualBatchProcessor:
             "dones": dones,
         }
 
-    def process_trade_rollouts(self, rollouts: List[dict]) -> Dict[str, torch.Tensor]:
+    def process_trade_rollouts(self, rollouts: List[dict]) -> Dict[str, Any]:
         if len(rollouts) == 0:
             return {}
 
@@ -118,7 +118,7 @@ class DualBatchProcessor:
         rewards: torch.Tensor,
         values: torch.Tensor,
         dones: torch.Tensor,
-    ):
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         returns = torch.zeros_like(rewards)
         advantages = torch.zeros_like(rewards)
 

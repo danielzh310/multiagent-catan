@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, Tuple
+from typing import Any, Dict, Tuple
 
 import torch
 
@@ -37,7 +37,7 @@ class DualRolloutManager:
         self.gameplay_storage = []
         self.trade_storage = []
 
-    def _clone_tensor_dict(self, obj):
+    def _clone_tensor_dict(self, obj: Any) -> Any:
         if torch.is_tensor(obj):
             return obj.detach().clone()
 
@@ -63,8 +63,8 @@ class DualRolloutManager:
 
         return {"flat": flat}
 
-    def _build_trade_obs(self, env: CatanEnv) -> Dict[str, torch.Tensor]:
-        def zeros(shape):
+    def _build_trade_obs(self, env: CatanEnv) -> Dict[str, Any]:
+        def zeros(shape: Tuple[int, ...]) -> torch.Tensor:
             return torch.zeros(shape, dtype=torch.float32, device=self.device)
 
         return {
@@ -109,7 +109,7 @@ class DualRolloutManager:
         if phase == TurnPhase.END_TURN:
             return {"type": "end_turn"}
 
-        idx = int(action_dict["action_type"].item())
+        idx = int(action_dict["action_type"].detach().cpu().item())
 
         if idx == 0:
             return {"type": "build_road"}
@@ -124,8 +124,8 @@ class DualRolloutManager:
         phase = env.get_phase()
 
         if phase == TurnPhase.TRADE_PROPOSE:
-            action_idx = int(action_dict["action_type"].item())
-            target_idx = int(action_dict["target"].item())
+            action_idx = int(action_dict["action_type"].detach().cpu().item())
+            target_idx = int(action_dict["target"].detach().cpu().item())
 
             players = [PlayerId.WHITE, PlayerId.BLUE, PlayerId.ORANGE, PlayerId.RED]
             current_player = env.get_current_player_id()
@@ -136,8 +136,8 @@ class DualRolloutManager:
 
             target = legal_targets[target_idx % len(legal_targets)]
 
-            offer_idx = int(torch.argmax(action_dict["offer"], dim=-1).item())
-            request_idx = int(torch.argmax(action_dict["request"], dim=-1).item())
+            offer_idx = int(torch.argmax(action_dict["offer"], dim=-1).detach().cpu().item())
+            request_idx = int(torch.argmax(action_dict["request"], dim=-1).detach().cpu().item())
 
             if action_idx == 0:
                 return {
@@ -150,9 +150,9 @@ class DualRolloutManager:
             return {"type": "skip_trade"}
 
         if phase == TurnPhase.TRADE_RESPOND:
-            action_idx = int(action_dict["action_type"].item())
-            offer_idx = int(torch.argmax(action_dict["offer"], dim=-1).item())
-            request_idx = int(torch.argmax(action_dict["request"], dim=-1).item())
+            action_idx = int(action_dict["action_type"].detach().cpu().item())
+            offer_idx = int(torch.argmax(action_dict["offer"], dim=-1).detach().cpu().item())
+            request_idx = int(torch.argmax(action_dict["request"], dim=-1).detach().cpu().item())
 
             if action_idx == 1:
                 return {"type": "accept_trade", "response_type": "accept"}
@@ -172,12 +172,12 @@ class DualRolloutManager:
 
         return {"type": "skip_trade"}
 
-    def _maybe_reset_env(self, env: CatanEnv, done: bool):
+    def _maybe_reset_env(self, env: CatanEnv, done: bool) -> dict:
         if done:
             return env.reset()
         return env.get_observation()
 
-    def _build_rollout_stats(self, gameplay_storage, trade_storage):
+    def _build_rollout_stats(self, gameplay_storage: list, trade_storage: list) -> Dict[str, Any]:
         stats = {
             "gameplay_rollouts": len(gameplay_storage),
             "trade_rollouts": len(trade_storage),
@@ -226,7 +226,7 @@ class DualRolloutManager:
 
         return stats
 
-    def collect(self) -> Tuple[list, list, dict]:
+    def collect(self) -> Tuple[list, list, Dict[str, Any]]:
         self.gameplay_storage = []
         self.trade_storage = []
 

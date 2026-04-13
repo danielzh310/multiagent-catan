@@ -134,7 +134,7 @@ class CatanEnv:
 
     def _get_legal_gameplay_actions(self, player_id: PlayerId) -> List[dict]:
         player = self.engine.players[player_id]
-        actions = []
+        actions: List[dict] = []
 
         valid_settlements = self.engine.get_valid_settlement_vertices(player_id)
         if (
@@ -193,7 +193,7 @@ class CatanEnv:
 
     def _get_legal_bank_trades(self, player_id: PlayerId) -> List[dict]:
         player = self.engine.players[player_id]
-        actions = []
+        actions: List[dict] = []
 
         resources = [
             Resource.WOOD,
@@ -220,7 +220,7 @@ class CatanEnv:
         return actions
 
     def _get_road_building_actions(self, player_id: PlayerId) -> List[dict]:
-        actions = []
+        actions: List[dict] = []
         first_roads = self.engine.get_valid_road_connections(player_id)
         if not first_roads:
             return actions
@@ -318,7 +318,7 @@ class CatanEnv:
         return True
 
     def _get_legal_trade_proposals(self, player_id: PlayerId) -> List[dict]:
-        actions = [{"type": "skip_trade"}]
+        actions: List[dict] = [{"type": "skip_trade"}]
 
         player_ids = list(self.engine.players.keys())
         targets = self.engine.trade_manager.legal_trade_targets(player_id, player_ids)
@@ -343,7 +343,7 @@ class CatanEnv:
         if pending is None:
             return []
 
-        actions = [
+        actions: List[dict] = [
             {"type": "reject_trade", "response_type": "reject"},
             {"type": "accept_trade", "response_type": "accept"},
         ]
@@ -363,7 +363,7 @@ class CatanEnv:
         return actions
 
     def _default_trade_templates(self):
-        singles = [
+        singles: List[dict] = [
             {Resource.WOOD: 1, Resource.BRICK: 0, Resource.SHEEP: 0, Resource.WHEAT: 0, Resource.ORE: 0},
             {Resource.WOOD: 0, Resource.BRICK: 1, Resource.SHEEP: 0, Resource.WHEAT: 0, Resource.ORE: 0},
             {Resource.WOOD: 0, Resource.BRICK: 0, Resource.SHEEP: 1, Resource.WHEAT: 0, Resource.ORE: 0},

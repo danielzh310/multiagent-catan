@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import multiprocessing as mp
 import traceback
+from multiprocessing.connection import Connection
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
@@ -10,10 +11,6 @@ import torch
 from core.constants import PlayerId, Resource
 from core.phase_router import TurnPhase
 from environment.catan_env import CatanEnv
-
-# ---------------------------------------------------------------------------
-# Worker-side observation building (for performance)
-# ---------------------------------------------------------------------------
 
 def _worker_build_obs(
     obs_raw: Dict,
@@ -120,14 +117,10 @@ def _worker_build_obs(
         "trade_candidates": trade_np, "trade_mask": trade_mask_np,
     }
 
-# ---------------------------------------------------------------------------
-# Worker process helpers
-# ---------------------------------------------------------------------------
-
 def _worker(
     worker_id: int,
     env_indices: List[int],
-    cmd_pipe: mp.connection.Connection,
+    cmd_pipe: Connection,
     enable_trading: bool,
     max_steps: Optional[int],
 ) -> None:
@@ -253,12 +246,6 @@ def _worker(
         traceback.print_exc()
     finally:
         cmd_pipe.close()
-
-
-# ---------------------------------------------------------------------------
-# Async vector environment
-# ---------------------------------------------------------------------------
-
 class AsyncVectorEnv:
     """
     Spawns `num_workers` child processes, each owning `envs_per_worker` CatanEnvs.
@@ -289,20 +276,24 @@ class AsyncVectorEnv:
                 self._env_to_worker[idx] = w
 
         ctx = mp.get_context("spawn")
-        self._pipes: List[mp.connection.Connection] = []
-        self._procs: List[mp.Process] = []
+        process_factory = getattr(ctx, "Process")
+        pipes: List[Any] = []
+        procs: List[mp.Process] = []
 
         for w in range(self.num_workers):
-            parent_conn, child_conn = ctx.Pipe(duplex=True)
-            proc = ctx.Process(
+            parent_conn, child_conn = mp.Pipe(duplex=True)
+            proc = process_factory(
                 target=_worker,
                 args=(w, self._worker_env_indices[w], child_conn, enable_trading, max_steps),
                 daemon=True,
             )
             proc.start()
             child_conn.close()  # close child end in parent
-            self._pipes.append(parent_conn)
-            self._procs.append(proc)
+            pipes.append(parent_conn)  # type: ignore[arg-type]
+            procs.append(proc)
+
+        self._pipes = pipes
+        self._procs = procs
 
     def _dispatch(self, cmd: str, payloads: Dict[int, List]) -> Dict[int, Any]:
         """
@@ -381,12 +372,6 @@ class AsyncVectorEnv:
             if proc.is_alive():
                 proc.kill()
 
-
-# ---------------------------------------------------------------------------
-# Vectorized encoding helpers (NumPy, no Python loops over actions)
-# ---------------------------------------------------------------------------
-
-# Pre-build lookup arrays once at import time
 _ACTION_TYPE_TO_IDX: Dict[str, int] = {
     "build_settlement": 0, "build_road": 1, "build_city": 2,
     "buy_dev_card": 3, "play_dev_card": 4, "bank_trade": 5,
@@ -402,7 +387,6 @@ _TRADE_ACTION_TYPE_TO_IDX: Dict[str, int] = {
 _RESOURCE_NAMES = ["WOOD", "BRICK", "SHEEP", "WHEAT", "ORE"]
 _RESOURCE_TO_SLOT = {r: i for i, r in enumerate(_RESOURCE_NAMES)}
 
-# Resource enum -> slot (handles both string keys and Resource enum keys)
 def _res_slot(r: Any) -> int:
     if r is None:
         return -1
@@ -612,12 +596,6 @@ def _encode_trade_actions_batch(
         mask[i] = True
 
     return out, mask
-
-
-# ---------------------------------------------------------------------------
-# Main UnifiedRolloutManager
-# ---------------------------------------------------------------------------
-
 class UnifiedRolloutManager:
     MAX_GAMEPLAY_ACTIONS = 256
     GAMEPLAY_FEATURE_DIM = 40
@@ -650,24 +628,12 @@ class UnifiedRolloutManager:
             max_steps=max_steps,
         )
 
-    # ------------------------------------------------------------------
-    # Phase classification
-    # ------------------------------------------------------------------
-
     def _phase_name(self, phase: TurnPhase) -> str:
         if phase in (TurnPhase.SETUP, TurnPhase.MAIN_ACTION, TurnPhase.END_TURN):
             return "gameplay"
         if phase in (TurnPhase.TRADE_PROPOSE, TurnPhase.TRADE_RESPOND):
             return "trade"
         return "auto"
-
-    # ------------------------------------------------------------------
-    # Observation building (runs in main process, vectorized NumPy)
-    # ------------------------------------------------------------------
-
-    # ------------------------------------------------------------------
-    # Action decode (unchanged logic, kept in main process)
-    # ------------------------------------------------------------------
 
     def _resource_slot(self, resource_value: Any) -> int:
         return _res_slot(resource_value)
@@ -721,10 +687,6 @@ class UnifiedRolloutManager:
             return {"type": "skip_trade"}
         mapped_idx = min(max(int(action_idx), 0), len(legal_actions) - 1)
         return legal_actions[mapped_idx]
-
-    # ------------------------------------------------------------------
-    # Main collect loop
-    # ------------------------------------------------------------------
 
     def collect(self, policy, steps: int = 128) -> List[Dict[str, Any]]:
         storage: List[Dict[str, Any]] = []
@@ -830,10 +792,10 @@ class UnifiedRolloutManager:
                 phase = env_data["env_phase"]
 
                 if phase_name == "gameplay":
-                    action_idx = int(env_data["action"]["gameplay_action"].item())
+                    action_idx = int(env_data["action"]["gameplay_action"].detach().cpu().item())
                     env_action = self._decode_gameplay(action_idx, legal, phase)
                 else:
-                    action_idx = int(env_data["action"]["trade_action"].item())
+                    action_idx = int(env_data["action"]["trade_action"].detach().cpu().item())
                     env_action = self._decode_trade(action_idx, legal, phase)
 
                 env_data["env_action"] = env_action

@@ -9,6 +9,8 @@ This file:
 """
 
 import itertools
+from typing import Dict, List
+
 import numpy as np
 import torch
 from torch.utils.data.sampler import BatchSampler, SubsetRandomSampler
@@ -296,56 +298,62 @@ class BatchProcessor:
         permutation = np.random.permutation(len(time_indices))
 
         for start_idx in range(0, len(permutation), sequences_per_minibatch):
-            obs_batch = {key: [] for key in OBS_KEYS}
-            hidden_batch = [[], []]
-            actions_batch = {key: [] for key in self.actions}
-            action_masks_batch = {key: [] for key in self.action_masks}
+            obs_items: Dict[str, List[torch.Tensor]] = {key: [] for key in OBS_KEYS}
+            hidden_items_h: List[torch.Tensor] = []
+            hidden_items_c: List[torch.Tensor] = []
+            action_items: Dict[str, List[torch.Tensor]] = {key: [] for key in self.actions}
+            action_mask_items: Dict[str, List[torch.Tensor]] = {key: [] for key in self.action_masks}
 
-            value_preds_batch = []
-            returns_batch = []
-            done_masks_batch = []
-            old_action_log_probs_batch = []
-            advantage_batch = []
+            value_preds_items: List[torch.Tensor] = []
+            returns_items: List[torch.Tensor] = []
+            done_masks_items: List[torch.Tensor] = []
+            old_action_log_probs_items: List[torch.Tensor] = []
+            advantage_items: List[torch.Tensor] = []
 
             for offset in range(sequences_per_minibatch):
                 t_inds = time_indices[permutation[start_idx + offset]]
                 p_inds = process_indices[permutation[start_idx + offset]]
 
                 for key in OBS_KEYS:
-                    obs_batch[key].append(self.obs[key][t_inds, p_inds, ...])
+                    obs_items[key].append(self.obs[key][t_inds, p_inds, ...])
 
-                hidden_batch[0].append(self.hidden_states[0][t_inds[0]:t_inds[0] + 1, p_inds[0], ...])
-                hidden_batch[1].append(self.hidden_states[1][t_inds[0]:t_inds[0] + 1, p_inds[0], ...])
+                hidden_items_h.append(self.hidden_states[0][t_inds[0]:t_inds[0] + 1, p_inds[0], ...])
+                hidden_items_c.append(self.hidden_states[1][t_inds[0]:t_inds[0] + 1, p_inds[0], ...])
 
                 for key in self.actions:
-                    actions_batch[key].append(self.actions[key][t_inds, p_inds, ...])
+                    action_items[key].append(self.actions[key][t_inds, p_inds, ...])
 
                 for key in self.action_masks:
-                    action_masks_batch[key].append(self.action_masks[key][t_inds, p_inds, ...])
+                    action_mask_items[key].append(self.action_masks[key][t_inds, p_inds, ...])
 
-                value_preds_batch.append(self.values[t_inds, p_inds])
-                returns_batch.append(self.returns[t_inds, p_inds])
-                done_masks_batch.append(self.done_masks[t_inds, p_inds])
-                old_action_log_probs_batch.append(self.action_log_probs[t_inds, p_inds])
-                advantage_batch.append(self.advantages[t_inds, p_inds])
+                value_preds_items.append(self.values[t_inds, p_inds])
+                returns_items.append(self.returns[t_inds, p_inds])
+                done_masks_items.append(self.done_masks[t_inds, p_inds])
+                old_action_log_probs_items.append(self.action_log_probs[t_inds, p_inds])
+                advantage_items.append(self.advantages[t_inds, p_inds])
 
+            obs_batch: Dict[str, torch.Tensor] = {}
             for key in OBS_KEYS:
-                obs_batch[key] = torch.stack(obs_batch[key], 1)
+                obs_batch[key] = torch.stack(obs_items[key], 1)
 
-            hidden_batch[0] = torch.stack(hidden_batch[0], 1).view(N, -1).to(self.device)
-            hidden_batch[1] = torch.stack(hidden_batch[1], 1).view(N, -1).to(self.device)
+            hidden_batch = (
+                torch.stack(hidden_items_h, 1).view(N, -1).to(self.device),
+                torch.stack(hidden_items_c, 1).view(N, -1).to(self.device),
+            )
 
+            actions_batch: Dict[str, torch.Tensor] = {}
             for key in self.actions:
-                actions_batch[key] = torch.stack(actions_batch[key], 1)
+                actions_batch[key] = torch.stack(action_items[key], 1)
 
+            action_masks_batch: Dict[str, torch.Tensor] = {}
             for key in self.action_masks:
-                action_masks_batch[key] = torch.stack(action_masks_batch[key], 1)
+                action_masks_batch[key] = torch.stack(action_mask_items[key], 1)
 
-            value_preds_batch = torch.stack(value_preds_batch, 1)
-            returns_batch = torch.stack(returns_batch, 1)
-            done_masks_batch = torch.stack(done_masks_batch, 1)
-            old_action_log_probs_batch = torch.stack(old_action_log_probs_batch, 1)
-            advantage_batch = torch.stack(advantage_batch, 1)
+            value_preds_batch = torch.stack(value_preds_items, 1)
+            returns_batch = torch.stack(returns_items, 1)
+            done_masks_batch = torch.stack(done_masks_items, 1)
+            old_action_log_probs_batch = torch.stack(old_action_log_probs_items, 1)
+            advantage_batch = torch.stack(advantage_items, 1)
 
             for key in OBS_KEYS:
                 obs_batch[key] = flatten_time_batch(truncated_seq_len, N, obs_batch[key]).to(self.device)
@@ -368,7 +376,7 @@ class BatchProcessor:
 
             yield (
                 obs_batch,
-                (hidden_batch[0], hidden_batch[1]),
+                hidden_batch,
                 actions_batch,
                 action_masks_batch,
                 value_preds_batch,

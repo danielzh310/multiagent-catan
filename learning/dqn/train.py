@@ -313,9 +313,11 @@ def collect_rollout(
         with torch.no_grad():
             action_idx_dict = trainer.policy.act(obs_tensor, phase, epsilon)
             if phase == "gameplay":
-                env_action = decode_gameplay_action(action_idx_dict["gameplay_action"].item(), env)
+                gameplay_action_idx = int(action_idx_dict["gameplay_action"].detach().cpu().item())
+                env_action = decode_gameplay_action(gameplay_action_idx, env)
             else:
-                env_action = decode_trade_action(action_idx_dict["trade_action"].item(), env)
+                trade_action_idx = int(action_idx_dict["trade_action"].detach().cpu().item())
+                env_action = decode_trade_action(trade_action_idx, env)
 
         # Take action in environment
         next_obs, reward, done, info = env.step(env_action)

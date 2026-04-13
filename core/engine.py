@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import random
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, TypedDict
 
 from core.agent_state import AgentState
 from core.board_layout import BoardLayout
@@ -29,6 +29,15 @@ from core.helpers import move_robber, roll_dice
 from core.phase_router import PhaseRouter, TurnPhase
 from core.trade_history import TradeHistory
 from core.trade_manager import TradeManager, TradeResponse
+
+
+class RobberEvent(TypedDict):
+    rolled_seven: bool
+    discarded: Dict[str, Dict[str, int]]
+    robber_moved: bool
+    moved_to: Optional[str]
+    stolen_from: Optional[str]
+    stolen_resource: Optional[str]
 
 
 class CatanEngine:
@@ -60,7 +69,7 @@ class CatanEngine:
 
         self.robber_pending = False
         self.last_roll: Optional[int] = None
-        self.last_robber_event: Optional[dict] = None
+        self.last_robber_event: Optional[RobberEvent] = None
 
         self.trade_history = TradeHistory()
         self.trade_manager = TradeManager(self.trade_history)
@@ -128,8 +137,11 @@ class CatanEngine:
             connection.owner = None
 
         desert = self.board.get_desert_tile()
-        if desert is not None:
-            self.board.move_robber_to_tile(desert.id)
+        if desert is None:
+            raise RuntimeError("Board layout must contain a desert tile")
+        if desert.id is None:
+            raise RuntimeError("Desert tile must have an id")
+        self.board.move_robber_to_tile(desert.id)
 
         self.winner = None
         self.resource_bank = dict(RESOURCE_SUPPLY_COUNTS)
@@ -720,6 +732,15 @@ class CatanEngine:
                 self.resource_bank[resource] += int(amount)
 
         discard_log = {resource.name: int(amount) for resource, amount in resources.items() if int(amount) > 0}
+        if self.last_robber_event is None:
+            self.last_robber_event = {
+                "rolled_seven": True,
+                "discarded": {},
+                "robber_moved": False,
+                "moved_to": None,
+                "stolen_from": None,
+                "stolen_resource": None,
+            }
         self.last_robber_event["discarded"][str(player_id)] = discard_log
 
         if self.robber_discard_queue and self.robber_discard_queue[0] == player_id:

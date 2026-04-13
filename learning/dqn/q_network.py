@@ -52,8 +52,9 @@ class QNetwork(nn.Module):
             if valid_actions.numel() == 0:
                 return 0
 
-            idx = torch.randint(valid_actions.numel(), (1,)).item()
-            return int(valid_actions[idx].item())
+            idx = int(torch.randint(valid_actions.numel(), (1,)).item())
+            action_idx = int(valid_actions[idx].detach().cpu().item())
+            return action_idx
 
         with torch.no_grad():
             q_values = self.forward(obs)

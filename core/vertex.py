@@ -1,16 +1,20 @@
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
 
 from core.constructions import Building
 from core.constants import BuildingType, PlayerId
 
+if TYPE_CHECKING:
+    from core.connection import Connection
+    from core.hex_tile import HexTile
+
 
 class Vertex:
-    def __init__(self, id=None):
-        self.id = id
-        self.edges: List = []
-        self.tiles: List = []
+    def __init__(self, id: Optional[int] = None):
+        self.id: Optional[int] = id
+        self.edges: List["Connection"] = []
+        self.tiles: List["HexTile"] = []
         self.neighbors: List["Vertex"] = []
         self.building: Optional[Building] = None
 
@@ -77,7 +81,7 @@ class Vertex:
         self.building.upgrade_to_city()
 
     def adjacent_player_roads(self, player_id: PlayerId, road_positions: dict) -> list[int]:
-        return [conn.id for conn in self.edges if conn.id in road_positions.get(player_id, set())]
+        return [conn.id for conn in self.edges if conn.id is not None and conn.id in road_positions.get(player_id, set())]
 
     def adjacent_opponent_building_blocks(self, player_id: PlayerId) -> bool:
         """

@@ -1,14 +1,23 @@
+from __future__ import annotations
+
+from typing import List, Optional, Tuple
+
 from core.constants import Resource
 
 
 class HexTile:
-    def __init__(self, resource: Resource = Resource.DESERT, number: int = None, id=None):
-        self.resource = resource
-        self.number = number
-        self.id = id
-
-        self.vertices = []
-        self.has_robber = False
+    def __init__(
+        self,
+        resource: Resource = Resource.DESERT,
+        number: Optional[int] = None,
+        id: Optional[int] = None,
+    ):
+        self.resource: Resource = resource
+        self.number: Optional[int] = number
+        self.id: Optional[int] = id
+        self.coord: Tuple[int, int] = (0, 0)
+        self.vertices: List["Vertex"] = []
+        self.has_robber: bool = False
 
     def is_desert(self) -> bool:
         return self.resource == Resource.DESERT

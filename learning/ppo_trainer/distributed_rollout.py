@@ -69,13 +69,14 @@ class DistributedRolloutManager:
             start_method = "forkserver" if "forkserver" in mp.get_all_start_methods() else "spawn"
 
         ctx = mp.get_context(start_method)
+        process_factory = getattr(ctx, "Process")
 
         self.remotes, self.work_remotes = zip(*[ctx.Pipe() for _ in range(n_processes)])
         self.processes = []
 
         for work_remote, remote, manager_fn in zip(self.work_remotes, self.remotes, rollout_manager_fns):
             args = (work_remote, remote, CloudpickleWrapper(manager_fn))
-            process = ctx.Process(target=_worker, args=args, daemon=True)
+            process = process_factory(target=_worker, args=args, daemon=True)
             process.start()
             self.processes.append(process)
             work_remote.close()

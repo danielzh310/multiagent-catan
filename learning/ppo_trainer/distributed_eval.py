@@ -5,6 +5,7 @@ Runs many Evaluator workers in subprocesses and aggregates results.
 """
 
 import multiprocessing as mp
+
 import torch
 
 from stable_baselines3.common.vec_env.base_vec_env import CloudpickleWrapper
@@ -67,13 +68,14 @@ class DistributedEvalManager:
             start_method = "forkserver" if "forkserver" in mp.get_all_start_methods() else "spawn"
 
         ctx = mp.get_context(start_method)
+        process_factory = getattr(ctx, "Process")
 
         self.remotes, self.work_remotes = zip(*[ctx.Pipe() for _ in range(n_processes)])
         self.processes = []
 
         for work_remote, remote, evaluator_fn in zip(self.work_remotes, self.remotes, evaluator_fns):
             args = (work_remote, remote, CloudpickleWrapper(evaluator_fn))
-            process = ctx.Process(target=_worker, args=args, daemon=True)
+            process = process_factory(target=_worker, args=args, daemon=True)
             process.start()
             self.processes.append(process)
             work_remote.close()
