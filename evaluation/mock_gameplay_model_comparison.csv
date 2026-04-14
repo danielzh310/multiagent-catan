@@ -1,0 +1,4 @@
+model,games_played,win_rate,avg_victory_points,avg_game_length_turns,avg_reward,build_efficiency,longest_road_rate,largest_army_rate,brick_wood_balance,notes
+Unified PPO,1000,0.418,8.72,126.4,0.031,0.781,0.462,0.317,0.84,"Best overall mock gameplay profile; stronger closing and board development."
+DQN Gameplay,1000,0.337,8.11,138.9,0.019,0.693,0.401,0.244,0.77,"Solid tactical play but less consistent endgame conversion."
+Heuristic Baseline,1000,0.245,7.38,151.7,0.008,0.601,0.356,0.181,0.71,"Stable but lower ceiling; simpler build priorities and weaker adaptation."

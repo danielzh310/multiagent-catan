@@ -1,0 +1,26 @@
+Parsed updates: 10000
+Update range: 0 to 9999
+gameplay_reward mean: 0.014797
+gameplay_reward min: 0.004600
+gameplay_reward max: 0.063000
+trade_reward mean: 0.002256
+trade_reward min: -0.008400
+trade_reward max: 0.008500
+gameplay_entropy mean: 0.663815
+gameplay_entropy min: 0.453300
+gameplay_entropy max: 1.196600
+trade_entropy mean: 1.751917
+trade_entropy min: 1.220400
+trade_entropy max: 2.717200
+gameplay_value_loss mean: 0.546568
+gameplay_value_loss min: 0.180000
+gameplay_value_loss max: 1.509300
+trade_value_loss mean: 0.444973
+trade_value_loss min: 0.021300
+trade_value_loss max: 0.806700
+tom_loss mean: 1.356658
+tom_loss min: 0.888320
+tom_loss max: 1.889189
+total_loss mean: 0.298537
+total_loss min: -0.406800
+total_loss max: 0.511300
