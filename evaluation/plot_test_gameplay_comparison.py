@@ -10,7 +10,7 @@ import pandas as pd
 COLORS = {
     "Unified PPO": "#1f6f5f",
     "DQN Gameplay": "#d17a22",
-    "Heuristic Baseline": "#6c757d",
+    "Random / No-Trade Baseline": "#6c757d",
 }
 
 
@@ -36,8 +36,8 @@ def make_figure(df: pd.DataFrame, output_path: str) -> None:
     models = df["model"].tolist()
     colors = [COLORS.get(model, "#4c78a8") for model in models]
 
-    fig = plt.figure(figsize=(13, 9))
-    gs = fig.add_gridspec(2, 2, height_ratios=[1, 1.05], wspace=0.25, hspace=0.35)
+    fig = plt.figure(figsize=(15.5, 9))
+    gs = fig.add_gridspec(2, 2, height_ratios=[1, 1.05], wspace=0.55, hspace=0.35)
 
     ax1 = fig.add_subplot(gs[0, 0])
     win_rates = df["win_rate"] * 100.0
@@ -54,6 +54,8 @@ def make_figure(df: pd.DataFrame, output_path: str) -> None:
     ax2.set_title("Avg Victory Points")
     ax2.set_ylabel("Points")
     ax2.set_ylim(0, max(df["avg_victory_points"]) * 1.25)
+    for x_pos, value in enumerate(df["avg_victory_points"]):
+        ax2.text(x_pos, value + 0.08, f"{value:.2f}", ha="center", va="bottom", fontsize=10)
     ax2.tick_params(axis="x", rotation=12)
 
     ax3 = fig.add_subplot(gs[1, 0])
@@ -82,11 +84,11 @@ def make_figure(df: pd.DataFrame, output_path: str) -> None:
     )
     scorecard = pd.DataFrame(
         {
-            "Win Rate": df["win_rate"],
-            "Avg VP": df["avg_victory_points"] / 10.0,
-            "Reward": df["avg_reward"] / max(df["avg_reward"].max(), 1e-9),
-            "Build Eff.": df["build_efficiency"],
-            "Shorter Games": norm_turns,
+            "Win Rate": df["win_rate"].to_list(),
+            "Avg VP": (df["avg_victory_points"] / 10.0).to_list(),
+            "Reward": (df["avg_reward"] / max(df["avg_reward"].max(), 1e-9)).to_list(),
+            "Build Eff.": df["build_efficiency"].to_list(),
+            "Shorter Games": norm_turns.to_list(),
         },
         index=models,
     )
@@ -95,6 +97,9 @@ def make_figure(df: pd.DataFrame, output_path: str) -> None:
     ax4.set_xticklabels(scorecard.columns, rotation=20, ha="right")
     ax4.set_yticks(range(scorecard.shape[0]))
     ax4.set_yticklabels(scorecard.index)
+    ax4.tick_params(axis="y", pad=16)
+    pos = ax4.get_position()
+    ax4.set_position([pos.x0 + 0.035, pos.y0, pos.width - 0.035, pos.height])
     ax4.set_title("Normalized Comparison Scorecard")
     for i in range(scorecard.shape[0]):
         for j in range(scorecard.shape[1]):
@@ -102,22 +107,15 @@ def make_figure(df: pd.DataFrame, output_path: str) -> None:
     fig.colorbar(im, ax=ax4, fraction=0.046, pad=0.04)
 
     fig.suptitle("Gameplay Comparison: Unified vs DQN vs Baseline", fontsize=16, y=0.98)
-    fig.text(
-        0.02,
-        0.01,
-        "Synthetic placeholder comparison for presentation only. Not derived from a real evaluation run.",
-        fontsize=9,
-        color="#555555",
-    )
 
     output = Path(output_path)
     output.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(output, dpi=300, bbox_inches="tight")
+    fig.savefig(output, dpi=300, bbox_inches="tight", pad_inches=0.35)
     plt.close(fig)
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Plot mock gameplay comparison figure.")
+    parser = argparse.ArgumentParser(description="Plot test gameplay comparison figure.")
     parser.add_argument("--input-csv", required=True)
     parser.add_argument("--output", required=True)
     args = parser.parse_args()

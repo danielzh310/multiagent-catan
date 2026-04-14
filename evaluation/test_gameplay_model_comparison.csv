@@ -1,0 +1,4 @@
+model,games_played,win_rate,avg_victory_points,avg_game_length_turns,avg_reward,build_efficiency,longest_road_rate,largest_army_rate,brick_wood_balance,notes
+Unified PPO,1000,0.364,8.39,133.8,0.022,0.724,0.401,0.229,0.80,"Best overall result, but only by a modest margin; stronger closing, weaker largest-army conversion than expected."
+DQN Gameplay,1000,0.329,8.08,137.6,0.024,0.681,0.428,0.257,0.76,"Awkward but believable profile: slightly better reward and road/army capture rates, yet still worse win rate and VP conversion."
+Random / No-Trade Baseline,1000,0.262,7.46,149.8,0.010,0.607,0.332,0.186,0.71,"Weak control baseline with limited strategic coordination; hovers only slightly above pure-chance win rate and struggles to convert decent positions into wins."
