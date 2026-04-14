@@ -1,0 +1,8 @@
+Parsed updates: 200
+Update range: 0 to 199
+gameplay_reward mean: 0.018020
+gameplay_reward min: -0.005000
+gameplay_reward max: 0.133400
+trade_reward mean: 0.000938
+trade_reward min: -0.008000
+trade_reward max: 0.008300

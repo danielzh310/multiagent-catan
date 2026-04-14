@@ -9,21 +9,18 @@ import pandas as pd
 
 
 UPDATE_RE = re.compile(r".*Update\s+(\d+).*")
-ROLLOUTS_RE = re.compile(r"rollouts\s*\|\s*gameplay=(\d+)\s+trade=(\d+)")
+ROLLOUTS_RE = re.compile(r"rollouts\s*\|\s*gameplay=(\d+)\s+trade=(\d+)\s+epsilon=([-+]?\d*\.?\d+)\s+replay=(\d+)")
 REWARD_RE = re.compile(
     r"reward\s*\|\s*gameplay=([-+]?\d*\.?\d+)\s+\(avg=([-+]?\d*\.?\d+)\)\s+trade=([-+]?\d*\.?\d+)\s+\(avg=([-+]?\d*\.?\d+)\)"
 )
 TRADE_ACTIONS_RE = re.compile(
     r"trade actions\s*\|\s*propose=(\d+)\s+accept=(\d+)\s+reject=(\d+)\s+counter=(\d+)\s+skip=(\d+)"
 )
-PPO_GAMEPLAY_RE = re.compile(
-    r"ppo gameplay\s*\|\s*policy=([-+]?\d*\.?\d+)\s+value=([-+]?\d*\.?\d+)\s+entropy=([-+]?\d*\.?\d+)\s+\(avg=([-+]?\d*\.?\d+)\)"
+DQN_GAMEPLAY_RE = re.compile(
+    r"dqn gameplay\s*\|\s*td=([-+]?\d*\.?\d+)\s+q=([-+]?\d*\.?\d+)\s+target_q=([-+]?\d*\.?\d+)"
 )
 PPO_TRADE_RE = re.compile(
-    r"ppo trade\s*\|\s*policy=([-+]?\d*\.?\d+)\s+value=([-+]?\d*\.?\d+)\s+entropy=([-+]?\d*\.?\d+)\s+\(avg=([-+]?\d*\.?\d+)\)\s+tom=([-+]?\d*\.?\d+)"
-)
-PPO_TOTAL_RE = re.compile(
-    r"ppo total\s*\|\s*loss=([-+]?\d*\.?\d+)\s+entropy_coef=([-+]?\d*\.?\d+)\s+gamma=([-+]?\d*\.?\d+)"
+    r"ppo trade\s*\|\s*policy=([-+]?\d*\.?\d+)\s+value=([-+]?\d*\.?\d+)\s+entropy=([-+]?\d*\.?\d+)\s+tom=([-+]?\d*\.?\d+)"
 )
 
 
@@ -53,24 +50,14 @@ def read_text_with_fallbacks(path: str) -> str:
                 break
             except UnicodeDecodeError as e:
                 last_error = e
-
         if text is None:
-            raise UnicodeDecodeError(
-                "unknown",
-                b"",
-                0,
-                1,
-                f"Could not decode file with tried encodings. Last error: {last_error}",
-            )
+            raise UnicodeDecodeError("unknown", b"", 0, 1, f"Could not decode file. Last error: {last_error}")
 
-    text = text.replace("\x00", "")
-    text = text.replace("\r\n", "\n").replace("\r", "\n")
-    return text
+    return text.replace("\x00", "").replace("\r\n", "\n").replace("\r", "\n")
 
 
 def parse_training_log(log_path: str) -> pd.DataFrame:
-    text = read_text_with_fallbacks(log_path)
-    lines = text.splitlines()
+    lines = read_text_with_fallbacks(log_path).splitlines()
 
     rows: List[Dict] = []
     current: Dict = {}
@@ -94,6 +81,8 @@ def parse_training_log(log_path: str) -> pd.DataFrame:
         if m:
             current["gameplay_rollouts"] = int(m.group(1))
             current["trade_rollouts"] = int(m.group(2))
+            current["epsilon"] = float(m.group(3))
+            current["replay_size"] = int(m.group(4))
             continue
 
         m = REWARD_RE.search(line)
@@ -113,12 +102,11 @@ def parse_training_log(log_path: str) -> pd.DataFrame:
             current["trade_skip"] = int(m.group(5))
             continue
 
-        m = PPO_GAMEPLAY_RE.search(line)
+        m = DQN_GAMEPLAY_RE.search(line)
         if m:
-            current["gameplay_policy_loss"] = float(m.group(1))
-            current["gameplay_value_loss"] = float(m.group(2))
-            current["gameplay_entropy"] = float(m.group(3))
-            current["gameplay_entropy_avg_logged"] = float(m.group(4))
+            current["dqn_td_loss"] = float(m.group(1))
+            current["dqn_q_mean"] = float(m.group(2))
+            current["dqn_target_q_mean"] = float(m.group(3))
             continue
 
         m = PPO_TRADE_RE.search(line)
@@ -126,15 +114,7 @@ def parse_training_log(log_path: str) -> pd.DataFrame:
             current["trade_policy_loss"] = float(m.group(1))
             current["trade_value_loss"] = float(m.group(2))
             current["trade_entropy"] = float(m.group(3))
-            current["trade_entropy_avg_logged"] = float(m.group(4))
-            current["tom_loss"] = float(m.group(5))
-            continue
-
-        m = PPO_TOTAL_RE.search(line)
-        if m:
-            current["total_loss"] = float(m.group(1))
-            current["entropy_coef"] = float(m.group(2))
-            current["gamma"] = float(m.group(3))
+            current["tom_loss"] = float(m.group(4))
             continue
 
     if current:
@@ -144,28 +124,24 @@ def parse_training_log(log_path: str) -> pd.DataFrame:
         raise ValueError("No updates were parsed from the log file.")
 
     df = pd.DataFrame(rows).sort_values("update").reset_index(drop=True)
-
-    numeric_cols = [c for c in df.columns if c != "update"]
-    for col in numeric_cols:
+    for col in [c for c in df.columns if c != "update"]:
         df[col] = pd.to_numeric(df[col], errors="coerce")
-
     return df
 
 
 def add_derived_metrics(df: pd.DataFrame) -> pd.DataFrame:
     out = df.copy()
-
     for col in [
         "gameplay_reward",
         "trade_reward",
-        "gameplay_entropy",
-        "trade_entropy",
-        "gameplay_value_loss",
-        "trade_value_loss",
-        "gameplay_policy_loss",
+        "dqn_td_loss",
+        "dqn_q_mean",
+        "dqn_target_q_mean",
         "trade_policy_loss",
+        "trade_value_loss",
+        "trade_entropy",
         "tom_loss",
-        "total_loss",
+        "epsilon",
     ]:
         if col in out.columns:
             out[f"{col}_ma10"] = moving_average(out[col], 10)
@@ -189,59 +165,73 @@ def add_derived_metrics(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def save_summary(df: pd.DataFrame, output_dir: str) -> None:
-    lines = []
-    lines.append(f"Parsed updates: {len(df)}")
-    lines.append(f"Update range: {int(df['update'].min())} to {int(df['update'].max())}")
+    lines = [
+        f"Parsed updates: {len(df)}",
+        f"Update range: {int(df['update'].min())} to {int(df['update'].max())}",
+    ]
 
     for col in [
         "gameplay_reward",
         "trade_reward",
-        "gameplay_entropy",
-        "trade_entropy",
-        "gameplay_value_loss",
+        "dqn_td_loss",
+        "trade_policy_loss",
         "trade_value_loss",
+        "trade_entropy",
         "tom_loss",
-        "total_loss",
+        "epsilon",
     ]:
         if col in df.columns and df[col].notna().any():
             lines.append(f"{col} mean: {df[col].mean():.6f}")
             lines.append(f"{col} min: {df[col].min():.6f}")
             lines.append(f"{col} max: {df[col].max():.6f}")
 
-    with open(os.path.join(output_dir, "unified_summary.txt"), "w", encoding="utf-8") as f:
+    with open(os.path.join(output_dir, "hybrid_summary.txt"), "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
 
 
-def save_phase_comparison_table(df: pd.DataFrame, output_dir: str) -> None:
-    phases = _phase_slices(df)
+def save_stability_table(df: pd.DataFrame, output_dir: str) -> None:
+    trade_policy_thresholds = [1e3, 1e4, 1e5, 1e6]
     rows = []
 
-    for phase_name, part in phases.items():
-        row = {"phase": phase_name, "updates": len(part)}
-        for col in [
-            "gameplay_reward",
-            "trade_reward",
-            "gameplay_entropy",
-            "trade_entropy",
-            "gameplay_value_loss",
-            "trade_value_loss",
-            "tom_loss",
-            "total_loss",
-        ]:
-            if col in part.columns and part[col].notna().any():
-                row[f"{col}_mean"] = float(part[col].mean())
+    for threshold in trade_policy_thresholds:
+        rows.append(
+            {
+                "metric": f"trade_policy_loss_gt_{threshold:.0e}",
+                "value": int((df.get("trade_policy_loss", pd.Series(dtype=float)) > threshold).sum()),
+            }
+        )
 
-        if {"trade_propose_rate", "trade_accept_rate", "trade_reject_rate", "trade_counter_rate", "trade_skip_rate"}.issubset(part.columns):
-            row["trade_propose_rate_mean"] = float(part["trade_propose_rate"].mean())
-            row["trade_accept_rate_mean"] = float(part["trade_accept_rate"].mean())
-            row["trade_reject_rate_mean"] = float(part["trade_reject_rate"].mean())
-            row["trade_counter_rate_mean"] = float(part["trade_counter_rate"].mean())
-            row["trade_skip_rate_mean"] = float(part["trade_skip_rate"].mean())
+    if "trade_reward" in df.columns:
+        rows.append(
+            {
+                "metric": "negative_trade_reward_updates",
+                "value": int((df["trade_reward"] < 0).sum()),
+            }
+        )
 
-        rows.append(row)
+    if {"trade_counter_rate", "trade_accept_rate"}.issubset(df.columns):
+        rows.append(
+            {
+                "metric": "high_counter_low_accept_updates",
+                "value": int(((df["trade_counter_rate"] > 0.5) & (df["trade_accept_rate"] < 0.1)).sum()),
+            }
+        )
+
+    if "trade_rollouts" in df.columns:
+        rows.append(
+            {
+                "metric": "high_trade_rollout_updates",
+                "value": int((df["trade_rollouts"] > df["trade_rollouts"].median()).sum()),
+            }
+        )
+
+    for col in ["trade_policy_loss", "trade_value_loss", "trade_entropy", "tom_loss", "dqn_td_loss"]:
+        if col in df.columns and df[col].notna().any():
+            rows.append({"metric": f"{col}_max", "value": float(df[col].max())})
+            rows.append({"metric": f"{col}_mean", "value": float(df[col].mean())})
 
     pd.DataFrame(rows).to_csv(
-        os.path.join(output_dir, "unified_phase_comparison.csv"),
+        os.path.join(output_dir, "hybrid_stability_table.csv"),
         index=False,
         encoding="utf-8",
     )
@@ -273,21 +263,59 @@ def plot_reward_overview(df: pd.DataFrame, output_dir: str) -> None:
     plt.ylabel("Reward")
     plt.legend()
 
-    _save("unified_reward_overview.png", output_dir)
+    _save("hybrid_reward_overview.png", output_dir)
 
 
-def plot_entropy_overview(df: pd.DataFrame, output_dir: str) -> None:
-    plt.figure(figsize=(10, 8))
+def plot_dqn_metrics(df: pd.DataFrame, output_dir: str) -> None:
+    plt.figure(figsize=(10, 10))
 
-    plt.subplot(2, 1, 1)
-    plt.plot(df["update"], df["gameplay_entropy"], alpha=0.35, label="Per-update gameplay entropy")
-    plt.plot(df["update"], df["gameplay_entropy_ma10"], linewidth=2.0, label="Gameplay entropy MA(10)")
-    plt.title("Gameplay Entropy")
+    plt.subplot(3, 1, 1)
+    plt.plot(df["update"], df["dqn_td_loss"], alpha=0.35, label="Per-update TD loss")
+    plt.plot(df["update"], df["dqn_td_loss_ma10"], linewidth=2.0, label="TD loss MA(10)")
+    plt.title("DQN TD Loss")
     plt.xlabel("Training update")
-    plt.ylabel("Entropy")
+    plt.ylabel("Loss")
     plt.legend()
 
-    plt.subplot(2, 1, 2)
+    plt.subplot(3, 1, 2)
+    plt.plot(df["update"], df["dqn_q_mean"], alpha=0.35, label="Per-update Q mean")
+    plt.plot(df["update"], df["dqn_q_mean_ma10"], linewidth=2.0, label="Q mean MA(10)")
+    plt.title("DQN Q Mean")
+    plt.xlabel("Training update")
+    plt.ylabel("Q")
+    plt.legend()
+
+    plt.subplot(3, 1, 3)
+    plt.plot(df["update"], df["dqn_target_q_mean"], alpha=0.35, label="Per-update target Q mean")
+    plt.plot(df["update"], df["dqn_target_q_mean_ma10"], linewidth=2.0, label="Target Q mean MA(10)")
+    plt.title("DQN Target Q Mean")
+    plt.xlabel("Training update")
+    plt.ylabel("Target Q")
+    plt.legend()
+
+    _save("hybrid_dqn_metrics.png", output_dir)
+
+
+def plot_trade_metrics(df: pd.DataFrame, output_dir: str) -> None:
+    plt.figure(figsize=(10, 10))
+
+    plt.subplot(3, 1, 1)
+    plt.plot(df["update"], df["trade_policy_loss"], alpha=0.35, label="Per-update trade policy loss")
+    plt.plot(df["update"], df["trade_policy_loss_ma10"], linewidth=2.0, label="Trade policy MA(10)")
+    plt.title("Trade Policy Loss")
+    plt.xlabel("Training update")
+    plt.ylabel("Loss")
+    plt.legend()
+
+    plt.subplot(3, 1, 2)
+    plt.plot(df["update"], df["trade_value_loss"], alpha=0.35, label="Per-update trade value loss")
+    plt.plot(df["update"], df["trade_value_loss_ma10"], linewidth=2.0, label="Trade value MA(10)")
+    plt.title("Trade Value Loss")
+    plt.xlabel("Training update")
+    plt.ylabel("Loss")
+    plt.legend()
+
+    plt.subplot(3, 1, 3)
     plt.plot(df["update"], df["trade_entropy"], alpha=0.35, label="Per-update trade entropy")
     plt.plot(df["update"], df["trade_entropy_ma10"], linewidth=2.0, label="Trade entropy MA(10)")
     plt.title("Trade Entropy")
@@ -295,51 +323,7 @@ def plot_entropy_overview(df: pd.DataFrame, output_dir: str) -> None:
     plt.ylabel("Entropy")
     plt.legend()
 
-    _save("unified_entropy_overview.png", output_dir)
-
-
-def plot_value_losses(df: pd.DataFrame, output_dir: str) -> None:
-    plt.figure(figsize=(10, 8))
-
-    plt.subplot(2, 1, 1)
-    plt.plot(df["update"], df["gameplay_value_loss"], alpha=0.35, label="Per-update gameplay value loss")
-    plt.plot(df["update"], df["gameplay_value_loss_ma10"], linewidth=2.0, label="Gameplay value MA(10)")
-    plt.title("Gameplay Value Loss")
-    plt.xlabel("Training update")
-    plt.ylabel("Value loss")
-    plt.legend()
-
-    plt.subplot(2, 1, 2)
-    plt.plot(df["update"], df["trade_value_loss"], alpha=0.35, label="Per-update trade value loss")
-    plt.plot(df["update"], df["trade_value_loss_ma10"], linewidth=2.0, label="Trade value MA(10)")
-    plt.title("Trade Value Loss")
-    plt.xlabel("Training update")
-    plt.ylabel("Value loss")
-    plt.legend()
-
-    _save("unified_value_losses.png", output_dir)
-
-
-def plot_policy_losses(df: pd.DataFrame, output_dir: str) -> None:
-    plt.figure(figsize=(10, 8))
-
-    plt.subplot(2, 1, 1)
-    plt.plot(df["update"], df["gameplay_policy_loss"], alpha=0.35, label="Per-update gameplay policy loss")
-    plt.plot(df["update"], df["gameplay_policy_loss_ma10"], linewidth=2.0, label="Gameplay policy MA(10)")
-    plt.title("Gameplay Policy Loss")
-    plt.xlabel("Training update")
-    plt.ylabel("Policy loss")
-    plt.legend()
-
-    plt.subplot(2, 1, 2)
-    plt.plot(df["update"], df["trade_policy_loss"], alpha=0.35, label="Per-update trade policy loss")
-    plt.plot(df["update"], df["trade_policy_loss_ma10"], linewidth=2.0, label="Trade policy MA(10)")
-    plt.title("Trade Policy Loss")
-    plt.xlabel("Training update")
-    plt.ylabel("Policy loss")
-    plt.legend()
-
-    _save("unified_policy_losses.png", output_dir)
+    _save("hybrid_trade_metrics.png", output_dir)
 
 
 def plot_trade_actions(df: pd.DataFrame, output_dir: str) -> None:
@@ -356,13 +340,21 @@ def plot_trade_actions(df: pd.DataFrame, output_dir: str) -> None:
     plt.xlabel("Training update")
     plt.ylabel("Fraction of trade decisions")
     plt.legend()
-    _save("unified_trade_action_distribution.png", output_dir)
+    _save("hybrid_trade_action_distribution.png", output_dir)
 
 
-def plot_tom_and_total(df: pd.DataFrame, output_dir: str) -> None:
+def plot_schedule_and_tom(df: pd.DataFrame, output_dir: str) -> None:
     plt.figure(figsize=(10, 8))
 
     plt.subplot(2, 1, 1)
+    plt.plot(df["update"], df["epsilon"], alpha=0.35, label="Per-update epsilon")
+    plt.plot(df["update"], df["epsilon_ma10"], linewidth=2.0, label="Epsilon MA(10)")
+    plt.title("DQN Epsilon")
+    plt.xlabel("Training update")
+    plt.ylabel("Epsilon")
+    plt.legend()
+
+    plt.subplot(2, 1, 2)
     plt.plot(df["update"], df["tom_loss"], alpha=0.35, label="Per-update ToM loss")
     plt.plot(df["update"], df["tom_loss_ma10"], linewidth=2.0, label="ToM loss MA(10)")
     plt.title("ToM Loss")
@@ -370,15 +362,7 @@ def plot_tom_and_total(df: pd.DataFrame, output_dir: str) -> None:
     plt.ylabel("Loss")
     plt.legend()
 
-    plt.subplot(2, 1, 2)
-    plt.plot(df["update"], df["total_loss"], alpha=0.35, label="Per-update total loss")
-    plt.plot(df["update"], df["total_loss_ma10"], linewidth=2.0, label="Total loss MA(10)")
-    plt.title("Total PPO Loss")
-    plt.xlabel("Training update")
-    plt.ylabel("Loss")
-    plt.legend()
-
-    _save("unified_tom_and_total_loss.png", output_dir)
+    _save("hybrid_schedule_and_tom.png", output_dir)
 
 
 def _phase_slices(df: pd.DataFrame) -> Dict[str, pd.DataFrame]:
@@ -428,7 +412,7 @@ def plot_box_whisker_overview(df: pd.DataFrame, output_dir: str) -> None:
     plotted += int(_boxplot_metric_by_phase(df, "trade_reward", "Trade Reward Distribution", "Reward"))
 
     plt.subplot(2, 2, 3)
-    plotted += int(_boxplot_metric_by_phase(df, "gameplay_entropy", "Gameplay Entropy Distribution", "Entropy"))
+    plotted += int(_boxplot_metric_by_phase(df, "dqn_td_loss", "DQN TD Loss Distribution", "Loss"))
 
     plt.subplot(2, 2, 4)
     plotted += int(_boxplot_metric_by_phase(df, "trade_entropy", "Trade Entropy Distribution", "Entropy"))
@@ -437,38 +421,33 @@ def plot_box_whisker_overview(df: pd.DataFrame, output_dir: str) -> None:
         plt.close()
         return
 
-    _save("unified_box_whisker_overview.png", output_dir)
+    _save("hybrid_box_whisker_overview.png", output_dir)
 
 
 def main():
     import argparse
 
-    parser = argparse.ArgumentParser(description="Parse unified PPO logs and generate diagnostics.")
+    parser = argparse.ArgumentParser(description="Parse hybrid_v2 logs and generate diagnostics.")
     parser.add_argument("--log-file", type=str, required=True)
-    parser.add_argument("--output-dir", type=str, default="unified_figures")
+    parser.add_argument("--output-dir", type=str, default="hybrid_figures")
     args = parser.parse_args()
 
     os.makedirs(args.output_dir, exist_ok=True)
 
     df = parse_training_log(args.log_file)
     df = add_derived_metrics(df)
-
-    csv_path = os.path.join(args.output_dir, "parsed_unified_metrics.csv")
-    df.to_csv(csv_path, index=False, encoding="utf-8")
+    df.to_csv(os.path.join(args.output_dir, "parsed_hybrid_metrics.csv"), index=False)
 
     save_summary(df, args.output_dir)
-    save_phase_comparison_table(df, args.output_dir)
-
+    save_stability_table(df, args.output_dir)
     plot_reward_overview(df, args.output_dir)
-    plot_entropy_overview(df, args.output_dir)
-    plot_value_losses(df, args.output_dir)
-    plot_policy_losses(df, args.output_dir)
+    plot_dqn_metrics(df, args.output_dir)
+    plot_trade_metrics(df, args.output_dir)
     plot_trade_actions(df, args.output_dir)
-    plot_tom_and_total(df, args.output_dir)
+    plot_schedule_and_tom(df, args.output_dir)
     plot_box_whisker_overview(df, args.output_dir)
 
-    print(f"Saved figures and CSV to: {args.output_dir}")
-    print(f"CSV: {csv_path}")
+    print(f"Saved hybrid diagnostics to {args.output_dir}")
 
 
 if __name__ == "__main__":
