@@ -103,6 +103,7 @@ class UnifiedPPOTrainer:
             "board": torch.cat([x["obs"]["board"] for x in storage], dim=0).to(self.device),
             "self": torch.cat([x["obs"]["self"] for x in storage], dim=0).to(self.device),
             "opponent": torch.cat([x["obs"]["opponent"] for x in storage], dim=0).to(self.device),
+            "global_state": torch.cat([x["obs"]["global_state"] for x in storage], dim=0).to(self.device),
             "gameplay_candidates": torch.cat([x["obs"]["gameplay_candidates"] for x in storage], dim=0).to(self.device),
             "gameplay_mask": torch.cat([x["obs"]["gameplay_mask"] for x in storage], dim=0).to(self.device),
             "trade_candidates": torch.cat([x["obs"]["trade_candidates"] for x in storage], dim=0).to(self.device),
@@ -129,7 +130,7 @@ class UnifiedPPOTrainer:
         advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
         return returns, advantages
 
-    def _trade_targets(self, storage: List[Dict], idxs: List[int]):
+    def _trade_targets(self, storage: List[Dict], idxs: List[int], gameplay_need_events: List[Dict]):
         trade_events = []
         for i in idxs:
             env_action = storage[i].get("env_action", {})
@@ -153,6 +154,14 @@ class UnifiedPPOTrainer:
                 }
             )
 
+        # Add gameplay need events as additional supervision for stronger ToM
+        for event in gameplay_need_events:
+            trade_events.append({
+                "response_type": "gameplay_need",
+                "offer": event["needed_resources"],  # Treat needed resources as what they wanted
+                "counter_request": None,
+            })
+
         need_targets, need_mask = build_batch_need_targets(trade_events)
         return need_targets.to(self.device), need_mask.to(self.device)
 
@@ -164,6 +173,7 @@ class UnifiedPPOTrainer:
         advantages: torch.Tensor,
         old_values: torch.Tensor,
         phase_name: str,
+        gameplay_need_events: Optional[List[Dict]] = None,
     ):
         idxs = [i for i, x in enumerate(storage) if x["phase"] == phase_name]
         if not idxs:
@@ -190,7 +200,7 @@ class UnifiedPPOTrainer:
                 "trade_action": torch.cat([storage[i]["action"]["trade_action"] for i in idxs], dim=0).to(self.device),
             }
             old_log_prob = torch.cat([storage[i]["log_prob"]["trade_action"] for i in idxs], dim=0).to(self.device)
-            need_targets, need_mask = self._trade_targets(storage, idxs)
+            need_targets, need_mask = self._trade_targets(storage, idxs, gameplay_need_events or [])
 
         return {
             "idxs": idxs,
@@ -314,7 +324,7 @@ class UnifiedPPOTrainer:
             "tom_loss": float(sum(tom_losses) / max(len(tom_losses), 1)),
         }
 
-    def update(self, storage: List[Dict]) -> Dict[str, float]:
+    def update(self, storage: List[Dict], gameplay_need_events: List[Dict]) -> Dict[str, float]:
         if len(storage) == 0:
             return {
                 "gameplay_policy_loss": 0.0,
@@ -338,7 +348,7 @@ class UnifiedPPOTrainer:
         returns, advantages = self._compute_returns_advantages(rewards, old_values, dones)
 
         gp_batch = self._phase_batch_tensors(storage, obs, returns, advantages, old_values, "gameplay")
-        tr_batch = self._phase_batch_tensors(storage, obs, returns, advantages, old_values, "trade")
+        tr_batch = self._phase_batch_tensors(storage, obs, returns, advantages, old_values, "trade", gameplay_need_events)
 
         gp = self._optimize_phase("gameplay", gp_batch)
         tr = self._optimize_phase("trade", tr_batch)
@@ -596,7 +606,7 @@ def train(args: argparse.Namespace) -> None:
             progress = update / float(max(args.num_updates - 1, 1))
             trainer.set_progress(progress)
 
-            raw_storage = rollout_manager.collect(policy=policy, steps=args.rollout_steps)
+            raw_storage, gameplay_need_events = rollout_manager.collect(policy=policy, steps=args.rollout_steps)
 
             # Process game statistics from completed games in this rollout
             game_summaries = rollout_manager.game_stats_buffer
@@ -616,7 +626,7 @@ def train(args: argparse.Namespace) -> None:
             storage = apply_shaped_rewards(raw_storage, reward_shaper, progress=progress, policy_need_predictor=trainer.policy.need_predictor)
 
             stats = compute_rollout_stats(storage)
-            metrics = trainer.update(storage)
+            metrics = trainer.update(storage, gameplay_need_events)
 
             gameplay_reward_window.append(stats["gameplay_reward_mean"])
             trade_reward_window.append(stats["trade_reward_mean"])

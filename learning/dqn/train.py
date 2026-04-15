@@ -54,6 +54,8 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--gamma", type=float, default=0.99)
     parser.add_argument("--target-update-freq", type=int, default=1000)
+    parser.add_argument("--save-freq", type=int, default=1000, help="Checkpoint save frequency")
+    parser.add_argument("--resume-from", type=str, default=None, help="Resume from checkpoint")
     return parser
 
 
@@ -350,6 +352,9 @@ def train(args: argparse.Namespace) -> None:
     if torch.cuda.is_available():
         torch.cuda.manual_seed_all(args.seed)
 
+    # Create directories
+    os.makedirs(args.checkpoint_dir, exist_ok=True)
+
     # Initialize DQN trainer with Catan-compatible dimensions
     trainer = DQNTrainer(
         board_dim=args.board_dim,
@@ -363,6 +368,17 @@ def train(args: argparse.Namespace) -> None:
         target_update_freq=args.target_update_freq,
     )
 
+    # Resume from checkpoint if specified
+    start_update = 0
+    if args.resume_from:
+        checkpoint_path = os.path.join(args.checkpoint_dir, args.resume_from)
+        if os.path.exists(checkpoint_path):
+            trainer.load(checkpoint_path)
+            start_update = int(args.resume_from.split('_')[-1].split('.')[0])
+            print(f"Resumed from update {start_update}")
+        else:
+            print(f"Checkpoint {checkpoint_path} not found, starting from scratch")
+
     replay_buffer = ReplayBuffer(args.buffer_size)
     epsilon_scheduler = EpsilonScheduler()
 
@@ -375,50 +391,62 @@ def train(args: argparse.Namespace) -> None:
 
     env = CatanEnv()
 
-    for update in range(args.num_updates):
-        # Collect rollout
-        epsilon = epsilon_scheduler.value(update)
-        rollout = collect_rollout(env, trainer, epsilon, device)
+    update = start_update
+    try:
+        while update < args.num_updates:
+            # Collect rollout
+            epsilon = epsilon_scheduler.value(update)
+            rollout = collect_rollout(env, trainer, epsilon, device)
 
-        # Add to replay buffer
-        for transition in rollout:
-            replay_buffer.add(
-                obs=transition["obs"],
-                action=transition["action"],
-                reward=transition["reward"],
-                next_obs=transition["next_obs"],
-                done=transition["done"],
-                phase=transition["phase"],
-            )
+            # Add to replay buffer
+            for transition in rollout:
+                replay_buffer.add(
+                    obs=transition["obs"],
+                    action=transition["action"],
+                    reward=transition["reward"],
+                    next_obs=transition["next_obs"],
+                    done=transition["done"],
+                    phase=transition["phase"],
+                )
 
-        # Update if buffer has enough data
-        if len(replay_buffer) >= args.batch_size:
-            batch = replay_buffer.sample(args.batch_size)
+            # Update if buffer has enough data
+            if len(replay_buffer) >= args.batch_size:
+                batch = replay_buffer.sample(args.batch_size)
 
-            # Convert batch to proper format for trainer
-            formatted_batch = {
-                "obs": stack_items([item.obs for item in batch]),
-                "actions": {
-                    phase: stack_items([item.action[f"{phase}_action"] for item in batch if item.phase == phase])
-                    for phase in ["gameplay", "trade"] if any(item.phase == phase for item in batch)
-                },
-                "rewards": torch.tensor([item.reward for item in batch], dtype=torch.float32),
-                "next_obs": stack_items([item.next_obs for item in batch]),
-                "dones": torch.tensor([item.done for item in batch], dtype=torch.float32),
-                "phases": [item.phase for item in batch],
-            }
+                # Convert batch to proper format for trainer
+                formatted_batch = {
+                    "obs": stack_items([item.obs for item in batch]),
+                    "actions": {
+                        phase: stack_items([item.action[f"{phase}_action"] for item in batch if item.phase == phase])
+                        for phase in ["gameplay", "trade"] if any(item.phase == phase for item in batch)
+                    },
+                    "rewards": torch.tensor([item.reward for item in batch], dtype=torch.float32),
+                    "next_obs": stack_items([item.next_obs for item in batch]),
+                    "dones": torch.tensor([item.done for item in batch], dtype=torch.float32),
+                    "phases": [item.phase for item in batch],
+                }
 
-            metrics = trainer.update(formatted_batch)
-            loss_window.append(metrics["td_loss"])
+                metrics = trainer.update(formatted_batch)
+                loss_window.append(metrics["td_loss"])
 
-            avg_loss = sum(loss_window) / len(loss_window)
+                avg_loss = sum(loss_window) / len(loss_window)
 
-            if update % 100 == 0:
-                print(f"Update {update}: td_loss={avg_loss:.4f}, q_mean={metrics['q_mean']:.4f}")
+                if update > 0 and update % 100 == 0:
+                    print(f"Update {update}: td_loss={avg_loss:.4f}, q_mean={metrics['q_mean']:.4f}")
 
-        if (update + 1) % 1000 == 0:
-            path = save_checkpoint(trainer, args.checkpoint_dir, update + 1)
-            print(f"saved checkpoint -> {path}")
+            update += 1
+
+            if update > 0 and update % args.save_freq == 0:
+                path = save_checkpoint(trainer, args.checkpoint_dir, update)
+                print(f"saved checkpoint -> {path}")
+
+    except KeyboardInterrupt:
+        print("Training interrupted by user")
+    finally:
+        # Save final checkpoint
+        final_checkpoint_path = os.path.join(args.checkpoint_dir, f"dqn_final_{update}.pt")
+        trainer.save(final_checkpoint_path)
+        print(f"Saved final checkpoint: {final_checkpoint_path}")
 
     print("DQN baseline training complete")
 

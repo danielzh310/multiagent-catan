@@ -173,13 +173,15 @@ class DQNTrainer:
     def save(self, path: str) -> None:
         torch.save(
             {
-                "policy": self.policy.state_dict(),
-                "target_policy": self.target_policy.state_dict(),
+                "policy_state_dict": self.policy.state_dict(),
+                "target_policy_state_dict": self.target_policy.state_dict(),
+                "optimizer_state_dict": self.optimizer.state_dict(),
             },
             path,
         )
 
     def load(self, path: str) -> None:
         checkpoint = torch.load(path, map_location=self.device)
-        self.policy.load_state_dict(checkpoint["policy"])
-        self.target_policy.load_state_dict(checkpoint["target_policy"])
+        self.policy.load_state_dict(checkpoint["policy_state_dict"])
+        self.target_policy.load_state_dict(checkpoint["target_policy_state_dict"])
+        self.optimizer.load_state_dict(checkpoint["optimizer_state_dict"])

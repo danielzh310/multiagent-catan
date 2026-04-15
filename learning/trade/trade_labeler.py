@@ -39,7 +39,7 @@ def normalize_target(x: torch.Tensor) -> torch.Tensor:
 
 def build_need_target_from_trade_event(event: Dict) -> Tuple[torch.Tensor, float]:
     """
-    Weak supervision target from observed trade behavior.
+    Weak supervision target from observed trade behavior and gameplay actions.
 
     Accepted trade:
       - target likely wanted what was offered to them
@@ -47,6 +47,8 @@ def build_need_target_from_trade_event(event: Dict) -> Tuple[torch.Tensor, float
       - weak negative / uniform fallback
     Counter trade:
       - use the counter_request if available, otherwise weak uniform
+    Gameplay need:
+      - direct supervision from resource costs of build actions
     """
     response_type = event.get("response_type", "")
     offer = event.get("offer", None)
@@ -64,6 +66,11 @@ def build_need_target_from_trade_event(event: Dict) -> Tuple[torch.Tensor, float
 
     if response_type == "reject":
         return normalize_target(_empty_target()), 0.0
+
+    if response_type == "gameplay_need":
+        # Strong supervision from gameplay actions
+        target = resource_dict_to_tensor(offer)
+        return normalize_target(target), 1.0
 
     return normalize_target(_empty_target()), 0.0
 

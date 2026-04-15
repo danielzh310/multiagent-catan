@@ -88,6 +88,7 @@ class UnifiedPolicy(nn.Module):
         board_dim: int = 64,
         self_dim: int = 64,
         opponent_dim: int = 64,
+        global_dim: int = 265,
         hidden_dim: int = 192,
         resources: int = 5,
     ):
@@ -105,6 +106,12 @@ class UnifiedPolicy(nn.Module):
             nn.Linear(opponent_dim, hidden_dim),
             nn.ReLU(),
         )
+        self.global_encoder = nn.Sequential(
+            nn.Linear(global_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU(),
+        )
 
         self.fusion = nn.Sequential(
             nn.Linear(hidden_dim * 3, hidden_dim),
@@ -115,33 +122,38 @@ class UnifiedPolicy(nn.Module):
         )
 
         self.need_predictor = OpponentNeedPredictor(
-            input_dim=hidden_dim,
+            input_dim=hidden_dim * 2,
             hidden_dim=hidden_dim,
             num_resources=resources,
         )
 
         self.gameplay_value_head = nn.Linear(hidden_dim, 1)
         self.trade_value_head = nn.Linear(hidden_dim, 1)
+        self.central_value_head = nn.Linear(hidden_dim * 2, 1)
         self.action_heads = UnifiedActionHeads(
             hidden_dim=hidden_dim,
             num_resources=resources,
         )
 
-    def encode(self, obs: Dict[str, torch.Tensor]) -> Tuple[torch.Tensor, torch.Tensor]:
+    def encode(self, obs: Dict[str, torch.Tensor]) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         board_emb = self.board_encoder(obs["board"])
         self_emb = self.self_encoder(obs["self"])
         opp_emb = self.opponent_encoder(obs["opponent"])
 
-        trunk = self.fusion(torch.cat([board_emb, self_emb, opp_emb], dim=-1))
-        need_pred = self.need_predictor(opp_emb)
+        global_emb = torch.zeros_like(opp_emb)
+        if "global_state" in obs:
+            global_emb = self.global_encoder(obs["global_state"])
 
-        return trunk, need_pred
+        trunk = self.fusion(torch.cat([board_emb, self_emb, opp_emb], dim=-1))
+        need_pred = self.need_predictor(torch.cat([opp_emb, global_emb], dim=-1))
+
+        return trunk, global_emb, need_pred
 
     def forward(
         self,
         obs: Dict[str, torch.Tensor],
-    ) -> tuple[Dict[str, torch.Tensor], torch.Tensor, Dict[str, torch.Tensor]]:
-        trunk, need_pred = self.encode(obs)
+    ) -> tuple[Dict[str, torch.Tensor], torch.Tensor, Dict[str, torch.Tensor], torch.Tensor]:
+        trunk, global_emb, need_pred = self.encode(obs)
         logits = self.action_heads(
             trunk,
             obs["gameplay_candidates"],
@@ -151,16 +163,20 @@ class UnifiedPolicy(nn.Module):
             opponent_needs=need_pred,  # Pass opponent needs for bilateral trade optimization
         )
         tom_outputs = {"need_pred": need_pred}
-        return logits, trunk, tom_outputs
+        return logits, trunk, tom_outputs, global_emb
 
-    def _phase_value(self, trunk: torch.Tensor, phase: str) -> torch.Tensor:
+    def _phase_value(self, trunk: torch.Tensor, global_emb: torch.Tensor, phase: str) -> torch.Tensor:
+        if global_emb is not None:
+            combined = torch.cat([trunk, global_emb], dim=-1)
+            return self.central_value_head(combined)
+
         if phase == "gameplay":
             return self.gameplay_value_head(trunk)
         return self.trade_value_head(trunk)
 
     def act(self, obs: Dict[str, torch.Tensor], phase: str, deterministic: bool = False):
-        logits, trunk, tom_outputs = self.forward(obs)
-        value = self._phase_value(trunk, phase)
+        logits, trunk, tom_outputs, global_emb = self.forward(obs)
+        value = self._phase_value(trunk, global_emb, phase)
 
         if phase == "gameplay":
             dist = torch.distributions.Categorical(logits=logits["gameplay"])
@@ -175,8 +191,8 @@ class UnifiedPolicy(nn.Module):
         return value, {"trade_action": action}, {"trade_action": log_prob}, tom_outputs
 
     def evaluate_actions(self, obs: Dict[str, torch.Tensor], actions: Dict[str, torch.Tensor], phase: str):
-        logits, trunk, tom_outputs = self.forward(obs)
-        value = self._phase_value(trunk, phase)
+        logits, trunk, tom_outputs, global_emb = self.forward(obs)
+        value = self._phase_value(trunk, global_emb, phase)
 
         if phase == "gameplay":
             dist = torch.distributions.Categorical(logits=logits["gameplay"])
