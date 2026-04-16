@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import multiprocessing as mp
+import sys
 import traceback
 from multiprocessing.connection import Connection
 from typing import Any, Dict, List, Optional, Tuple
@@ -11,6 +12,8 @@ import torch
 from core.constants import PlayerId, Resource
 from core.phase_router import TurnPhase
 from environment.catan_env import CatanEnv
+from learning.unified.unified_policy import UnifiedPolicy
+
 
 def _worker_build_obs(
     obs_raw: Dict,
@@ -142,27 +145,70 @@ def _worker_build_obs(
         "trade_candidates": trade_np, "trade_mask": trade_mask_np,
     }
 
+def _infer_hidden_dim_from_state_dict(state_dict: Dict[str, Any], default: int = 192) -> int:
+    for key in ["board_encoder.0.weight", "self_encoder.0.weight", "opponent_encoder.0.weight", "global_encoder.0.weight"]:
+        if key in state_dict:
+            weight = state_dict[key]
+            if isinstance(weight, torch.Tensor) and weight.dim() >= 2:
+                return int(weight.size(0))
+    return default
+
+
+def _filter_compatible_state_dict(model: torch.nn.Module, state_dict: Dict[str, Any]) -> Dict[str, Any]:
+    compatible: Dict[str, Any] = {}
+    model_state = model.state_dict()
+    for key, value in state_dict.items():
+        if key not in model_state:
+            continue
+        model_param = model_state[key]
+        if isinstance(model_param, torch.Tensor) and isinstance(value, torch.Tensor):
+            if value.shape != model_param.shape:
+                print(
+                    f"Skipping incompatible checkpoint key {key}: {tuple(value.shape)} vs {tuple(model_param.shape)}",
+                    file=sys.stderr,
+                )
+                continue
+        compatible[key] = value
+    return compatible
+
+
 def _worker(
     worker_id: int,
     env_indices: List[int],
     cmd_pipe: Connection,
     enable_trading: bool,
     max_steps: Optional[int],
+    opponent_paths: Optional[List[str]] = None,
 ) -> None:
     """
     Runs a subset of CatanEnv instances in a separate process.
     Listens on `cmd_pipe` for commands and sends results back.
-
-    Protocol (all messages are plain Python objects, pickle-able):
-      cmd: ("reset", [idx, ...])          -> list of (idx, obs_dict)
-      cmd: ("step", [(idx, action), ...]) -> list of (idx, obs_dict, reward, done, info)
-      cmd: ("get_obs", [idx, ...])        -> list of (idx, obs_dict)
-      cmd: ("close",)                     -> exits loop
     """
+    # Load opponent policies from the provided paths.
+    # These will be shared across all envs in this worker.
+    opponent_policies = []
+    if opponent_paths:
+        for path in opponent_paths:
+            try:
+                ckpt = torch.load(path, map_location="cpu")
+                policy_state = ckpt.get("policy", ckpt)
+                hidden_dim = _infer_hidden_dim_from_state_dict(policy_state)
+                opp_policy = UnifiedPolicy(hidden_dim=hidden_dim)
+                compatible_state = _filter_compatible_state_dict(opp_policy, policy_state)
+                opp_policy.load_state_dict(compatible_state, strict=False)
+                opp_policy.eval()
+                opponent_policies.append(opp_policy)
+            except Exception:
+                traceback.print_exc(file=sys.stderr)
+
     # Build only the envs owned by this worker
     envs: Dict[int, CatanEnv] = {}
     for idx in env_indices:
-        envs[idx] = CatanEnv(enable_trading=enable_trading, max_steps=max_steps)
+        envs[idx] = CatanEnv(
+            enable_trading=enable_trading,
+            max_steps=max_steps,
+            opponent_policies=opponent_policies,  # Assumes CatanEnv accepts this
+        )
         envs[idx].reset()
 
     try:
@@ -284,6 +330,7 @@ class AsyncVectorEnv:
         num_workers: int,
         enable_trading: bool = True,
         max_steps: Optional[int] = None,
+        opponent_paths: Optional[List[str]] = None,
     ):
         self.num_envs = num_envs
         self.num_workers = min(num_workers, num_envs)
@@ -309,7 +356,7 @@ class AsyncVectorEnv:
             parent_conn, child_conn = ctx.Pipe(duplex=True)
             proc = process_factory(
                 target=_worker,
-                args=(w, self._worker_env_indices[w], child_conn, enable_trading, max_steps),
+                args=(w, self._worker_env_indices[w], child_conn, enable_trading, max_steps, opponent_paths),
                 daemon=True,
             )
             proc.start()
@@ -632,6 +679,7 @@ class UnifiedRolloutManager:
         enable_trading: bool = True,
         max_steps: int | None = None,
         num_workers: int | None = None,
+        opponent_paths: Optional[List[str]] = None,
     ):
         self.num_envs = num_envs
         self.device = device
@@ -649,6 +697,7 @@ class UnifiedRolloutManager:
             num_workers=num_workers,
             enable_trading=enable_trading,
             max_steps=max_steps,
+            opponent_paths=opponent_paths,
         )
 
     def _phase_name(self, phase: TurnPhase) -> str:

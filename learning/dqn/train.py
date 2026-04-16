@@ -16,6 +16,7 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
+from learning.league.league_manager import LeagueManager
 from core.constants import Resource
 from core.phase_router import TurnPhase
 from environment.catan_env import CatanEnv
@@ -34,7 +35,7 @@ TRADE_FEATURE_DIM = 32
 def save_checkpoint(trainer: DQNTrainer, save_dir: str, step: int, prefix: str = "dqn_checkpoint") -> str:
     os.makedirs(save_dir, exist_ok=True)
     path = os.path.join(save_dir, f"{prefix}_{step}.pt")
-    trainer.save(path)
+    trainer.save(path, step)
     return path
 
 
@@ -345,6 +346,7 @@ def collect_rollout(
 
 
 def train(args: argparse.Namespace) -> None:
+    global league
     device = args.device
 
     random.seed(args.seed)
@@ -370,14 +372,18 @@ def train(args: argparse.Namespace) -> None:
 
     # Resume from checkpoint if specified
     start_update = 0
+    load_existing = False
     if args.resume_from:
         checkpoint_path = os.path.join(args.checkpoint_dir, args.resume_from)
         if os.path.exists(checkpoint_path):
             trainer.load(checkpoint_path)
             start_update = int(args.resume_from.split('_')[-1].split('.')[0])
+            load_existing = True
             print(f"Resumed from update {start_update}")
         else:
             print(f"Checkpoint {checkpoint_path} not found, starting from scratch")
+
+    league = LeagueManager(checkpoint_dir=args.checkpoint_dir, frozen_ratio=0.2, load_existing=load_existing)
 
     replay_buffer = ReplayBuffer(args.buffer_size)
     epsilon_scheduler = EpsilonScheduler()
@@ -389,11 +395,31 @@ def train(args: argparse.Namespace) -> None:
         f"(batch_size={args.batch_size}, buffer_size={args.buffer_size}, hidden_dim={args.hidden_dim}, seed={args.seed})"
     )
 
-    env = CatanEnv()
+    env = None
 
     update = start_update
     try:
         while update < args.num_updates:
+            # --- LEAGUE-BASED SELF-PLAY ---
+            if len(league) > 0:
+                opponent_paths = league.sample_opponents(k=3, policy_type="dqn")
+                opponent_policies = []
+                for path in opponent_paths:
+                    try:
+                        ckpt = torch.load(path, map_location=device)
+                        opp_policy = DQNBaselinePolicy(device=device)
+                        # dqn trainer saves 'policy_state_dict'
+                        opp_policy.load_state_dict(ckpt["policy_state_dict"])
+                        opp_policy.eval()
+                        opponent_policies.append(opp_policy)
+                    except Exception as e:
+                        print(f"Failed to load opponent {path}: {e}", file=sys.stderr)
+            else:
+                opponent_policies = []
+
+            # Re-create env with new opponents for each game/rollout
+            env = CatanEnv(opponent_policies=opponent_policies)
+
             # Collect rollout
             epsilon = epsilon_scheduler.value(update)
             rollout = collect_rollout(env, trainer, epsilon, device)
@@ -438,6 +464,7 @@ def train(args: argparse.Namespace) -> None:
 
             if update > 0 and update % args.save_freq == 0:
                 path = save_checkpoint(trainer, args.checkpoint_dir, update)
+                league.maybe_add_checkpoint(path, update)
                 print(f"saved checkpoint -> {path}")
 
     except KeyboardInterrupt:
@@ -445,7 +472,7 @@ def train(args: argparse.Namespace) -> None:
     finally:
         # Save final checkpoint
         final_checkpoint_path = os.path.join(args.checkpoint_dir, f"dqn_final_{update}.pt")
-        trainer.save(final_checkpoint_path)
+        trainer.save(final_checkpoint_path, update)
         print(f"Saved final checkpoint: {final_checkpoint_path}")
 
     print("DQN baseline training complete")

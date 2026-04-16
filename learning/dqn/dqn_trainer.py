@@ -170,12 +170,13 @@ class DQNTrainer:
             action, _ = self.policy.get_trade_action(obs, epsilon)
             return action
 
-    def save(self, path: str) -> None:
+    def save(self, path: str, step: int) -> None:
         torch.save(
             {
                 "policy_state_dict": self.policy.state_dict(),
                 "target_policy_state_dict": self.target_policy.state_dict(),
                 "optimizer_state_dict": self.optimizer.state_dict(),
+                "step": step,
             },
             path,
         )

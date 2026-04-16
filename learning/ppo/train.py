@@ -17,6 +17,7 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
+from learning.league.league_manager import LeagueManager
 from environment.catan_env import CatanEnv
 from learning.ppo.ppo_policy import PPOPolicy
 from learning.ppo.ppo_trainer import PPOTrainer
@@ -32,7 +33,7 @@ TRADE_FEATURE_DIM = 32
 def save_checkpoint(trainer: PPOTrainer, save_dir: str, step: int, prefix: str = "ppo_checkpoint") -> str:
     os.makedirs(save_dir, exist_ok=True)
     path = os.path.join(save_dir, f"{prefix}_{step}.pt")
-    trainer.save(path)
+    trainer.save(path, step)
     return path
 
 
@@ -96,20 +97,33 @@ def train(args):
         minibatch_size=args.batch_size,
         device=device,
     )
-
-    rollout_manager = PPORolloutManager(
-        num_envs=args.num_envs,
-        num_workers=args.num_workers,
-        device=device,
-        enable_trading=True,
-        max_steps=args.max_game_steps,
-    )
+    
+    rollout_manager = None
+    league = LeagueManager(checkpoint_dir=args.checkpoint_dir, frozen_ratio=0.2, load_existing=False)
 
     print(f"Starting PPO training for {args.num_updates} updates "
           f"(envs={args.num_envs}, rollout_steps={args.rollout_steps}, hidden_dim={args.hidden_dim}, seed={args.seed})")
 
     try:
         for update in range(args.num_updates):
+            # --- LEAGUE-BASED SELF-PLAY ---
+            if len(league) > 0:
+                opponent_paths = league.sample_opponents(k=3, policy_type="ppo")
+            else:
+                opponent_paths = []
+
+            if rollout_manager:
+                rollout_manager.close()
+
+            rollout_manager = PPORolloutManager(
+                num_envs=args.num_envs,
+                num_workers=args.num_workers,
+                device=device,
+                enable_trading=True,
+                max_steps=args.max_game_steps,
+                opponent_paths=opponent_paths,
+            )
+
             raw_storage, next_value = rollout_manager.collect(policy=policy, steps=args.rollout_steps)
 
             # Apply shaped rewards if needed
@@ -129,12 +143,14 @@ def train(args):
 
             if update % args.save_interval == 0 and update > 0:
                 checkpoint_path = save_checkpoint(trainer, args.checkpoint_dir, update, "ppo")
+                league.maybe_add_checkpoint(checkpoint_path, update)
                 print(f"Saved checkpoint: {checkpoint_path}")
 
     except KeyboardInterrupt:
         print("Training interrupted")
     finally:
-        rollout_manager.close()
+        if rollout_manager:
+            rollout_manager.close()
 
     # Save final checkpoint
     final_path = save_checkpoint(trainer, args.checkpoint_dir, args.num_updates, "ppo_final")

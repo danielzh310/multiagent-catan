@@ -39,11 +39,19 @@ class PPOTrainer:
         self.num_epochs = num_epochs
         self.minibatch_size = minibatch_size
 
-    def save(self, path: str):
-        torch.save(self.policy.state_dict(), path)
+    def save(self, path: str, step: int):
+        torch.save({
+            "policy": self.policy.state_dict(),
+            "step": step
+        }, path)
 
     def load(self, path: str):
-        self.policy.load_state_dict(torch.load(path, map_location=self.device))
+        ckpt = torch.load(path, map_location=self.device)
+        # Handle both old (state_dict only) and new (dict) checkpoint formats
+        if "policy" in ckpt:
+            self.policy.load_state_dict(ckpt["policy"])
+        else:
+            self.policy.load_state_dict(ckpt)
 
     def update(self, storage: List[Dict[str, Any]], next_value: torch.Tensor):
         num_steps = len(storage)

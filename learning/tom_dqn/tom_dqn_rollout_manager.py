@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 import multiprocessing as mp
 import traceback
 from multiprocessing.connection import Connection
@@ -196,15 +197,33 @@ def _worker(
     cmd_pipe: Connection,
     enable_trading: bool,
     max_steps: Optional[int],
+    opponent_paths: Optional[List[str]] = None,
 ) -> None:
     """
     Runs a subset of CatanEnv instances in a separate process.
     Enhanced with global state observation building.
     """
+    # Load opponent policies from the provided paths.
+    opponent_policies = []
+    if opponent_paths:
+        from learning.tom_dqn.tom_dqn_policy import ToMEnhancedDQNPolicy
+        for path in opponent_paths:
+            try:
+                # Opponents run on CPU to save GPU memory
+                ckpt = torch.load(path, map_location="cpu")
+                opp_policy = ToMEnhancedDQNPolicy(device="cpu")
+                opp_policy.load_state_dict(ckpt["policy_state_dict"], strict=False)
+                opp_policy.eval()
+                opponent_policies.append(opp_policy)
+            except Exception as e:
+                print(f"Worker {worker_id} failed to load opponent {path}: {e}", file=sys.stderr)
+
     # Build only the envs owned by this worker
     envs: Dict[int, CatanEnv] = {}
     for idx in env_indices:
-        envs[idx] = CatanEnv(enable_trading=enable_trading, max_steps=max_steps)
+        envs[idx] = CatanEnv(
+            enable_trading=enable_trading, max_steps=max_steps, opponent_policies=opponent_policies
+        )
         envs[idx].reset()
 
     try:
@@ -267,6 +286,8 @@ def _worker(
     except Exception as e:
         print(f"Worker {worker_id} error: {e}")
         traceback.print_exc()
+    finally:
+        cmd_pipe.close()
 
 
 class AsyncVectorEnv:
@@ -282,6 +303,7 @@ class AsyncVectorEnv:
         num_workers: int,
         enable_trading: bool = True,
         max_steps: Optional[int] = None,
+        opponent_paths: Optional[List[str]] = None,
     ):
         self.num_envs = num_envs
         self.num_workers = min(num_workers, num_envs)
@@ -307,7 +329,7 @@ class AsyncVectorEnv:
             parent_conn, child_conn = ctx.Pipe(duplex=True)
             proc = process_factory(
                 target=_worker,
-                args=(w, self._worker_env_indices[w], child_conn, enable_trading, max_steps),
+                args=(w, self._worker_env_indices[w], child_conn, enable_trading, max_steps, opponent_paths),
                 daemon=True,
             )
             proc.start()
@@ -399,6 +421,7 @@ class ToMEnhancedDQNRolloutManager:
         device: str = "cpu",
         enable_trading: bool = True,
         max_steps: Optional[int] = None,
+        opponent_paths: Optional[List[str]] = None,
     ):
         self.num_envs = num_envs
         self.num_workers = num_workers
@@ -412,6 +435,7 @@ class ToMEnhancedDQNRolloutManager:
             num_workers=num_workers,
             enable_trading=enable_trading,
             max_steps=max_steps,
+            opponent_paths=opponent_paths,
         )
 
     def collect(self, policy, epsilon_scheduler, steps: int = 128) -> List[Dict[str, Any]]:

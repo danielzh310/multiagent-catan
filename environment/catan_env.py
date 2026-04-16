@@ -1,28 +1,74 @@
 from __future__ import annotations
 
-from typing import List, Optional
+import random
+from typing import Any, Dict, List, Optional, Tuple
+
+import numpy as np
+import torch
 
 from core.constants import PlayerId, Resource, DevCard, COST_BUILD_ROAD, COST_BUILD_SETTLEMENT, COST_BUILD_CITY, COST_BUY_DEV_CARD, cost_to_dict
 from core.engine import CatanEngine
 from core.phase_router import ControllerType, TurnPhase
 
+_ACTION_TYPE_TO_IDX: Dict[str, int] = {
+    "build_settlement": 0, "build_road": 1, "build_city": 2,
+    "buy_dev_card": 3, "play_dev_card": 4, "bank_trade": 5,
+    "move_robber": 6, "discard_cards": 7, "end_main_action": 8,
+    "end_turn": 9, "roll": 10, "skip_trade": 11,
+}
+
+_TRADE_ACTION_TYPE_TO_IDX: Dict[str, int] = {
+    "skip_trade": 0, "propose_trade": 1, "accept_trade": 2,
+    "reject_trade": 3, "counter_trade": 4,
+}
+
+_RESOURCE_NAMES = ["WOOD", "BRICK", "SHEEP", "WHEAT", "ORE"]
+_RESOURCE_TO_SLOT = {r: i for i, r in enumerate(_RESOURCE_NAMES)}
+
 
 class CatanEnv:
     MAX_DISCARD_ACTIONS = 64
+    MAX_GAMEPLAY_ACTIONS = 256
+    GAMEPLAY_FEATURE_DIM = 40
+    MAX_TRADE_ACTIONS = 128
+    TRADE_FEATURE_DIM = 32
 
-    def __init__(self, seed: Optional[int] = None, enable_trading: bool = True, max_steps: int | None = None):
+    def __init__(
+        self,
+        seed: Optional[int] = None,
+        enable_trading: bool = True,
+        max_steps: int | None = None,
+        opponent_policies: Optional[List[Any]] = None,
+        training_player_id: PlayerId = PlayerId.WHITE,
+    ):
         self.engine = CatanEngine(seed=seed, enable_trading=enable_trading)
         self.max_steps = max_steps
         self.step_count = 0
+        self.opponent_policies = opponent_policies or []
+        self.training_player_id = training_player_id
+        self.opponent_policy_map: Dict[PlayerId, Any] = {}
 
     def reset(self) -> dict:
         self.engine.reset()
         self.step_count = 0
+        self._assign_opponent_policies()
         return self.get_observation()
 
     def step(self, action: Optional[dict]):
         self.step_count += 1
+        acting_player_id = self.engine.get_current_player_id()
+
+        if action is None and acting_player_id != self.training_player_id:
+            action = self._select_opponent_action()
+
         obs, reward, done, info = self.engine.step(action)
+
+        # Convert opponent rewards into the training player's perspective.
+        if acting_player_id != self.training_player_id:
+            if done:
+                reward = 1.0 if self.engine.winner == self.training_player_id else -1.0
+            else:
+                reward = 0.0
 
         # Check for truncation. The game is 'done' if there's a winner or it's truncated.
         is_truncated = False
@@ -56,6 +102,367 @@ class CatanEnv:
 
         obs["legal_actions"] = self.get_legal_actions()
         return obs
+
+    def _assign_opponent_policies(self) -> None:
+        non_training_players = [pid for pid in self.engine.player_order if pid != self.training_player_id]
+        self.opponent_policy_map = {}
+        if not self.opponent_policies:
+            return
+
+        for index, player_id in enumerate(non_training_players):
+            self.opponent_policy_map[player_id] = self.opponent_policies[index % len(self.opponent_policies)]
+
+    def _phase_name(self, phase: TurnPhase) -> str:
+        if phase in (TurnPhase.SETUP, TurnPhase.MAIN_ACTION, TurnPhase.END_TURN):
+            return "gameplay"
+        if phase in (TurnPhase.TRADE_PROPOSE, TurnPhase.TRADE_RESPOND):
+            return "trade"
+        return "auto"
+
+    def _to_vec(self, state: dict) -> np.ndarray:
+        resources = state.get("resources", {})
+        roads_val = state.get("roads", 0)
+        if isinstance(roads_val, list):
+            roads_val = len(roads_val)
+        dev_cards_val = state.get("dev_cards", 0)
+        if isinstance(dev_cards_val, list):
+            dev_cards_val = len(dev_cards_val)
+        vec = np.array([
+            float(resources.get("WOOD", 0)),
+            float(resources.get("BRICK", 0)),
+            float(resources.get("SHEEP", 0)),
+            float(resources.get("WHEAT", 0)),
+            float(resources.get("ORE", 0)),
+            float(state.get("victory_points", 0)),
+            float(state.get("num_settlements", 0)),
+            float(state.get("num_cities", 0)),
+            float(roads_val),
+            float(state.get("bonus_vp", 0)),
+            float(state.get("dev_victory_points", 0)),
+            float(dev_cards_val),
+            float(state.get("played_knights", 0)),
+            float(state.get("revealed_vp_cards", 0)),
+        ], dtype=np.float32)
+        padded = np.zeros(64, dtype=np.float32)
+        padded[: len(vec)] = vec
+        return padded
+
+    def _build_policy_obs(self) -> Dict[str, torch.Tensor]:
+        obs = self.get_observation()
+        current_player = self.engine.get_current_player_id()
+        player = self.engine.players[current_player]
+        other_players = [v for k, v in obs["players"].items() if k != current_player]
+
+        self_vec = self._to_vec(obs["player"])
+        if other_players:
+            opponent_vec = np.mean([self._to_vec(opp) for opp in other_players], axis=0).astype(np.float32)
+        else:
+            opponent_vec = np.zeros(64, dtype=np.float32)
+
+        resource_bank = obs["game"].get("resource_bank", {})
+        bank_vec = np.zeros(5, dtype=np.float32)
+        for idx, res in enumerate(["WOOD", "BRICK", "SHEEP", "WHEAT", "ORE"]):
+            bank_vec[idx] = float(resource_bank.get(res, 0)) / 19.0
+
+        pending = self.get_pending_trade()
+        pending_vec = np.zeros(4, dtype=np.float32)
+        if pending is not None:
+            pending_vec[0] = 1.0
+            pending_vec[1] = float(pending.counter_count) / 3.0
+            pending_vec[2] = float(int(pending.proposer)) / 3.0
+            pending_vec[3] = float(int(pending.target)) / 3.0
+
+        opponent_flat = np.zeros(192, dtype=np.float32)
+        opponent_vectors = []
+        for opp in other_players[:3]:
+            opponent_vectors.append(self._to_vec(opp))
+        while len(opponent_vectors) < 3:
+            opponent_vectors.append(np.zeros(64, dtype=np.float32))
+        opponent_flat = np.concatenate(opponent_vectors, axis=0)
+
+        global_state = np.concatenate([self_vec, opponent_flat, bank_vec, pending_vec], axis=0)
+
+        board_np = np.zeros(64, dtype=np.float32)
+        board_np[0] = float(obs["game"].get("turn_number", 0))
+        board_np[1] = float(int(obs["game"].get("current_player", 0)))
+        board_np[2] = float(obs["game"].get("phase", 0).value if hasattr(obs["game"].get("phase", 0), "value") else obs["game"].get("phase", 0))
+        board_np[3] = 1.0 if obs["game"].get("enable_trading", True) else 0.0
+        board_np[4] = float(obs["game"].get("last_roll", 0) or 0)
+        board_np[5] = 1.0 if obs["game"].get("robber_pending", False) else 0.0
+        board_np[6] = 1.0 if obs["game"].get("initial_placement_phase", False) else 0.0
+        board_np[7] = float(obs["game"].get("initial_placement_index", 0))
+        board_np[8] = 1.0 if obs["game"].get("initial_placement_stage") == "settlement" else 0.0
+        board_np[9] = 1.0 if obs["game"].get("initial_placement_stage") == "road" else 0.0
+        board_np[10] = float(obs["game"].get("dev_card_deck_size", 0))
+        board_np[11] = float(obs["game"].get("longest_road_owner") == current_player)
+        board_np[12] = float(obs["game"].get("largest_army_owner") == current_player)
+        board_np[13] = float(len(obs.get("robber_discard_queue", [])))
+        board_np[14] = float(obs.get("robber_discard_required", {}).get(current_player, 0))
+
+        gameplay_candidates, gameplay_mask = self._encode_gameplay_actions(
+            obs["legal_actions"], player, pending, self.MAX_GAMEPLAY_ACTIONS, self.GAMEPLAY_FEATURE_DIM
+        )
+        trade_candidates, trade_mask = self._encode_trade_actions(
+            obs["legal_actions"], player, pending, self.MAX_TRADE_ACTIONS, self.TRADE_FEATURE_DIM
+        )
+
+        return {
+            "board": torch.from_numpy(board_np).unsqueeze(0),
+            "self": torch.from_numpy(self_vec).unsqueeze(0),
+            "opponent": torch.from_numpy(opponent_vec).unsqueeze(0),
+            "global_state": torch.from_numpy(global_state).unsqueeze(0),
+            "gameplay_candidates": torch.from_numpy(gameplay_candidates).unsqueeze(0),
+            "gameplay_mask": torch.from_numpy(gameplay_mask).unsqueeze(0),
+            "trade_candidates": torch.from_numpy(trade_candidates).unsqueeze(0),
+            "trade_mask": torch.from_numpy(trade_mask).unsqueeze(0),
+        }
+
+    def _encode_gameplay_actions(
+        self,
+        actions: List[dict],
+        player: Any,
+        pending_info: Optional[Any],
+        max_actions: int,
+        feature_dim: int,
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        out = np.zeros((max_actions, feature_dim), dtype=np.float32)
+        mask = np.zeros(max_actions, dtype=bool)
+
+        if not actions:
+            mask[0] = True
+            return out, mask
+
+        vp = float(player.update_victory_points())
+        n_settlements = float(player.n_settlements)
+        n_cities = float(player.n_cities)
+        n_roads = float(player.n_roads)
+
+        for i, action in enumerate(actions[:max_actions]):
+            f = out[i]
+            f[ _ACTION_TYPE_TO_IDX.get(action.get("type", ""), 0) ] = 1.0
+            f[12] = vp / 10.0
+            f[13] = n_settlements / 5.0
+            f[14] = n_cities / 4.0
+            f[15] = n_roads / 15.0
+
+            vertex = action.get("vertex")
+            if vertex is not None:
+                f[16] = float(vertex) / 64.0
+            connection = action.get("connection")
+            if connection is not None:
+                f[17] = float(connection) / 128.0
+            tile = action.get("tile")
+            if tile is not None:
+                f[18] = float(tile) / 19.0
+            action_1 = action.get("connection_1")
+            if action_1 is not None:
+                f[19] = float(action_1) / 128.0
+            action_2 = action.get("connection_2")
+            if action_2 is not None:
+                f[20] = float(action_2) / 128.0
+
+            give_slot = self._resource_slot(action.get("give"))
+            recv_slot = self._resource_slot(action.get("receive"))
+            res_slot = self._resource_slot(action.get("resource"))
+            res1_slot = self._resource_slot(action.get("resource_1"))
+            res2_slot = self._resource_slot(action.get("resource_2"))
+
+            if give_slot >= 0:
+                f[21 + give_slot] = 1.0
+            if recv_slot >= 0:
+                f[26 + recv_slot] = 1.0
+            if res_slot >= 0:
+                f[31] = float(res_slot + 1) / 5.0
+            if res1_slot >= 0:
+                f[32] = float(res1_slot + 1) / 5.0
+            if res2_slot >= 0:
+                f[33] = float(res2_slot + 1) / 5.0
+
+            card = action.get("card")
+            if card is not None:
+                try:
+                    f[34] = float(int(card) + 1) / 5.0
+                except (ValueError, TypeError):
+                    pass
+
+            rate = action.get("rate")
+            if rate is not None:
+                f[35] = float(rate) / 4.0
+            required = action.get("required")
+            if required is not None:
+                f[36] = float(required) / 8.0
+
+            discard = action.get("resources")
+            if isinstance(discard, dict):
+                vals = list(discard.values())
+                total = float(sum(int(v) for v in vals))
+                non_zero = float(sum(1 for v in vals if int(v) > 0))
+                f[37] = total / 8.0
+                f[38] = non_zero / 5.0
+
+            if action.get("type") == "play_dev_card":
+                f[39] = 1.0
+
+            mask[i] = True
+
+        return out, mask
+
+    def _encode_trade_actions(
+        self,
+        actions: List[dict],
+        player: Any,
+        pending_info: Optional[Any],
+        max_actions: int,
+        feature_dim: int,
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        out = np.zeros((max_actions, feature_dim), dtype=np.float32)
+        mask = np.zeros(max_actions, dtype=bool)
+
+        if not actions:
+            mask[0] = True
+            return out, mask
+
+        vp = float(player.update_victory_points())
+        res_total = float(sum(int(v) for v in player.resources.values()))
+        has_pending = 1.0 if pending_info is not None else 0.0
+        p_counter = float(pending_info["counter_count"]) if pending_info else 0.0
+        p_proposer = float(pending_info["proposer"]) if pending_info else 0.0
+        p_target = float(pending_info["target"]) if pending_info else 0.0
+
+        for i, action in enumerate(actions[:max_actions]):
+            f = out[i]
+            f[ _TRADE_ACTION_TYPE_TO_IDX.get(action.get("type", ""), 0) ] = 1.0
+            f[5] = vp / 10.0
+            f[6] = res_total / 20.0
+            f[7] = has_pending
+            if has_pending:
+                f[8] = p_counter / 3.0
+                f[9] = p_proposer / 3.0
+                f[10] = p_target / 3.0
+
+            target = action.get("target")
+            if target is not None:
+                try:
+                    f[11 + int(target)] = 1.0
+                except (ValueError, TypeError, IndexError):
+                    pass
+
+            offer = action.get("offer") or action.get("counter_offer") or {}
+            request = action.get("request") or action.get("counter_request") or {}
+            offer_total = 0.0
+            for resource, amount in offer.items():
+                slot = self._resource_slot(resource)
+                if slot >= 0:
+                    v = float(amount)
+                    f[15 + slot] = v
+                    offer_total += v
+            request_total = 0.0
+            for resource, amount in request.items():
+                slot = self._resource_slot(resource)
+                if slot >= 0:
+                    v = float(amount)
+                    f[20 + slot] = v
+                    request_total += v
+
+            f[25] = offer_total / 4.0
+            f[26] = request_total / 4.0
+
+            if action.get("response_type") == "accept":
+                f[27] = 1.0
+            elif action.get("response_type") == "reject":
+                f[28] = 1.0
+            elif action.get("response_type") == "counter":
+                f[29] = 1.0
+
+            if action.get("type") == "counter_trade":
+                f[30] = 1.0
+            if action.get("type") == "propose_trade":
+                f[31] = 1.0
+
+            mask[i] = True
+
+        return out, mask
+
+    def _resource_slot(self, resource_value: Any) -> int:
+        try:
+            name = resource_value.name if hasattr(resource_value, "name") else str(resource_value)
+            return _RESOURCE_TO_SLOT.get(name, -1)
+        except Exception:
+            return -1
+
+    def _unwrap_action_dict(self, action_dict: Dict[str, Any]) -> Dict[str, int]:
+        result: Dict[str, int] = {}
+        for key, value in action_dict.items():
+            if isinstance(value, torch.Tensor):
+                value = value.detach().cpu().numpy()
+                if value.size == 0:
+                    continue
+                result[key] = int(value.reshape(-1)[0])
+            elif isinstance(value, list):
+                result[key] = int(value[0]) if value else -1
+            else:
+                result[key] = int(value)
+        return result
+
+    def _select_opponent_action(self) -> Optional[dict]:
+        phase = self.engine.phase_router.get_phase()
+        if phase == TurnPhase.ROLL:
+            return None
+
+        current_player = self.engine.get_current_player_id()
+        policy = self.opponent_policy_map.get(current_player)
+        legal_actions = self.get_legal_actions()
+        if not legal_actions:
+            return None
+
+        if policy is None:
+            return random.choice(legal_actions)
+
+        obs = self._build_policy_obs()
+        policy_phase = self._phase_name(phase)
+        try:
+            result = policy.act(obs, policy_phase, deterministic=True)
+        except TypeError:
+            result = policy.act(obs, policy_phase)
+
+        if isinstance(result, tuple) and len(result) > 1:
+            action_dict = result[1]
+        elif isinstance(result, dict):
+            action_dict = result
+        else:
+            action_dict = None
+
+        if not isinstance(action_dict, dict):
+            return random.choice(legal_actions)
+
+        action_dict = self._unwrap_action_dict(action_dict)
+        if policy_phase == "gameplay":
+            action_idx = action_dict.get("gameplay_action", action_dict.get("action", -1))
+            return self._decode_gameplay(int(action_idx), legal_actions, phase)
+        return self._decode_trade(int(action_dict.get("trade_action", -1)), legal_actions, phase)
+
+    def _decode_gameplay(self, action_idx: int, legal_actions: List[Dict], phase: TurnPhase) -> dict:
+        if phase == TurnPhase.END_TURN:
+            return {"type": "end_turn"}
+        if not legal_actions:
+            return {"type": "end_main_action"}
+        mapped_idx = min(max(int(action_idx), 0), len(legal_actions) - 1)
+        chosen_action = legal_actions[mapped_idx]
+        if chosen_action.get("type") == "discard_cards" and "resources" not in chosen_action:
+            return self._resolve_discard_action(chosen_action)
+        return chosen_action
+
+    def _decode_trade(self, action_idx: int, legal_actions: List[Dict], phase: TurnPhase) -> dict:
+        if not self.engine.enable_trading:
+            if phase == TurnPhase.TRADE_RESPOND:
+                return {"type": "reject_trade", "response_type": "reject"}
+            return {"type": "skip_trade"}
+        if not legal_actions:
+            if phase == TurnPhase.TRADE_RESPOND:
+                return {"type": "reject_trade", "response_type": "reject"}
+            return {"type": "skip_trade"}
+        mapped_idx = min(max(int(action_idx), 0), len(legal_actions) - 1)
+        return legal_actions[mapped_idx]
 
     def get_current_player_id(self) -> PlayerId:
         return self.engine.get_current_player_id()

@@ -187,11 +187,12 @@ class ToMEnhancedDQNTrainer:
         for target_param, policy_param in zip(self.target_policy.parameters(), self.policy.parameters()):
             target_param.data.copy_(self.tau * policy_param.data + (1 - self.tau) * target_param.data)
 
-    def save(self, path: str):
+    def save(self, path: str, step: int):
         torch.save({
             "policy_state_dict": self.policy.state_dict(),
             "target_policy_state_dict": self.target_policy.state_dict(),
             "optimizer_state_dict": self.optimizer.state_dict(),
+            "step": step,
         }, path)
 
     def load(self, path: str):

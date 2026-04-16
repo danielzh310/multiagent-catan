@@ -43,9 +43,9 @@ class UnifiedPPOTrainer:
         entropy_coef_start: float = 1.2e-3,
         entropy_coef_end: float = 7.5e-4,
         entropy_hold_fraction: float = 0.75,
-        gameplay_entropy_floor: float = 0.35,
+        gameplay_entropy_floor: float = 0.65,
         trade_entropy_floor: float = 0.75,
-        gameplay_entropy_floor_coef: float = 0.010,
+        gameplay_entropy_floor_coef: float = 0.025,
         trade_entropy_floor_coef: float = 0.022,
         tom_loss_coef_start: float = 0.02,
         tom_loss_coef_end: float = 0.06,
@@ -582,8 +582,7 @@ def train(args: argparse.Namespace) -> None:
 
     policy = UnifiedPolicy(hidden_dim=args.hidden_dim).to(device)
     trainer = UnifiedPPOTrainer(policy=policy, device=device)
-    rollout_manager = UnifiedRolloutManager(num_envs=args.num_envs, device=device, max_steps=args.max_game_steps)
-    league = LeagueManager(checkpoint_dir=args.checkpoint_dir, frozen_ratio=0.2)
+    league = LeagueManager(checkpoint_dir=args.checkpoint_dir, frozen_ratio=0.2, load_existing=False)
     reward_shaper = RewardShaper()
 
     gameplay_reward_window = deque(maxlen=20)
@@ -596,6 +595,8 @@ def train(args: argparse.Namespace) -> None:
     best_trade_score = float("-inf")
     best_trade_score_update = -1
 
+    rollout_manager = None  # Will be initialized inside the loop
+
     print(
         f"Starting unified PPO training for {args.num_updates} updates "
         f"(envs={args.num_envs}, rollout_steps={args.rollout_steps}, hidden_dim={args.hidden_dim}, seed={args.seed})"
@@ -605,6 +606,24 @@ def train(args: argparse.Namespace) -> None:
         for update in range(args.num_updates):
             progress = update / float(max(args.num_updates - 1, 1))
             trainer.set_progress(progress)
+
+            # --- CORRECT SELF-PLAY IMPLEMENTATION ---
+            # Sample opponent policies from the league for this training rollout.
+            # This ensures the agent trains against a diverse and evolving population.
+            if len(league) > 0:
+                opponent_paths = league.sample_opponents(k=3, policy_type="unified")
+            else:
+                opponent_paths = []  # On first run, play against default opponents.
+
+            # Re-create the rollout manager to load the new opponents.
+            # NOTE: This is inefficient as it respawns worker processes. A more optimized
+            # implementation would use IPC to send new opponent state_dicts to existing workers.
+            if rollout_manager:
+                rollout_manager.close()
+
+            rollout_manager = UnifiedRolloutManager(
+                num_envs=args.num_envs, device=device, max_steps=args.max_game_steps, opponent_paths=opponent_paths
+            )
 
             raw_storage, gameplay_need_events = rollout_manager.collect(policy=policy, steps=args.rollout_steps)
 
@@ -716,7 +735,8 @@ def train(args: argparse.Namespace) -> None:
         print(f"best trade reward checkpoint update: {best_trade_update} value={best_trade_reward:.6f}")
         print(f"best trade score checkpoint update: {best_trade_score_update} value={best_trade_score:.6f}")
     finally:
-        rollout_manager.close()
+        if rollout_manager:
+            rollout_manager.close()
 
     print("training complete")
 
