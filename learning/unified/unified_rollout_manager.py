@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import multiprocessing as mp
 import sys
+import time
 import traceback
 from multiprocessing.connection import Connection
 from typing import Any, Dict, List, Optional, Tuple
@@ -154,6 +155,27 @@ def _infer_hidden_dim_from_state_dict(state_dict: Dict[str, Any], default: int =
     return default
 
 
+def _load_opponent_policies(opponent_paths: List[str]) -> List[UnifiedPolicy]:
+    """Loads a list of UnifiedPolicy opponents from checkpoint paths."""
+    opponent_policies = []
+    if not opponent_paths:
+        return []
+
+    for path in opponent_paths:
+        try:
+            ckpt = torch.load(path, map_location="cpu")
+            policy_state = ckpt.get("policy", ckpt)
+            hidden_dim = _infer_hidden_dim_from_state_dict(policy_state)
+            opp_policy = UnifiedPolicy(hidden_dim=hidden_dim)
+            compatible_state = _filter_compatible_state_dict(opp_policy, policy_state)
+            opp_policy.load_state_dict(compatible_state, strict=False)
+            opp_policy.eval()
+            opponent_policies.append(opp_policy)
+        except Exception:
+            traceback.print_exc(file=sys.stderr)
+    return opponent_policies
+
+
 def _filter_compatible_state_dict(model: torch.nn.Module, state_dict: Dict[str, Any]) -> Dict[str, Any]:
     compatible: Dict[str, Any] = {}
     model_state = model.state_dict()
@@ -186,21 +208,7 @@ def _worker(
     """
     # Load opponent policies from the provided paths.
     # These will be shared across all envs in this worker.
-    opponent_policies = []
-    if opponent_paths:
-        for path in opponent_paths:
-            try:
-                ckpt = torch.load(path, map_location="cpu")
-                policy_state = ckpt.get("policy", ckpt)
-                hidden_dim = _infer_hidden_dim_from_state_dict(policy_state)
-                opp_policy = UnifiedPolicy(hidden_dim=hidden_dim)
-                compatible_state = _filter_compatible_state_dict(opp_policy, policy_state)
-                opp_policy.load_state_dict(compatible_state, strict=False)
-                opp_policy.eval()
-                opponent_policies.append(opp_policy)
-            except Exception:
-                traceback.print_exc(file=sys.stderr)
-
+    opponent_policies = _load_opponent_policies(opponent_paths)
     # Build only the envs owned by this worker
     envs: Dict[int, CatanEnv] = {}
     for idx in env_indices:
@@ -309,6 +317,12 @@ def _worker(
                         "completed_naturally": (env.engine.winner is not None),
                     }))
                 cmd_pipe.send(results)
+
+            elif cmd == "update_opponents":
+                new_opponent_policies = payload
+                for env in envs.values():
+                    env.update_opponent_policies(new_opponent_policies)
+                # No response is needed for this command.
 
             elif cmd == "close":
                 break
@@ -429,6 +443,12 @@ class AsyncVectorEnv:
             payloads.setdefault(w, []).append(idx)
         raw = self._dispatch("get_game_stats", payloads)
         return {idx: v[0] for idx, v in raw.items()}
+
+    def update_opponents(self, opponent_paths: List[str]):
+        """Sends a command to all workers to update their opponent policies."""
+        opponent_policies = _load_opponent_policies(opponent_paths)
+        for pipe in self._pipes:
+            pipe.send(("update_opponents", opponent_policies))
 
     def close(self):
         for w in range(self.num_workers):
@@ -764,6 +784,7 @@ class UnifiedRolloutManager:
         storage: List[Dict[str, Any]] = []
         gameplay_need_events: List[Dict] = []  # Collect gameplay actions that indicate resource needs
 
+        collect_start = time.time()
         for _ in range(steps):
             # ---- Step A: Fetch all env states in parallel ----
             # One round-trip to all workers; returns (phase, legal_actions, obs_raw,
@@ -934,6 +955,8 @@ class UnifiedRolloutManager:
                     "tom_outputs": {k: v.detach().clone() for k, v in tom.items()} if tom else {},
                 })
 
+        collect_elapsed = time.time() - collect_start
+        print(f"[collect] finished {steps} steps in {collect_elapsed:.3f}s, storage={len(storage)}, game_stats={len(self.game_stats_buffer)}")
         return storage, gameplay_need_events
 
     def _extract_gameplay_need_event(self, action: Dict) -> Optional[Dict]:
@@ -968,3 +991,7 @@ class UnifiedRolloutManager:
     def close(self):
         """Shut down all worker processes cleanly."""
         self._vec_env.close()
+
+    def update_opponents(self, opponent_paths: List[str]):
+        """Sends new opponent paths to all worker environments."""
+        self._vec_env.update_opponents(opponent_paths)

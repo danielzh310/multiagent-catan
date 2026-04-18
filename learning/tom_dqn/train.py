@@ -86,7 +86,14 @@ def train_tom_dqn(
         tom_loss_coef=tom_loss_coef,
     )
 
-    rollout_manager = None # Will be initialized inside the loop
+    rollout_manager = ToMEnhancedDQNRolloutManager(
+        num_envs=num_envs,
+        num_workers=num_workers,
+        device=device,
+        enable_trading=enable_trading,
+        max_steps=max_steps_per_game,
+        opponent_paths=[],  # Start with empty opponents
+    )
     epsilon_scheduler = EpsilonScheduler(decay_steps=epsilon_decay_steps)
     load_existing = bool(resume_from)  # Load existing checkpoints only if resuming
     league = LeagueManager(checkpoint_dir=checkpoint_dir, frozen_ratio=0.2, load_existing=load_existing)
@@ -108,24 +115,10 @@ def train_tom_dqn(
     try:
         while step_count < total_steps:
             # --- LEAGUE-BASED SELF-PLAY ---
-            # Re-create manager periodically to sample new opponents
+            # Periodically sample new opponents from the league
             if step_count % eval_freq == 0:
-                if len(league) > 0:
-                    opponent_paths = league.sample_opponents(k=3, policy_type="tom_dqn")
-                else:
-                    opponent_paths = []
-
-                if rollout_manager:
-                    rollout_manager.close()
-
-                rollout_manager = ToMEnhancedDQNRolloutManager(
-                    num_envs=num_envs,
-                    num_workers=num_workers,
-                    device=device,
-                    enable_trading=enable_trading,
-                    max_steps=max_steps_per_game,
-                    opponent_paths=opponent_paths,
-                )
+                opponent_paths = league.sample_opponents(k=3, policy_type="tom_dqn") if len(league) > 0 else []
+                rollout_manager.update_opponents(opponent_paths)
             # Collect transitions in a batched and phase-aware manner
             all_states = rollout_manager._vec_env.get_full_state()
             epsilon = epsilon_scheduler.get_epsilon()

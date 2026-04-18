@@ -81,7 +81,7 @@ def train(args):
         resources=args.resources,
         gameplay_feature_dim=GAMEPLAY_FEATURE_DIM,
         trade_feature_dim=TRADE_FEATURE_DIM,
-    )
+    ).to(device)
 
     trainer = PPOTrainer(
         policy=policy,
@@ -98,7 +98,14 @@ def train(args):
         device=device,
     )
     
-    rollout_manager = None
+    rollout_manager = PPORolloutManager(
+        num_envs=args.num_envs,
+        num_workers=args.num_workers,
+        device=device,
+        enable_trading=True,
+        max_steps=args.max_game_steps,
+        opponent_paths=[],  # Start with default opponents
+    )
     league = LeagueManager(checkpoint_dir=args.checkpoint_dir, frozen_ratio=0.2, load_existing=False)
 
     print(f"Starting PPO training for {args.num_updates} updates "
@@ -107,24 +114,10 @@ def train(args):
     try:
         for update in range(args.num_updates):
             # --- LEAGUE-BASED SELF-PLAY ---
-            if len(league) > 0:
-                opponent_paths = league.sample_opponents(k=3, policy_type="ppo")
-            else:
-                opponent_paths = []
+            opponent_paths = league.sample_opponents(k=3, policy_type="ppo") if len(league) > 0 else []
+            rollout_manager.update_opponents(opponent_paths)
 
-            if rollout_manager:
-                rollout_manager.close()
-
-            rollout_manager = PPORolloutManager(
-                num_envs=args.num_envs,
-                num_workers=args.num_workers,
-                device=device,
-                enable_trading=True,
-                max_steps=args.max_game_steps,
-                opponent_paths=opponent_paths,
-            )
-
-            raw_storage, next_value = rollout_manager.collect(policy=policy, steps=args.rollout_steps)
+            raw_storage, next_value = rollout_manager.collect(policy=trainer.policy, steps=args.rollout_steps)
 
             # Apply shaped rewards if needed
             storage = raw_storage  # For now, no reward shaping

@@ -191,6 +191,32 @@ def _worker_build_obs(
     }
 
 
+def _load_tom_dqn_opponent_policies(opponent_paths: List[str], worker_id: int) -> List['ToMEnhancedDQNPolicy']:
+    """Loads a list of ToMEnhancedDQNPolicy opponents from checkpoint paths."""
+    from learning.tom_dqn.tom_dqn_policy import ToMEnhancedDQNPolicy
+    opponent_policies = []
+    if not opponent_paths:
+        return opponent_policies
+
+    for path in opponent_paths:
+        try:
+            # Opponents run on CPU to save GPU memory
+            ckpt = torch.load(path, map_location="cpu")
+            opp_policy = ToMEnhancedDQNPolicy(device="cpu")
+            # Check for different keys from different trainers
+            if "policy_state_dict" in ckpt:
+                state_dict = ckpt["policy_state_dict"]
+            elif "policy" in ckpt:
+                state_dict = ckpt["policy"]
+            else:
+                state_dict = ckpt
+            opp_policy.load_state_dict(state_dict, strict=False)
+            opp_policy.eval()
+            opponent_policies.append(opp_policy)
+        except Exception as e:
+            print(f"Worker {worker_id} failed to load opponent {path}: {e}", file=sys.stderr)
+    return opponent_policies
+
 def _worker(
     worker_id: int,
     env_indices: List[int],
@@ -204,20 +230,7 @@ def _worker(
     Enhanced with global state observation building.
     """
     # Load opponent policies from the provided paths.
-    opponent_policies = []
-    if opponent_paths:
-        from learning.tom_dqn.tom_dqn_policy import ToMEnhancedDQNPolicy
-        for path in opponent_paths:
-            try:
-                # Opponents run on CPU to save GPU memory
-                ckpt = torch.load(path, map_location="cpu")
-                opp_policy = ToMEnhancedDQNPolicy(device="cpu")
-                opp_policy.load_state_dict(ckpt["policy_state_dict"], strict=False)
-                opp_policy.eval()
-                opponent_policies.append(opp_policy)
-            except Exception as e:
-                print(f"Worker {worker_id} failed to load opponent {path}: {e}", file=sys.stderr)
-
+    opponent_policies = _load_tom_dqn_opponent_policies(opponent_paths or [], worker_id)
     # Build only the envs owned by this worker
     envs: Dict[int, CatanEnv] = {}
     for idx in env_indices:
@@ -279,6 +292,12 @@ def _worker(
                         }
                     results.append((idx, phase, legal, envs[idx].get_observation(), player_stats, pending_info))
                 cmd_pipe.send(results)
+
+            elif cmd == "update_opponents":
+                new_opponent_paths = payload
+                new_opponent_policies = _load_tom_dqn_opponent_policies(new_opponent_paths, worker_id)
+                for env in envs.values():
+                    env.update_opponent_policies(new_opponent_policies)
 
             elif cmd == "close":
                 break
@@ -395,6 +414,11 @@ class AsyncVectorEnv:
 
         return self._dispatch("reset", payloads)
 
+    def update_opponents(self, opponent_paths: List[str]):
+        """Sends a command to all workers to update their opponent policies."""
+        for pipe in self._pipes:
+            pipe.send(("update_opponents", opponent_paths))
+
     def close(self):
         for w in range(self.num_workers):
             try:
@@ -437,6 +461,10 @@ class ToMEnhancedDQNRolloutManager:
             max_steps=max_steps,
             opponent_paths=opponent_paths,
         )
+
+    def update_opponents(self, opponent_paths: List[str]):
+        """Sends new opponent paths to all worker environments."""
+        self._vec_env.update_opponents(opponent_paths)
 
     def collect(self, policy, epsilon_scheduler, steps: int = 128) -> List[Dict[str, Any]]:
         storage: List[Dict[str, Any]] = []

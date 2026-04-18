@@ -395,30 +395,31 @@ def train(args: argparse.Namespace) -> None:
         f"(batch_size={args.batch_size}, buffer_size={args.buffer_size}, hidden_dim={args.hidden_dim}, seed={args.seed})"
     )
 
-    env = None
+    # Initialize environment once
+    env = CatanEnv(opponent_policies=[])
 
     update = start_update
     try:
         while update < args.num_updates:
             # --- LEAGUE-BASED SELF-PLAY ---
+            opponent_policies = []
             if len(league) > 0:
                 opponent_paths = league.sample_opponents(k=3, policy_type="dqn")
-                opponent_policies = []
                 for path in opponent_paths:
                     try:
                         ckpt = torch.load(path, map_location=device)
                         opp_policy = DQNBaselinePolicy(device=device)
                         # dqn trainer saves 'policy_state_dict'
-                        opp_policy.load_state_dict(ckpt["policy_state_dict"])
+                        if "policy_state_dict" in ckpt:
+                            opp_policy.load_state_dict(ckpt["policy_state_dict"])
+                        else:
+                            opp_policy.load_state_dict(ckpt) # Fallback for older checkpoints
                         opp_policy.eval()
                         opponent_policies.append(opp_policy)
                     except Exception as e:
                         print(f"Failed to load opponent {path}: {e}", file=sys.stderr)
-            else:
-                opponent_policies = []
 
-            # Re-create env with new opponents for each game/rollout
-            env = CatanEnv(opponent_policies=opponent_policies)
+            env.update_opponent_policies(opponent_policies)
 
             # Collect rollout
             epsilon = epsilon_scheduler.value(update)

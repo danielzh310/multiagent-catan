@@ -4,6 +4,7 @@ import argparse
 import os
 import sys
 import random
+import time
 from collections import deque
 from typing import Dict, List
 
@@ -572,6 +573,11 @@ def build_arg_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def _sync_device(device: str) -> None:
+    if isinstance(device, str) and device.startswith("cuda") and torch.cuda.is_available():
+        torch.cuda.synchronize()
+
+
 def train(args: argparse.Namespace) -> None:
     device = args.device
 
@@ -595,7 +601,15 @@ def train(args: argparse.Namespace) -> None:
     best_trade_score = float("-inf")
     best_trade_score_update = -1
 
-    rollout_manager = None  # Will be initialized inside the loop
+    # Initialize the RolloutManager once, outside the loop. This is far more
+    # efficient and stable than creating and destroying worker processes on every update.
+    # We will update opponents using a new `update_opponents` method.
+    rollout_manager = UnifiedRolloutManager(
+        num_envs=args.num_envs,
+        device=device,
+        max_steps=args.max_game_steps,
+        opponent_paths=[],  # Start with default opponents
+    )
 
     print(
         f"Starting unified PPO training for {args.num_updates} updates "
@@ -607,25 +621,21 @@ def train(args: argparse.Namespace) -> None:
             progress = update / float(max(args.num_updates - 1, 1))
             trainer.set_progress(progress)
 
-            # --- CORRECT SELF-PLAY IMPLEMENTATION ---
-            # Sample opponent policies from the league for this training rollout.
-            # This ensures the agent trains against a diverse and evolving population.
             if len(league) > 0:
                 opponent_paths = league.sample_opponents(k=3, policy_type="unified")
             else:
-                opponent_paths = []  # On first run, play against default opponents.
+                opponent_paths = []
 
-            # Re-create the rollout manager to load the new opponents.
-            # NOTE: This is inefficient as it respawns worker processes. A more optimized
-            # implementation would use IPC to send new opponent state_dicts to existing workers.
-            if rollout_manager:
-                rollout_manager.close()
+            # Update opponents in the existing worker processes instead of recreating them.
+            # NOTE: This requires implementing `update_opponents` in UnifiedRolloutManager.
+            rollout_manager.update_opponents(opponent_paths)
 
-            rollout_manager = UnifiedRolloutManager(
-                num_envs=args.num_envs, device=device, max_steps=args.max_game_steps, opponent_paths=opponent_paths
-            )
-
+            _sync_device(device)
+            collect_start = time.time()
             raw_storage, gameplay_need_events = rollout_manager.collect(policy=policy, steps=args.rollout_steps)
+            _sync_device(device)
+            collect_elapsed = time.time() - collect_start
+            print(f"[update {update}] collect completed in {collect_elapsed:.3f}s, storage={len(raw_storage)}, game_stats={len(rollout_manager.game_stats_buffer)}")
 
             # Process game statistics from completed games in this rollout
             game_summaries = rollout_manager.game_stats_buffer
@@ -645,7 +655,12 @@ def train(args: argparse.Namespace) -> None:
             storage = apply_shaped_rewards(raw_storage, reward_shaper, progress=progress, policy_need_predictor=trainer.policy.need_predictor)
 
             stats = compute_rollout_stats(storage)
+            _sync_device(device)
+            update_start = time.time()
             metrics = trainer.update(storage, gameplay_need_events)
+            _sync_device(device)
+            update_elapsed = time.time() - update_start
+            print(f"[update {update}] trainer.update completed in {update_elapsed:.3f}s")
 
             gameplay_reward_window.append(stats["gameplay_reward_mean"])
             trade_reward_window.append(stats["trade_reward_mean"])
@@ -743,5 +758,15 @@ def train(args: argparse.Namespace) -> None:
 
 if __name__ == "__main__":
     parser = build_arg_parser()
+
+    # Set the multiprocessing start method to 'spawn' for CUDA safety.
+    # This must be done at the entry point of the script, before any other
+    # multiprocessing or CUDA-related objects are created.
+    import torch.multiprocessing as mp
+    try:
+        mp.set_start_method('spawn', force=True)
+    except RuntimeError:
+        # The start method can only be set once.
+        pass
     args = parser.parse_args()
     train(args)

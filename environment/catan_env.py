@@ -54,6 +54,11 @@ class CatanEnv:
         self._assign_opponent_policies()
         return self.get_observation()
 
+    def update_opponent_policies(self, new_policies: List[Any]):
+        """Updates the list of opponent policies and re-assigns them."""
+        self.opponent_policies = new_policies or []
+        self._assign_opponent_policies()
+
     def step(self, action: Optional[dict]):
         self.step_count += 1
         acting_player_id = self.engine.get_current_player_id()
@@ -152,6 +157,16 @@ class CatanEnv:
         current_player = self.engine.get_current_player_id()
         player = self.engine.players[current_player]
         other_players = [v for k, v in obs["players"].items() if k != current_player]
+        
+        # Construct player_stats dictionary in the same format as RolloutManagers
+        player_stats = {
+            "vp": float(player.update_victory_points()),
+            "n_settlements": float(player.n_settlements),
+            "n_cities": float(player.n_cities),
+            "n_roads": float(player.n_roads),
+            "resources": {str(k): float(v) for k, v in player.resources.items()},
+            "resource_total": float(sum(int(v) for v in player.resources.values())),
+        }
 
         self_vec = self._to_vec(obs["player"])
         if other_players:
@@ -219,8 +234,8 @@ class CatanEnv:
 
     def _encode_gameplay_actions(
         self,
-        actions: List[dict],
-        player: Any,
+        actions: List[dict], # Renamed argument from 'player' to 'player_stats'
+        player_stats: Dict, # Changed type hint from Any to Dict
         pending_info: Optional[Any],
         max_actions: int,
         feature_dim: int,
@@ -232,10 +247,10 @@ class CatanEnv:
             mask[0] = True
             return out, mask
 
-        vp = float(player.update_victory_points())
-        n_settlements = float(player.n_settlements)
-        n_cities = float(player.n_cities)
-        n_roads = float(player.n_roads)
+        vp = player_stats["vp"]
+        n_settlements = player_stats["n_settlements"]
+        n_cities = player_stats["n_cities"]
+        n_roads = player_stats["n_roads"]
 
         for i, action in enumerate(actions[:max_actions]):
             f = out[i]
@@ -309,8 +324,8 @@ class CatanEnv:
 
     def _encode_trade_actions(
         self,
-        actions: List[dict],
-        player: Any,
+        actions: List[dict], # Renamed argument from 'player' to 'player_stats'
+        player_stats: Dict, # Changed type hint from Any to Dict
         pending_info: Optional[Any],
         max_actions: int,
         feature_dim: int,
@@ -322,8 +337,8 @@ class CatanEnv:
             mask[0] = True
             return out, mask
 
-        vp = float(player.update_victory_points())
-        res_total = float(sum(int(v) for v in player.resources.values()))
+        vp = player_stats["vp"]
+        res_total = player_stats["resource_total"]
         has_pending = 1.0 if pending_info is not None else 0.0
         p_counter = float(pending_info["counter_count"]) if pending_info else 0.0
         p_proposer = float(pending_info["proposer"]) if pending_info else 0.0

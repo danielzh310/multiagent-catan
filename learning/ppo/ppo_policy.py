@@ -66,6 +66,8 @@ class PPOPolicy(nn.Module):
         )
 
     def encode(self, obs: Dict[str, torch.Tensor]) -> torch.Tensor:
+        device = next(self.parameters()).device
+        obs = {k: v.to(device) for k, v in obs.items() if isinstance(v, torch.Tensor)}
         board_emb = self.board_encoder(obs["board"])
         self_emb = self.self_encoder(obs["self"])
         opp_emb = self.opponent_encoder(obs["opponent"])

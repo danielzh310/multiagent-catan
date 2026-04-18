@@ -257,6 +257,33 @@ def _worker_build_obs(
     }
 
 
+def _load_ppo_opponent_policies(opponent_paths: List[str], worker_id: int) -> List['PPOPolicy']:
+    """Loads a list of PPOPolicy opponents from checkpoint paths."""
+    from learning.ppo.ppo_policy import PPOPolicy
+    opponent_policies = []
+    if not opponent_paths:
+        return opponent_policies
+
+    for path in opponent_paths:
+        try:
+            # Opponents run on CPU to save GPU memory
+            ckpt = torch.load(path, map_location="cpu")
+            opp_policy = PPOPolicy(
+                gameplay_feature_dim=PPORolloutManager.GAMEPLAY_FEATURE_DIM,
+                trade_feature_dim=PPORolloutManager.TRADE_FEATURE_DIM
+            )
+            # Handle both old (state_dict only) and new (dict) checkpoint formats
+            if "policy" in ckpt:
+                policy_state = ckpt["policy"]
+            else:
+                policy_state = ckpt
+            opp_policy.load_state_dict(policy_state, strict=False)
+            opp_policy.eval()
+            opponent_policies.append(opp_policy)
+        except Exception as e:
+            print(f"Worker {worker_id} failed to load opponent {path}: {e}", file=sys.stderr)
+    return opponent_policies
+
 def _worker(
     worker_id: int,
     env_indices: List[int],
@@ -276,22 +303,7 @@ def _worker(
       cmd: ("close",)                     -> exits loop
     """
     # Load opponent policies from the provided paths.
-    opponent_policies = []
-    if opponent_paths:
-        from learning.ppo.ppo_policy import PPOPolicy
-        for path in opponent_paths:
-            try:
-                # Opponents run on CPU to save GPU memory
-                ckpt = torch.load(path, map_location="cpu")
-                opp_policy = PPOPolicy(
-                    gameplay_feature_dim=PPORolloutManager.GAMEPLAY_FEATURE_DIM,
-                    trade_feature_dim=PPORolloutManager.TRADE_FEATURE_DIM
-                )
-                opp_policy.load_state_dict(ckpt["policy"], strict=False)
-                opp_policy.eval()
-                opponent_policies.append(opp_policy)
-            except Exception as e:
-                print(f"Worker {worker_id} failed to load opponent {path}: {e}", file=sys.stderr)
+    opponent_policies = _load_ppo_opponent_policies(opponent_paths or [], worker_id)
 
     # Build only the envs owned by this worker
     envs: Dict[int, CatanEnv] = {}
@@ -384,6 +396,12 @@ def _worker(
                     )
                     results.append((idx, phase, legal, obs_np_dict, player_stats, pending_info))
                 cmd_pipe.send(results)
+
+            elif cmd == "update_opponents":
+                new_opponent_paths = payload
+                new_opponent_policies = _load_ppo_opponent_policies(new_opponent_paths, worker_id)
+                for env in envs.values():
+                    env.update_opponent_policies(new_opponent_policies)
 
             elif cmd == "close":
                 break
@@ -503,6 +521,11 @@ class PPORolloutManager:
             payloads.setdefault(w, []).append(idx)
 
         return self._dispatch("reset", payloads)
+
+    def update_opponents(self, opponent_paths: List[str]):
+        """Sends a command to all workers to update their opponent policies."""
+        for pipe in self._pipes:
+            pipe.send(("update_opponents", opponent_paths))
 
     def close(self):
         for w in range(self.num_workers):
