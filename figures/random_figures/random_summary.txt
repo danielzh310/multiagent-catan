@@ -1,0 +1,13 @@
+Random / No-Trade Baseline Summary
+games: 1000
+win_rate: 0.2500
+avg_victory_points: 6.026
+avg_game_length_turns: 77.445
+largest_army_rate: 0.2670
+avg_played_knights: 2.801
+avg_dev_cards_bought: 5.105
+avg_hidden_vp_cards: 1.069
+longest_road_rate: 0.2480
+avg_longest_road_length: 5.076
+build_efficiency: 0.1065
+truncation_rate: 0.0720

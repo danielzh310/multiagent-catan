@@ -321,7 +321,7 @@ def main():
     parser.add_argument(
         "--output-dir",
         type=str,
-        default="failure_figures",
+        default="figures/failure_figures",
         help="Directory to save CSV summaries and figures.",
     )
     args = parser.parse_args()

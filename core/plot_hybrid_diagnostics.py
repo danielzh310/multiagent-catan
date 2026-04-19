@@ -429,7 +429,7 @@ def main():
 
     parser = argparse.ArgumentParser(description="Parse hybrid_v2 logs and generate diagnostics.")
     parser.add_argument("--log-file", type=str, required=True)
-    parser.add_argument("--output-dir", type=str, default="hybrid_figures")
+    parser.add_argument("--output-dir", type=str, default="figures/hybrid_figures")
     args = parser.parse_args()
 
     os.makedirs(args.output_dir, exist_ok=True)

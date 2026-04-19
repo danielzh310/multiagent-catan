@@ -445,7 +445,7 @@ def main():
 
     parser = argparse.ArgumentParser(description="Parse unified PPO logs and generate diagnostics.")
     parser.add_argument("--log-file", type=str, required=True)
-    parser.add_argument("--output-dir", type=str, default="unified_figures")
+    parser.add_argument("--output-dir", type=str, default="figures/unified_figures")
     args = parser.parse_args()
 
     os.makedirs(args.output_dir, exist_ok=True)

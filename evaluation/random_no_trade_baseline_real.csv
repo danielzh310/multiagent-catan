@@ -1,0 +1,2 @@
+model,games_played,win_rate,avg_victory_points,avg_game_length_turns,avg_reward,build_efficiency,longest_road_rate,largest_army_rate,avg_played_knights,avg_dev_cards_bought,avg_hidden_vp_cards,avg_longest_road_length,truncation_rate,brick_wood_balance,notes
+Random / No-Trade Baseline,1000,0.25,6.026,77.445,0.001253823907769385,0.10646366573566039,0.248,0.267,2.801,5.105,1.069,5.076,0.072,0.3617459706959707,Real random legal-action self-play baseline with player trading disabled.
