@@ -153,7 +153,7 @@ def train_tom_dqn(
             # Process gameplay actions in a batch
             if gameplay_envs:
                 obs_batch = {k: torch.from_numpy(np.stack([o[k] for o in gameplay_obs_list])).to(device) for k in gameplay_obs_list[0]}
-                _, action_dicts, _, _ = policy.act(obs_batch, "gameplay", epsilon)
+                action_dicts = policy.act(obs_batch, "gameplay", epsilon)
                 action_indices = action_dicts["gameplay_action"].cpu().numpy()
                 for i, env_idx in enumerate(gameplay_envs):
                     all_action_dicts_for_buffer[env_idx] = {k: v[i:i+1] for k, v in action_dicts.items()}
@@ -163,7 +163,7 @@ def train_tom_dqn(
             # Process trade actions in a batch
             if trade_envs:
                 obs_batch = {k: torch.from_numpy(np.stack([o[k] for o in trade_obs_list])).to(device) for k in trade_obs_list[0]}
-                _, action_dicts, _, _ = policy.act(obs_batch, "trade", epsilon)
+                action_dicts = policy.act(obs_batch, "trade", epsilon)
                 action_indices = action_dicts["trade_action"].cpu().numpy()
                 for i, env_idx in enumerate(trade_envs):
                     all_action_dicts_for_buffer[env_idx] = {k: v[i:i+1] for k, v in action_dicts.items()}
@@ -250,23 +250,45 @@ def evaluate_policy(
 
         while not done and steps < max_steps:
             # Build observation
-            obs_tensor = {
-                k: torch.from_numpy(v).unsqueeze(0).to(device)
-                for k, v in obs.items()
-            }
-
+            obs_raw = obs
+            legal_actions = env.get_legal_actions()
             phase = env.get_phase()
-            phase_name = "gameplay" if phase.value in [1, 2] else "trade" if phase.value in [3, 4] else "auto"
+            current_player_id = env.get_current_player_id()
+            player_engine_state = env.engine.players[current_player_id]
+            player_stats = {
+                "vp": float(player_engine_state.update_victory_points()),
+                "n_settlements": float(player_engine_state.n_settlements),
+                "n_cities": float(player_engine_state.n_cities),
+                "n_roads": float(player_engine_state.n_roads),
+                "resource_total": float(sum(int(v) for v in player_engine_state.resources.values())),
+            }
+            pending = env.engine.trade_manager.get_pending_trade()
+            pending_info = None
+            if pending is not None:
+                pending_info = {
+                    "counter_count": float(pending.counter_count),
+                    "proposer": float(int(pending.proposer)),
+                    "target": float(int(pending.target)),
+                }
+            obs_np = _worker_build_obs(obs_raw, legal_actions, player_stats, pending_info, phase)
+            obs_tensor = {k: torch.from_numpy(v).unsqueeze(0).to(device) for k, v in obs_np.items()}
+
+            phase_name = (
+                "gameplay"
+                if phase.name in ("SETUP", "MAIN_ACTION", "END_TURN")
+                else "trade"
+                if phase.name in ("TRADE_PROPOSE", "TRADE_RESPOND")
+                else "auto"
+            )
 
             if phase_name == "auto":
                 action = None
             else:
-                epsilon = 0.0  # Greedy evaluation
-                _, action_dict, _, _ = policy.act(obs_tensor, phase_name, epsilon)
-                if phase_name == "gameplay":
-                    action_idx = int(action_dict["gameplay_action"].item())
-                else:
-                    action_idx = int(action_dict["trade_action"].item())
+                with torch.no_grad():
+                    epsilon = 0.0  # Greedy evaluation
+                    action_dict = policy.act(obs_tensor, phase_name, epsilon)
+                    action_key = "gameplay_action" if phase_name == "gameplay" else "trade_action"
+                    action_idx = int(action_dict[action_key].item())
 
                 legal_actions = env.get_legal_actions()
                 if legal_actions:
@@ -279,11 +301,10 @@ def evaluate_policy(
             steps += 1
 
         # Game is done, record stats
-        if info and info.get("winner") == PlayerId.PLAYER_1:
+        if info and info.get("winner") == PlayerId.WHITE:
             wins += 1
 
-        # The game engine should have updated victory points when the game ended.
-        agent_score = env.engine.players[PlayerId.PLAYER_1].victory_points # Read the final score
+        agent_score = env.engine.players[PlayerId.WHITE].update_victory_points()
         total_scores.append(agent_score)
         total_steps.append(steps)
 

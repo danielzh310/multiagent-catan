@@ -22,11 +22,8 @@ class ToMEnhancedDQNPolicy(nn.Module):
         global_dim: int = 265,
         hidden_dim: int = 192,
         resources: int = 5,
-        device: str = "cpu",
     ):
         super().__init__()
-
-        self.device = device
 
         # Enhanced encoders with global state
         self.board_encoder = nn.Sequential(
@@ -73,7 +70,8 @@ class ToMEnhancedDQNPolicy(nn.Module):
         self.trade_head = ToMTradeHead(hidden_dim=hidden_dim, num_resources=resources)
 
     def encode(self, obs: Dict[str, torch.Tensor]) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
-        obs = {k: v.to(self.device) for k, v in obs.items() if isinstance(v, torch.Tensor)}
+        device = next(self.parameters()).device
+        obs = {k: v.to(device) for k, v in obs.items() if isinstance(v, torch.Tensor)}
         board_emb = self.board_encoder(obs["board"])
         self_emb = self.self_encoder(obs["self"])
         opp_emb = self.opponent_encoder(obs["opponent"])
@@ -105,14 +103,27 @@ class ToMEnhancedDQNPolicy(nn.Module):
     ) -> Tuple[Dict[str, torch.Tensor], torch.Tensor]:
         trunk, global_emb, need_pred = self.encode(obs)
         q_values = self.gameplay_head(trunk, obs["gameplay_candidates"], obs["gameplay_mask"])
+        batch_size = q_values.shape[0]
+        device = q_values.device
 
-        if torch.rand(1).item() < epsilon:
-            valid_actions = torch.nonzero(obs["gameplay_mask"].squeeze(0) > 0, as_tuple=False).squeeze(-1)
-            action_idx = valid_actions[torch.randint(0, len(valid_actions), (1,))].item()
-        else:
-            action_idx = q_values.argmax().item()
+        # Greedy actions
+        greedy_actions = q_values.argmax(dim=-1)
 
-        return {"gameplay_action": torch.tensor([action_idx])}, q_values
+        # Random actions for exploration
+        mask = obs["gameplay_mask"].squeeze(1) if obs["gameplay_mask"].dim() == 3 else obs["gameplay_mask"]
+        probs = mask.float()
+        # Handle rows with no valid actions to avoid division by zero
+        probs_sum = probs.sum(dim=-1, keepdim=True)
+        safe_probs_sum = probs_sum.clamp(min=1.0)
+        probs = probs / safe_probs_sum
+
+        random_actions = torch.multinomial(probs, 1).squeeze(-1)
+
+        # Choose between greedy and random based on epsilon
+        is_random = torch.rand(batch_size, device=device) < epsilon
+        action_indices = torch.where(is_random, random_actions, greedy_actions)
+
+        return {"gameplay_action": action_indices}, q_values
 
     def get_trade_action(
         self,
@@ -121,14 +132,27 @@ class ToMEnhancedDQNPolicy(nn.Module):
     ) -> Tuple[Dict[str, torch.Tensor], torch.Tensor]:
         trunk, global_emb, need_pred = self.encode(obs)
         q_values = self.trade_head(trunk, obs["trade_candidates"], obs["trade_mask"], need_pred)
+        batch_size = q_values.shape[0]
+        device = q_values.device
 
-        if torch.rand(1).item() < epsilon:
-            valid_actions = torch.nonzero(obs["trade_mask"].squeeze(0) > 0, as_tuple=False).squeeze(-1)
-            action_idx = valid_actions[torch.randint(0, len(valid_actions), (1,))].item()
-        else:
-            action_idx = q_values.argmax().item()
+        # Greedy actions
+        greedy_actions = q_values.argmax(dim=-1)
 
-        return {"trade_action": torch.tensor([action_idx])}, q_values
+        # Random actions for exploration
+        mask = obs["trade_mask"].squeeze(1) if obs["trade_mask"].dim() == 3 else obs["trade_mask"]
+        probs = mask.float()
+        # Handle rows with no valid actions to avoid division by zero
+        probs_sum = probs.sum(dim=-1, keepdim=True)
+        safe_probs_sum = probs_sum.clamp(min=1.0)
+        probs = probs / safe_probs_sum
+
+        random_actions = torch.multinomial(probs, 1).squeeze(-1)
+
+        # Choose between greedy and random based on epsilon
+        is_random = torch.rand(batch_size, device=device) < epsilon
+        action_indices = torch.where(is_random, random_actions, greedy_actions)
+
+        return {"trade_action": action_indices}, q_values
 
     def get_value(self, obs: Dict[str, torch.Tensor], phase: str) -> torch.Tensor:
         trunk, global_emb, need_pred = self.encode(obs)

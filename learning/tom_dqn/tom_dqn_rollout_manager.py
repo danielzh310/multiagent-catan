@@ -13,6 +13,29 @@ from core.constants import PlayerId, Resource
 from core.phase_router import TurnPhase
 from environment.catan_env import CatanEnv
 
+_ACTION_TYPE_TO_IDX: Dict[str, int] = {
+    "build_settlement": 0, "build_road": 1, "build_city": 2,
+    "buy_dev_card": 3, "play_dev_card": 4, "bank_trade": 5,
+    "move_robber": 6, "discard_cards": 7, "end_main_action": 8,
+    "end_turn": 9, "roll": 10, "skip_trade": 11,
+}
+
+_TRADE_ACTION_TYPE_TO_IDX: Dict[str, int] = {
+    "skip_trade": 0, "propose_trade": 1, "accept_trade": 2,
+    "reject_trade": 3, "counter_trade": 4,
+}
+
+_RESOURCE_NAMES = ["WOOD", "BRICK", "SHEEP", "WHEAT", "ORE"]
+_RESOURCE_TO_SLOT = {r: i for i, r in enumerate(_RESOURCE_NAMES)}
+
+def _res_slot(r: Any) -> int:
+    if r is None:
+        return -1
+    try:
+        name = r.name if hasattr(r, "name") else str(r)
+        return _RESOURCE_TO_SLOT.get(name, -1)
+    except Exception:
+        return -1
 
 def _encode_gameplay_actions_batch(
     legal_actions: List[Dict],
@@ -20,22 +43,50 @@ def _encode_gameplay_actions_batch(
     max_actions: int,
     feature_dim: int,
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    (Placeholder) Encodes legal gameplay actions into a feature tensor.
-    This is a placeholder implementation. The actual feature engineering logic
-    from the original function should be placed here.
-    """
-    num_legal = len(legal_actions)
-    features = np.zeros((max_actions, feature_dim), dtype=np.float32)
-    mask = np.zeros(max_actions, dtype=np.float32)
+    n = min(len(legal_actions), max_actions)
+    out = np.zeros((max_actions, feature_dim), dtype=np.float32)
+    mask = np.zeros(max_actions, dtype=bool)
 
-    # The model expects a mask of 1s for valid actions.
-    # A real implementation would also populate the `features` array.
-    if num_legal > 0:
-        valid_indices = min(num_legal, max_actions)
-        mask[:valid_indices] = 1.0
+    if n == 0:
+        mask[0] = True
+        return out, mask
 
-    return features, mask
+    vp = player_stats["vp"]
+    n_settlements = player_stats.get("n_settlements", 0)
+    n_cities = player_stats.get("n_cities", 0)
+    n_roads = player_stats.get("n_roads", 0)
+
+    for i in range(n):
+        a = legal_actions[i]
+        f = out[i]
+        atype = a.get("type", ""); tidx = _ACTION_TYPE_TO_IDX.get(atype)
+        if tidx is not None: f[tidx] = 1.0
+        f[12] = vp / 10.0; f[13] = n_settlements / 5.0; f[14] = n_cities / 4.0; f[15] = n_roads / 15.0
+        v = a.get("vertex"); f[16] = float(v) / 64.0 if v is not None else 0.0
+        c = a.get("connection"); f[17] = float(c) / 128.0 if c is not None else 0.0
+        t = a.get("tile"); f[18] = float(t) / 19.0 if t is not None else 0.0
+        c1 = a.get("connection_1"); f[19] = float(c1) / 128.0 if c1 is not None else 0.0
+        c2 = a.get("connection_2"); f[20] = float(c2) / 128.0 if c2 is not None else 0.0
+        give_slot = _res_slot(a.get("give")); recv_slot = _res_slot(a.get("receive"))
+        res_slot  = _res_slot(a.get("resource")); res1_slot = _res_slot(a.get("resource_1")); res2_slot = _res_slot(a.get("resource_2"))
+        if give_slot >= 0: f[21 + give_slot] = 1.0
+        if recv_slot >= 0: f[26 + recv_slot] = 1.0
+        if res_slot >= 0: f[31] = float(res_slot + 1) / 5.0
+        if res1_slot >= 0: f[32] = float(res1_slot + 1) / 5.0
+        if res2_slot >= 0: f[33] = float(res2_slot + 1) / 5.0
+        card = a.get("card")
+        if card is not None:
+            try: f[34] = float(int(card) + 1) / 5.0
+            except (ValueError, TypeError): pass
+        rate = a.get("rate"); f[35] = float(rate) / 4.0 if rate is not None else 0.0
+        req = a.get("required"); f[36] = float(req) / 8.0 if req is not None else 0.0
+        discard = a.get("resources")
+        if isinstance(discard, dict):
+            vals = list(discard.values()); total = float(sum(int(v) for v in vals)); non_zero = float(sum(1 for v in vals if int(v) > 0))
+            f[37] = total / 8.0; f[38] = non_zero / 5.0
+        if atype == "play_dev_card": f[39] = 1.0
+        mask[i] = True
+    return out, mask
 
 
 def _encode_trade_actions_batch(
@@ -45,20 +96,37 @@ def _encode_trade_actions_batch(
     max_actions: int,
     feature_dim: int,
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    (Placeholder) Encodes legal trade actions into a feature tensor.
-    This is a placeholder implementation. The actual feature engineering logic
-    from the original function should be placed here.
-    """
-    num_legal = len(legal_actions)
-    features = np.zeros((max_actions, feature_dim), dtype=np.float32)
-    mask = np.zeros(max_actions, dtype=np.float32)
-
-    if num_legal > 0:
-        valid_indices = min(num_legal, max_actions)
-        mask[:valid_indices] = 1.0
-
-    return features, mask
+    n = min(len(legal_actions), max_actions)
+    out = np.zeros((max_actions, feature_dim), dtype=np.float32); mask = np.zeros(max_actions, dtype=bool)
+    if n == 0: mask[0] = True; return out, mask
+    vp = player_stats["vp"]; res_total = player_stats.get("resource_total", 0.0)
+    p_counter = float(pending_info["counter_count"]) if pending_info else 0.0; p_proposer = float(pending_info["proposer"]) if pending_info else 0.0
+    p_target = float(pending_info["target"]) if pending_info else 0.0; has_pending = 1.0 if pending_info is not None else 0.0
+    for i in range(n):
+        a = legal_actions[i]; f = out[i]; atype = a.get("type", ""); tidx = _TRADE_ACTION_TYPE_TO_IDX.get(atype)
+        if tidx is not None: f[tidx] = 1.0
+        f[5] = vp / 10.0; f[6] = res_total / 20.0; f[7] = has_pending
+        if has_pending: f[8] = p_counter / 3.0; f[9] = p_proposer / 3.0; f[10] = p_target / 3.0
+        target = a.get("target")
+        if target is not None:
+            try: f[11 + int(target)] = 1.0
+            except (ValueError, TypeError, IndexError): pass
+        offer = a.get("offer") or a.get("counter_offer") or {}; request = a.get("request") or a.get("counter_request") or {}
+        offer_total = 0.0
+        for r, amount in offer.items():
+            if (slot := _res_slot(r)) >= 0: v = float(amount); f[15 + slot] = v; offer_total += v
+        request_total = 0.0
+        for r, amount in request.items():
+            if (slot := _res_slot(r)) >= 0: v = float(amount); f[20 + slot] = v; request_total += v
+        f[25] = offer_total / 4.0; f[26] = request_total / 4.0
+        response_type = a.get("response_type", "")
+        if response_type == "accept": f[27] = 1.0
+        elif response_type == "reject": f[28] = 1.0
+        elif response_type == "counter": f[29] = 1.0
+        if atype == "counter_trade": f[30] = 1.0
+        if atype == "propose_trade": f[31] = 1.0
+        mask[i] = True
+    return out, mask
 
 def _worker_build_obs(
     obs_raw: Dict,
@@ -281,6 +349,7 @@ def _worker(
                         "n_cities": float(player.n_cities),
                         "n_roads": float(player.n_roads),
                         "resources": {str(k): float(v) for k, v in player.resources.items()},
+                        "resource_total": float(sum(int(v) for v in player.resources.values())),
                     }
                     pending = envs[idx].engine.trade_manager.get_pending_trade()
                     pending_info = None

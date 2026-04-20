@@ -67,11 +67,8 @@ class DQNBaselinePolicy(nn.Module):
         opponent_dim: int = 64,
         hidden_dim: int = 192,
         resources: int = 5,
-        device: str = "cpu",
     ):
         super().__init__()
-
-        self.device = device
 
         # Simple encoders (simplified compared to unified model)
         self.board_encoder = nn.Sequential(
@@ -111,7 +108,8 @@ class DQNBaselinePolicy(nn.Module):
         )
 
     def encode(self, obs: Dict[str, torch.Tensor]) -> torch.Tensor:
-        obs = {k: v.to(self.device) for k, v in obs.items() if isinstance(v, torch.Tensor)}
+        device = next(self.parameters()).device
+        obs = {k: v.to(device) for k, v in obs.items() if isinstance(v, torch.Tensor)}
         board_emb = self.board_encoder(obs["board"])
         self_emb = self.self_encoder(obs["self"])
         opp_emb = self.opponent_encoder(obs["opponent"])
