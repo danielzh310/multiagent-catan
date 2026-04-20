@@ -1,0 +1,22 @@
+Starting mixed four-player evaluation for 1 games
+Config: max_steps=200 seed=42 trading=0 deterministic=1
+Seat map:
+  WHITE: random_no_trade
+  BLUE: unified
+  ORANGE: dqn
+  RED: ppo
+Game 0
+result  | winner=NONE steps=200 turns=13 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=2 settlements=2 cities=0 roads=2
+extras  | player=WHITE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=0
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=dqn vp=2 settlements=2 cities=0 roads=2
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=2
+extras  | player=RED knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+
+Summary
+games   | count=1 avg_steps=200.00 avg_turns=13.00 truncations=1
+wins    | random_no_trade=0 (0.000) unified=0 (0.000) dqn=0 (0.000) ppo=0 (0.000)
+avg_vp  | random_no_trade=2.00 unified=2.00 dqn=2.00 ppo=2.00
