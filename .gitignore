@@ -65,7 +65,6 @@ artifacts/
 outputs/
 results/
 models/
-*.pt
 *.pth
 *.ckpt
 
