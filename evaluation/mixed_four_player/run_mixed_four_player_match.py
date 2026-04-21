@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import os
 import random
 import sys
@@ -10,16 +11,17 @@ from typing import Any, Optional
 
 import torch
 
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-if PROJECT_ROOT not in sys.path:
-    sys.path.insert(0, PROJECT_ROOT)
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
-from agents.random_no_trade_baseline.agent import RandomNoTradeBaselineAgent
 from core.constants import PlayerId
 from core.phase_router import TurnPhase
 from environment.catan_env import CatanEnv
 from learning.dqn.dqn_policy import DQNBaselinePolicy
 from learning.ppo.ppo_policy import PPOPolicy
+from learning.random.agent import RandomNoTradeBaselineAgent
+from learning.tom_dqn.tom_dqn_policy import ToMEnhancedDQNPolicy
 from learning.unified.unified_policy import UnifiedPolicy
 from play_checkpoint import build_policy_obs, build_ppo_obs
 
@@ -110,7 +112,7 @@ class CandidatePolicySeatAgent(BaseSeatAgent):
         }
 
         try:
-            if isinstance(self.policy, DQNBaselinePolicy):
+            if isinstance(self.policy, (DQNBaselinePolicy, ToMEnhancedDQNPolicy)):
                 result = self.policy.act(obs, policy_phase, epsilon=0.0)
             else:
                 result = self.policy.act(obs, policy_phase, deterministic=self.deterministic)
@@ -138,7 +140,7 @@ class HybridGameplaySeatAgent(CandidatePolicySeatAgent):
     """
 
     def __init__(self, checkpoint: str, device: str, deterministic: bool):
-        policy = DQNBaselinePolicy(hidden_dim=256, device=device)
+        policy = DQNBaselinePolicy(hidden_dim=256)
         if checkpoint:
             checkpoint_data = torch.load(checkpoint, map_location=device)
             policy.load_state_dict(checkpoint_data["dqn"]["q_network"], strict=False)
@@ -217,10 +219,17 @@ def build_agents(args: argparse.Namespace) -> dict[PlayerId, BaseSeatAgent]:
         load_state_dict(unified, args.unified_checkpoint, device)
     agents[PlayerId.BLUE] = CandidatePolicySeatAgent("unified", unified, device, args.deterministic)
 
-    dqn = DQNBaselinePolicy(device=device)
-    if args.dqn_checkpoint:
-        load_state_dict(dqn, args.dqn_checkpoint, device)
-    agents[PlayerId.ORANGE] = CandidatePolicySeatAgent("dqn", dqn, device, args.deterministic)
+    if args.orange_agent == "dqn":
+        orange_policy = DQNBaselinePolicy()
+        orange_name = "dqn"
+        orange_checkpoint = args.dqn_checkpoint
+    else:
+        orange_policy = ToMEnhancedDQNPolicy()
+        orange_name = "tom_dqn"
+        orange_checkpoint = args.tom_dqn_checkpoint
+    if orange_checkpoint:
+        load_state_dict(orange_policy, orange_checkpoint, device)
+    agents[PlayerId.ORANGE] = CandidatePolicySeatAgent(orange_name, orange_policy, device, args.deterministic)
 
     if args.use_hybrid and args.hybrid_checkpoint:
         agents[PlayerId.RED] = HybridGameplaySeatAgent(args.hybrid_checkpoint, device, args.deterministic)
@@ -358,6 +367,110 @@ def format_final_summary(summaries: list[dict[str, Any]], agents: dict[PlayerId,
     return "\n".join(lines)
 
 
+def write_csv_outputs(
+    summaries: list[dict[str, Any]],
+    step_rows: list[dict[str, Any]],
+    output_dir: Path,
+) -> tuple[Path, Path]:
+    steps_path = output_dir / "mixed_four_player_steps.csv"
+    summary_path = output_dir / "mixed_four_player_summary.csv"
+
+    step_fields = ["game", "step", "player", "agent", "phase", "action", "reward", "fallback"]
+    with steps_path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=step_fields)
+        writer.writeheader()
+        writer.writerows(step_rows)
+
+    summary_fields = [
+        "game",
+        "player",
+        "agent",
+        "winner",
+        "won",
+        "truncated",
+        "steps",
+        "turns",
+        "victory_points",
+        "settlements",
+        "cities",
+        "roads",
+        "played_knights",
+        "dev_cards_held",
+        "hidden_vp_cards",
+        "largest_army",
+        "longest_road",
+        "longest_road_length",
+    ]
+    with summary_path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=summary_fields)
+        writer.writeheader()
+        for summary in summaries:
+            for player_id in PLAYER_ORDER:
+                player = summary["players"][player_id.name]
+                writer.writerow(
+                    {
+                        "game": summary["game"],
+                        "player": player_id.name,
+                        "agent": player["agent"],
+                        "winner": summary["winner"],
+                        "won": int(summary["winner"] == player_id.name),
+                        "truncated": int(summary["truncated"]),
+                        "steps": summary["steps"],
+                        "turns": summary["turns"],
+                        **player,
+                    }
+                )
+
+    return steps_path, summary_path
+
+
+def write_figures(summaries: list[dict[str, Any]], agents: dict[PlayerId, BaseSeatAgent], figures_dir: Path) -> list[Path]:
+    if not summaries:
+        return []
+    try:
+        import matplotlib.pyplot as plt
+    except ImportError:
+        print("matplotlib is not installed; skipping mixed four-player figures.", file=sys.stderr)
+        return []
+
+    figures_dir.mkdir(parents=True, exist_ok=True)
+    games = max(len(summaries), 1)
+    names = [agents[player_id].name for player_id in PLAYER_ORDER]
+    vp_totals = {name: 0 for name in names}
+    win_counts = {name: 0 for name in names}
+    fallback_totals = {name: agents[player_id].fallback_count for player_id, name in zip(PLAYER_ORDER, names)}
+
+    for summary in summaries:
+        winner_name = summary["winner"]
+        if winner_name != "NONE":
+            win_counts[agents[PlayerId[winner_name]].name] += 1
+        for player_id in PLAYER_ORDER:
+            agent_name = agents[player_id].name
+            vp_totals[agent_name] += int(summary["players"][player_id.name]["victory_points"])
+
+    avg_vp = [vp_totals[name] / games for name in names]
+    win_rates = [win_counts[name] / games for name in names]
+    fallbacks = [fallback_totals[name] for name in names]
+    output_paths: list[Path] = []
+
+    def _bar(values: list[float], title: str, ylabel: str, filename: str) -> None:
+        fig, ax = plt.subplots(figsize=(8, 4.5))
+        ax.bar(names, values, color=["#6c757d", "#2a9d8f", "#e76f51", "#457b9d"])
+        ax.set_title(title)
+        ax.set_ylabel(ylabel)
+        ax.tick_params(axis="x", rotation=15)
+        fig.tight_layout()
+        path = figures_dir / filename
+        fig.savefig(path, dpi=150)
+        plt.close(fig)
+        output_paths.append(path)
+
+    _bar(win_rates, "Mixed Four-Player Win Rate", "Win rate", "mixed_four_player_win_rate.png")
+    _bar(avg_vp, "Mixed Four-Player Average VP", "Average victory points", "mixed_four_player_avg_vp.png")
+    _bar(fallbacks, "Mixed Four-Player Policy Fallbacks", "Fallback decisions", "mixed_four_player_fallbacks.png")
+    return output_paths
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run a mixed 4-player Catan agent match.")
     parser.add_argument("--games", type=int, default=1)
@@ -367,11 +480,14 @@ def main() -> None:
     parser.add_argument("--deterministic", action="store_true")
     parser.add_argument("--enable-trading", action="store_true", help="Enable player trading. Off by default for stable mixed-agent smoke runs.")
     parser.add_argument("--unified-checkpoint", type=str, default="checkpoints/unified_checkpoint_200.pt")
+    parser.add_argument("--tom-dqn-checkpoint", type=str, default="")
     parser.add_argument("--dqn-checkpoint", type=str, default="")
     parser.add_argument("--hybrid-checkpoint", type=str, default="checkpoints/hybrid_checkpoint_200.pt")
     parser.add_argument("--ppo-checkpoint", type=str, default="")
+    parser.add_argument("--orange-agent", choices=["tom_dqn", "dqn"], default="tom_dqn")
     parser.add_argument("--use-hybrid", action="store_true", help="Use hybrid in RED seat instead of raw PPO.")
     parser.add_argument("--output-dir", type=Path, default=Path("evaluation/mixed_four_player"))
+    parser.add_argument("--figures-dir", type=Path, default=Path("figures/mixed_four_player"))
     parser.add_argument("--log-file", type=Path, default=None)
     args = parser.parse_args()
 
@@ -384,6 +500,7 @@ def main() -> None:
 
     agents = build_agents(args)
     summaries: list[dict[str, Any]] = []
+    all_step_rows: list[dict[str, Any]] = []
     args.output_dir.mkdir(parents=True, exist_ok=True)
     log_path = args.log_file or (args.output_dir / "mixed_four_player_training_log.txt")
 
@@ -402,6 +519,7 @@ def main() -> None:
     for game_idx in range(args.games):
         summary, rows = run_one_game(game_idx, args, agents)
         summaries.append(summary)
+        all_step_rows.extend(rows)
         game_log = format_game_log(summary, agents) + "\n\n"
         with log_path.open("a", encoding="utf-8") as handle:
             handle.write(game_log)
@@ -412,6 +530,11 @@ def main() -> None:
         handle.write(final_summary)
     print(final_summary, end="")
     print(f"Wrote {log_path}")
+    steps_path, summary_path = write_csv_outputs(summaries, all_step_rows, args.output_dir)
+    print(f"Wrote {steps_path}")
+    print(f"Wrote {summary_path}")
+    for figure_path in write_figures(summaries, agents, args.figures_dir):
+        print(f"Wrote {figure_path}")
 
 
 if __name__ == "__main__":
