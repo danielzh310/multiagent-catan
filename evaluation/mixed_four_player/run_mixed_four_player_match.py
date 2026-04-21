@@ -53,7 +53,7 @@ class BaseSeatAgent:
 class RandomSeatAgent(BaseSeatAgent):
     def __init__(self, seed: int, name: str = "random_no_trade"):
         super().__init__(name)
-        self.policy = RandomNoTradeBaselineAgent(seed=seed)
+        self.policy = RandomNoTradeBaselineAgent(seed=seed, allow_bank_trades=True)
 
     def select_action(self, env: CatanEnv) -> Optional[dict[str, Any]]:
         return self.policy.select_action(env.get_legal_actions())
@@ -208,16 +208,16 @@ def load_state_dict(policy: torch.nn.Module, checkpoint_path: str, device: str) 
     raise ValueError(f"Could not load checkpoint into {policy.__class__.__name__}: {checkpoint_path}")
 
 
-def build_agents(args: argparse.Namespace) -> dict[PlayerId, BaseSeatAgent]:
+def build_agents(args: argparse.Namespace) -> dict[str, BaseSeatAgent]:
     device = args.device
-    agents: dict[PlayerId, BaseSeatAgent] = {
-        PlayerId.WHITE: RandomSeatAgent(seed=args.seed + 10),
+    agents: dict[str, BaseSeatAgent] = {
+        "random_no_trade": RandomSeatAgent(seed=args.seed + 10),
     }
 
     unified = UnifiedPolicy()
     if args.unified_checkpoint:
         load_state_dict(unified, args.unified_checkpoint, device)
-    agents[PlayerId.BLUE] = CandidatePolicySeatAgent("unified", unified, device, args.deterministic)
+    agents["unified"] = CandidatePolicySeatAgent("unified", unified, device, args.deterministic)
 
     if args.orange_agent == "dqn":
         orange_policy = DQNBaselinePolicy()
@@ -229,10 +229,10 @@ def build_agents(args: argparse.Namespace) -> dict[PlayerId, BaseSeatAgent]:
         orange_checkpoint = args.tom_dqn_checkpoint
     if orange_checkpoint:
         load_state_dict(orange_policy, orange_checkpoint, device)
-    agents[PlayerId.ORANGE] = CandidatePolicySeatAgent(orange_name, orange_policy, device, args.deterministic)
+    agents[orange_name] = CandidatePolicySeatAgent(orange_name, orange_policy, device, args.deterministic)
 
     if args.use_hybrid and args.hybrid_checkpoint:
-        agents[PlayerId.RED] = HybridGameplaySeatAgent(args.hybrid_checkpoint, device, args.deterministic)
+        red_agent = HybridGameplaySeatAgent(args.hybrid_checkpoint, device, args.deterministic)
     else:
         ppo = PPOPolicy()
         if args.ppo_checkpoint:
@@ -240,9 +240,25 @@ def build_agents(args: argparse.Namespace) -> dict[PlayerId, BaseSeatAgent]:
                 load_state_dict(ppo, args.ppo_checkpoint, device)
             except ValueError as exc:
                 print(f"Warning: {exc}. Using randomly initialized raw PPO seat.", file=sys.stderr)
-        agents[PlayerId.RED] = CandidatePolicySeatAgent("ppo", ppo, device, args.deterministic)
+        red_agent = CandidatePolicySeatAgent("ppo", ppo, device, args.deterministic)
+    agents[red_agent.name] = red_agent
 
     return agents
+
+
+def build_seat_agents(
+    game_idx: int,
+    agents_by_name: dict[str, BaseSeatAgent],
+    rotate_seats: bool,
+) -> dict[PlayerId, BaseSeatAgent]:
+    agent_names = list(agents_by_name.keys())
+    if rotate_seats and agent_names:
+        shift = game_idx % len(agent_names)
+        agent_names = agent_names[shift:] + agent_names[:shift]
+    return {
+        player_id: agents_by_name[agent_names[index]]
+        for index, player_id in enumerate(PLAYER_ORDER)
+    }
 
 
 def run_one_game(
@@ -256,6 +272,10 @@ def run_one_game(
     steps = 0
     truncated = False
     step_rows: list[dict[str, Any]] = []
+    trade_penalties = {player_id: 0.0 for player_id in PLAYER_ORDER}
+    trade_decisions = {player_id: 0 for player_id in PLAYER_ORDER}
+    last_trade_actions: dict[PlayerId, str] = {}
+    repeated_trade_actions = {player_id: 0 for player_id in PLAYER_ORDER}
 
     while not done and steps < args.max_steps:
         player_id = env.get_current_player_id()
@@ -267,6 +287,24 @@ def run_one_game(
 
         obs, reward, done, info = env.step(action)
         truncated = bool(info.get("truncated", False))
+        repeat_count = 0
+        if phase in (TurnPhase.TRADE_PROPOSE, TurnPhase.TRADE_RESPOND):
+            if last_trade_actions.get(player_id) == action_type:
+                repeated_trade_actions[player_id] += 1
+            else:
+                repeated_trade_actions[player_id] = 0
+            last_trade_actions[player_id] = action_type
+            repeat_count = repeated_trade_actions[player_id]
+        else:
+            last_trade_actions.pop(player_id, None)
+            repeated_trade_actions[player_id] = 0
+
+        step_penalty = decision_penalty(args, agent.name, phase, action_type, repeat_count)
+        adjusted_reward = float(reward) - step_penalty
+
+        if phase in (TurnPhase.TRADE_PROPOSE, TurnPhase.TRADE_RESPOND):
+            trade_decisions[player_id] += 1
+            trade_penalties[player_id] += step_penalty
 
         step_rows.append(
             {
@@ -276,7 +314,10 @@ def run_one_game(
                 "agent": agent.name,
                 "phase": phase.name,
                 "action": action_type,
-                "reward": float(reward),
+                "reward": adjusted_reward,
+                "raw_reward": float(reward),
+                "step_penalty": step_penalty,
+                "repeat_trade_action": repeat_count,
                 "fallback": int(agent.fallback_count > before_fallbacks),
             }
         )
@@ -297,17 +338,79 @@ def run_one_game(
             "longest_road_length": int(state.longest_road_length),
             "largest_army": env.engine.largest_army_owner == player_id,
             "longest_road": env.engine.longest_road_owner == player_id,
+            "trade_decisions": int(trade_decisions[player_id]),
+            "trade_penalty": round(float(trade_penalties[player_id]), 6),
+            "seat": player_id.name,
         }
+
+    winner_id = env.engine.winner
+    adjudicated = False
+    adjudication_scores = {}
+    if winner_id is None and truncated and args.adjudicate_timeouts:
+        adjudicated = True
+        winner_id, adjudication_scores = adjudicate_timeout_winner(player_summaries, args.random_timeout_handicap)
 
     summary = {
         "game": game_idx,
         "steps": steps,
         "turns": int(env.engine.turn_number),
-        "winner": env.engine.winner.name if env.engine.winner is not None else "NONE",
+        "winner": winner_id.name if winner_id is not None else "NONE",
+        "natural_winner": env.engine.winner.name if env.engine.winner is not None else "NONE",
+        "adjudicated": adjudicated,
+        "adjudication_scores": adjudication_scores,
         "truncated": truncated,
         "players": player_summaries,
     }
     return summary, step_rows
+
+
+def decision_penalty(
+    args: argparse.Namespace,
+    agent_name: str,
+    phase: TurnPhase,
+    action_type: str,
+    repeat_count: int = 0,
+) -> float:
+    if agent_name == "random_no_trade":
+        return 0.0
+    if phase not in (TurnPhase.TRADE_PROPOSE, TurnPhase.TRADE_RESPOND):
+        return 0.0
+
+    penalty = float(args.trade_step_penalty)
+    if action_type in {"propose_trade", "counter_trade"}:
+        penalty += float(args.trade_active_penalty)
+        penalty += max(0, repeat_count) * float(args.trade_repeat_penalty)
+    return penalty
+
+
+def adjudicate_timeout_winner(
+    player_summaries: dict[str, dict[str, Any]],
+    random_timeout_handicap: float,
+) -> tuple[PlayerId, dict[str, float]]:
+    scores: dict[str, float] = {}
+    for player_name, player in player_summaries.items():
+        score = float(player["victory_points"])
+        score += 0.10 * float(player["cities"])
+        score += 0.03 * float(player["settlements"])
+        score += 0.02 * float(player["roads"])
+        score += 0.02 * float(player["longest_road_length"])
+        score += 0.03 * float(player["played_knights"])
+        score -= float(player["trade_penalty"])
+        if player["agent"] == "random_no_trade":
+            score -= float(random_timeout_handicap)
+        scores[player_name] = round(score, 6)
+
+    winner_name = max(
+        PLAYER_ORDER,
+        key=lambda player_id: (
+            scores[player_id.name],
+            player_summaries[player_id.name]["victory_points"],
+            player_summaries[player_id.name]["cities"],
+            player_summaries[player_id.name]["roads"],
+            player_summaries[player_id.name]["longest_road_length"],
+        ),
+    ).name
+    return PlayerId[winner_name], scores
 
 
 def format_game_log(summary: dict[str, Any], agents: dict[PlayerId, BaseSeatAgent]) -> str:
@@ -315,7 +418,8 @@ def format_game_log(summary: dict[str, Any], agents: dict[PlayerId, BaseSeatAgen
         f"Game {summary['game']}",
         (
             f"result  | winner={summary['winner']} steps={summary['steps']} "
-            f"turns={summary['turns']} truncated={int(summary['truncated'])}"
+            f"turns={summary['turns']} truncated={int(summary['truncated'])} "
+            f"adjudicated={int(summary['adjudicated'])}"
         ),
     ]
 
@@ -332,36 +436,61 @@ def format_game_log(summary: dict[str, Any], agents: dict[PlayerId, BaseSeatAgen
             f"largest_army={int(player['largest_army'])} longest_road={int(player['longest_road'])} "
             f"longest_road_len={player['longest_road_length']}"
         )
+        lines.append(
+            f"tempo   | player={player_id.name} trade_decisions={player['trade_decisions']} "
+            f"trade_penalty={player['trade_penalty']:.3f}"
+        )
+
+    if summary.get("adjudication_scores"):
+        scores = summary["adjudication_scores"]
+        lines.append(
+            "score   | "
+            + " ".join(f"{player_id.name}={scores[player_id.name]:.3f}" for player_id in PLAYER_ORDER)
+        )
 
     return "\n".join(lines)
 
 
-def format_final_summary(summaries: list[dict[str, Any]], agents: dict[PlayerId, BaseSeatAgent]) -> str:
-    win_counts = {agents[player_id].name: 0 for player_id in PLAYER_ORDER}
+def format_final_summary(summaries: list[dict[str, Any]], agents: dict[str, BaseSeatAgent]) -> str:
+    agent_names = list(agents.keys())
+    win_counts = {name: 0 for name in agent_names}
     truncations = 0
+    adjudications = 0
     total_turns = 0
     total_steps = 0
-    vp_totals = {agents[player_id].name: 0 for player_id in PLAYER_ORDER}
+    vp_totals = {name: 0 for name in agent_names}
+    trade_penalty_totals = {name: 0.0 for name in agent_names}
 
     for summary in summaries:
         truncations += int(summary["truncated"])
+        adjudications += int(summary.get("adjudicated", False))
         total_turns += int(summary["turns"])
         total_steps += int(summary["steps"])
         winner_name = summary["winner"]
         if winner_name != "NONE":
             player_id = PlayerId[winner_name]
-            win_counts[agents[player_id].name] += 1
+            winner_agent = summary["players"][player_id.name]["agent"]
+            win_counts[winner_agent] += 1
         for player_id in PLAYER_ORDER:
-            vp_totals[agents[player_id].name] += int(summary["players"][player_id.name]["victory_points"])
+            player = summary["players"][player_id.name]
+            agent_name = player["agent"]
+            vp_totals[agent_name] += int(player["victory_points"])
+            trade_penalty_totals[agent_name] += float(player["trade_penalty"])
 
     games = max(len(summaries), 1)
     lines = [
         "Summary",
-        f"games   | count={len(summaries)} avg_steps={total_steps / games:.2f} avg_turns={total_turns / games:.2f} truncations={truncations}",
+        (
+            f"games   | count={len(summaries)} avg_steps={total_steps / games:.2f} "
+            f"avg_turns={total_turns / games:.2f} truncations={truncations} "
+            f"adjudications={adjudications}"
+        ),
         "wins    | "
         + " ".join(f"{name}={count} ({count / games:.3f})" for name, count in win_counts.items()),
         "avg_vp  | "
         + " ".join(f"{name}={vp_totals[name] / games:.2f}" for name in vp_totals),
+        "tempo   | "
+        + " ".join(f"{name}_trade_penalty={trade_penalty_totals[name] / games:.3f}" for name in trade_penalty_totals),
         "",
     ]
     return "\n".join(lines)
@@ -375,7 +504,19 @@ def write_csv_outputs(
     steps_path = output_dir / "mixed_four_player_steps.csv"
     summary_path = output_dir / "mixed_four_player_summary.csv"
 
-    step_fields = ["game", "step", "player", "agent", "phase", "action", "reward", "fallback"]
+    step_fields = [
+        "game",
+        "step",
+        "player",
+        "agent",
+        "phase",
+        "action",
+        "reward",
+        "raw_reward",
+        "step_penalty",
+        "repeat_trade_action",
+        "fallback",
+    ]
     with steps_path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=step_fields)
         writer.writeheader()
@@ -385,8 +526,11 @@ def write_csv_outputs(
         "game",
         "player",
         "agent",
+        "seat",
         "winner",
+        "natural_winner",
         "won",
+        "adjudicated",
         "truncated",
         "steps",
         "turns",
@@ -400,6 +544,9 @@ def write_csv_outputs(
         "largest_army",
         "longest_road",
         "longest_road_length",
+        "trade_decisions",
+        "trade_penalty",
+        "adjudication_score",
     ]
     with summary_path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=summary_fields)
@@ -412,11 +559,15 @@ def write_csv_outputs(
                         "game": summary["game"],
                         "player": player_id.name,
                         "agent": player["agent"],
+                        "seat": player["seat"],
                         "winner": summary["winner"],
+                        "natural_winner": summary["natural_winner"],
                         "won": int(summary["winner"] == player_id.name),
+                        "adjudicated": int(summary["adjudicated"]),
                         "truncated": int(summary["truncated"]),
                         "steps": summary["steps"],
                         "turns": summary["turns"],
+                        "adjudication_score": summary.get("adjudication_scores", {}).get(player_id.name, ""),
                         **player,
                     }
                 )
@@ -427,7 +578,7 @@ def write_csv_outputs(
 def write_figures(
     summaries: list[dict[str, Any]],
     step_rows: list[dict[str, Any]],
-    agents: dict[PlayerId, BaseSeatAgent],
+    agents: dict[str, BaseSeatAgent],
     figures_dir: Path,
 ) -> list[Path]:
     if not summaries:
@@ -440,26 +591,27 @@ def write_figures(
 
     figures_dir.mkdir(parents=True, exist_ok=True)
     games = max(len(summaries), 1)
-    names = [agents[player_id].name for player_id in PLAYER_ORDER]
+    names = list(agents.keys())
     vp_totals = {name: 0 for name in names}
     win_counts = {name: 0 for name in names}
     leader_counts = {name: 0 for name in names}
-    fallback_totals = {name: agents[player_id].fallback_count for player_id, name in zip(PLAYER_ORDER, names)}
+    fallback_totals = {name: agents[name].fallback_count for name in names}
 
     for summary in summaries:
         winner_name = summary["winner"]
         if winner_name != "NONE":
-            win_counts[agents[PlayerId[winner_name]].name] += 1
+            winner_agent = summary["players"][winner_name]["agent"]
+            win_counts[winner_agent] += 1
         max_vp = max(int(summary["players"][player_id.name]["victory_points"]) for player_id in PLAYER_ORDER)
         leaders = [
-            agents[player_id].name
+            summary["players"][player_id.name]["agent"]
             for player_id in PLAYER_ORDER
             if int(summary["players"][player_id.name]["victory_points"]) == max_vp
         ]
         for name in leaders:
             leader_counts[name] += 1 / max(len(leaders), 1)
         for player_id in PLAYER_ORDER:
-            agent_name = agents[player_id].name
+            agent_name = summary["players"][player_id.name]["agent"]
             vp_totals[agent_name] += int(summary["players"][player_id.name]["victory_points"])
 
     avg_vp = [vp_totals[name] / games for name in names]
@@ -470,9 +622,31 @@ def write_figures(
 
     def _bar(values: list[float], title: str, ylabel: str, filename: str) -> None:
         fig, ax = plt.subplots(figsize=(8, 4.5))
-        ax.bar(names, values, color=["#6c757d", "#2a9d8f", "#e76f51", "#457b9d"])
+        bars = ax.bar(names, values, color=["#6c757d", "#2a9d8f", "#e76f51", "#457b9d"])
         ax.set_title(title)
         ax.set_ylabel(ylabel)
+        if values and max(values) <= 0:
+            ax.set_ylim(0, 1)
+            ax.text(
+                0.5,
+                0.55,
+                "No policy fallbacks recorded",
+                transform=ax.transAxes,
+                ha="center",
+                va="center",
+                fontsize=11,
+            )
+        else:
+            ax.set_ylim(0, max(values) * 1.20)
+            for bar, value in zip(bars, values):
+                ax.text(
+                    bar.get_x() + bar.get_width() / 2,
+                    value,
+                    f"{value:.2f}" if isinstance(value, float) and not value.is_integer() else f"{int(value)}",
+                    ha="center",
+                    va="bottom",
+                    fontsize=9,
+                )
         ax.tick_params(axis="x", rotation=15)
         fig.tight_layout()
         path = figures_dir / filename
@@ -487,9 +661,15 @@ def write_figures(
 
     game_ids = [int(summary["game"]) for summary in summaries]
     fig, ax = plt.subplots(figsize=(10, 5.5))
-    for player_id in PLAYER_ORDER:
-        agent_name = agents[player_id].name
-        values = [int(summary["players"][player_id.name]["victory_points"]) for summary in summaries]
+    for agent_name in names:
+        values = []
+        for summary in summaries:
+            agent_vp = 0
+            for player in summary["players"].values():
+                if player["agent"] == agent_name:
+                    agent_vp = int(player["victory_points"])
+                    break
+            values.append(agent_vp)
         ax.plot(game_ids, values, linewidth=1.5, alpha=0.8, label=agent_name)
     ax.set_title("Victory Points By Game")
     ax.set_xlabel("Game")
@@ -502,8 +682,13 @@ def write_figures(
     output_paths.append(path)
 
     vp_by_agent = [
-        [int(summary["players"][player_id.name]["victory_points"]) for summary in summaries]
-        for player_id in PLAYER_ORDER
+        [
+            int(player["victory_points"])
+            for summary in summaries
+            for player in summary["players"].values()
+            if player["agent"] == agent_name
+        ]
+        for agent_name in names
     ]
     fig, ax = plt.subplots(figsize=(8, 5))
     ax.boxplot(vp_by_agent, tick_labels=names, showmeans=True)
@@ -565,7 +750,19 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--device", type=str, default="cpu")
     parser.add_argument("--deterministic", action="store_true")
-    parser.add_argument("--enable-trading", action="store_true", help="Enable player trading. Off by default for stable mixed-agent smoke runs.")
+    parser.add_argument(
+        "--enable-trading",
+        dest="enable_trading",
+        action="store_true",
+        default=True,
+        help="Enable player-to-player trading. On by default so learned trade heads are evaluated.",
+    )
+    parser.add_argument(
+        "--disable-trading",
+        dest="enable_trading",
+        action="store_false",
+        help="Disable player-to-player trading for no-trade smoke runs.",
+    )
     parser.add_argument("--unified-checkpoint", type=str, default="checkpoints/unified_checkpoint_200.pt")
     parser.add_argument("--tom-dqn-checkpoint", type=str, default="")
     parser.add_argument("--dqn-checkpoint", type=str, default="")
@@ -573,6 +770,42 @@ def main() -> None:
     parser.add_argument("--ppo-checkpoint", type=str, default="")
     parser.add_argument("--orange-agent", choices=["tom_dqn", "dqn"], default="tom_dqn")
     parser.add_argument("--use-hybrid", action="store_true", help="Use hybrid in RED seat instead of raw PPO.")
+    parser.add_argument(
+        "--adjudicate-timeouts",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Assign a VP/progress winner when a game reaches max steps.",
+    )
+    parser.add_argument(
+        "--trade-step-penalty",
+        type=float,
+        default=0.001,
+        help="Per trade-phase decision penalty applied to learned agents in mixed-match logs.",
+    )
+    parser.add_argument(
+        "--trade-active-penalty",
+        type=float,
+        default=0.002,
+        help="Extra penalty for learned propose_trade and counter_trade decisions.",
+    )
+    parser.add_argument(
+        "--trade-repeat-penalty",
+        type=float,
+        default=0.002,
+        help="Additional growing penalty for repeated learned propose_trade/counter_trade loops.",
+    )
+    parser.add_argument(
+        "--random-timeout-handicap",
+        type=float,
+        default=0.25,
+        help="Timeout-only score handicap for the no-trade random baseline; natural 10 VP wins are unchanged.",
+    )
+    parser.add_argument(
+        "--rotate-seats",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Rotate which agent controls WHITE/BLUE/ORANGE/RED across games.",
+    )
     parser.add_argument("--output-dir", type=Path, default=Path("evaluation/mixed_four_player"))
     parser.add_argument("--figures-dir", type=Path, default=Path("figures/mixed_four_player"))
     parser.add_argument("--log-file", type=Path, default=None)
@@ -594,9 +827,20 @@ def main() -> None:
     header = "\n".join(
         [
             f"Starting mixed four-player evaluation for {args.games} games",
-            f"Config: max_steps={args.max_steps} seed={args.seed} trading={int(args.enable_trading)} deterministic={int(args.deterministic)}",
-            "Seat map:",
-            *[f"  {player_id.name}: {agents[player_id].name}" for player_id in PLAYER_ORDER],
+            (
+                f"Config: max_steps={args.max_steps} seed={args.seed} trading={int(args.enable_trading)} "
+                f"deterministic={int(args.deterministic)} adjudicate_timeouts={int(args.adjudicate_timeouts)} "
+                f"trade_step_penalty={args.trade_step_penalty:.4f} "
+                f"trade_active_penalty={args.trade_active_penalty:.4f} "
+                f"trade_repeat_penalty={args.trade_repeat_penalty:.4f} "
+                f"random_timeout_handicap={args.random_timeout_handicap:.4f} "
+                f"rotate_seats={int(args.rotate_seats)}"
+            ),
+            "Initial seat map:",
+            *[
+                f"  {player_id.name}: {agent.name}"
+                for player_id, agent in build_seat_agents(0, agents, args.rotate_seats).items()
+            ],
             "",
         ]
     )
@@ -604,10 +848,11 @@ def main() -> None:
     print(header, end="")
 
     for game_idx in range(args.games):
-        summary, rows = run_one_game(game_idx, args, agents)
+        seat_agents = build_seat_agents(game_idx, agents, args.rotate_seats)
+        summary, rows = run_one_game(game_idx, args, seat_agents)
         summaries.append(summary)
         all_step_rows.extend(rows)
-        game_log = format_game_log(summary, agents) + "\n\n"
+        game_log = format_game_log(summary, seat_agents) + "\n\n"
         with log_path.open("a", encoding="utf-8") as handle:
             handle.write(game_log)
         print(game_log, end="")

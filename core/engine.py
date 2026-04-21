@@ -171,6 +171,9 @@ class CatanEngine:
             return self.robber_discard_queue[0]
         if self.robber_move_pending_player is not None:
             return self.robber_move_pending_player
+        pending_trade = self.trade_manager.get_pending_trade()
+        if pending_trade is not None:
+            return pending_trade.target
         return self.player_order[self.current_player_idx]
 
     def next_player(self):
