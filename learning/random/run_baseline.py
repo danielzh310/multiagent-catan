@@ -14,9 +14,9 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from agents.random_no_trade_baseline.agent import RandomNoTradeBaselineAgent
 from core.constants import PlayerId, Resource
 from environment.catan_env import CatanEnv
+from learning.random.agent import RandomNoTradeBaselineAgent
 
 
 BUILD_ACTIONS = {"build_settlement", "build_road", "build_city"}

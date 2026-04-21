@@ -88,6 +88,7 @@ Desktop.ini
 *.temp
 *.swp
 *.swo
+*.pem
 *~
 
 # AWS / cloud helper files
