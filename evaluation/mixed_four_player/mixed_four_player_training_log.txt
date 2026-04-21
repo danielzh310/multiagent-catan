@@ -1,22 +1,2211 @@
-Starting mixed four-player evaluation for 1 games
-Config: max_steps=200 seed=42 trading=0 deterministic=1
+Starting mixed four-player evaluation for 200 games
+Config: max_steps=2000 seed=42 trading=0 deterministic=1
 Seat map:
   WHITE: random_no_trade
   BLUE: unified
-  ORANGE: dqn
+  ORANGE: tom_dqn
   RED: ppo
 Game 0
-result  | winner=NONE steps=200 turns=13 truncated=1
-seat    | player=WHITE agent=random_no_trade vp=2 settlements=2 cities=0 roads=2
-extras  | player=WHITE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=0
+result  | winner=NONE steps=2000 turns=135 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=3 settlements=2 cities=0 roads=7
+extras  | player=WHITE knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=BLUE agent=unified vp=5 settlements=2 cities=0 roads=4
+extras  | player=BLUE knights=7 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=3
+seat    | player=ORANGE agent=tom_dqn vp=6 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=3 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=1 longest_road_len=10
+seat    | player=RED agent=ppo vp=3 settlements=2 cities=0 roads=6
+extras  | player=RED knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=5
+
+Game 1
+result  | winner=ORANGE steps=1143 turns=77 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=3 settlements=3 cities=0 roads=6
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=BLUE agent=unified vp=3 settlements=3 cities=0 roads=12
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=ORANGE agent=tom_dqn vp=10 settlements=1 cities=1 roads=10
+extras  | player=ORANGE knights=9 dev_cards=0 hidden_vp=5 largest_army=1 longest_road=0 longest_road_len=6
+seat    | player=RED agent=ppo vp=4 settlements=2 cities=0 roads=15
+extras  | player=RED knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=9
+
+Game 2
+result  | winner=RED steps=1076 turns=71 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=4 settlements=2 cities=0 roads=15
+extras  | player=WHITE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=8
+seat    | player=BLUE agent=unified vp=5 settlements=0 cities=2 roads=2
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=3 settlements=3 cities=0 roads=8
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=RED agent=ppo vp=10 settlements=0 cities=2 roads=5
+extras  | player=RED knights=12 dev_cards=0 hidden_vp=4 largest_army=1 longest_road=0 longest_road_len=3
+
+Game 3
+result  | winner=NONE steps=2000 turns=136 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=2 settlements=2 cities=0 roads=9
+extras  | player=WHITE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=7
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=ORANGE agent=tom_dqn vp=4 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=10
+seat    | player=RED agent=ppo vp=7 settlements=5 cities=0 roads=15
+extras  | player=RED knights=4 dev_cards=0 hidden_vp=0 largest_army=1 longest_road=0 longest_road_len=9
+
+Game 4
+result  | winner=WHITE steps=1466 turns=95 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=1 cities=4 roads=15
+extras  | player=WHITE knights=4 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=7
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=3
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=ORANGE agent=tom_dqn vp=9 settlements=3 cities=0 roads=15
+extras  | player=ORANGE knights=5 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=1 longest_road_len=8
+seat    | player=RED agent=ppo vp=7 settlements=1 cities=2 roads=7
+extras  | player=RED knights=5 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=4
+
+Game 5
+result  | winner=RED steps=1139 turns=78 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=2 settlements=2 cities=0 roads=4
+extras  | player=WHITE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
 seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=2
 extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
-seat    | player=ORANGE agent=dqn vp=2 settlements=2 cities=0 roads=2
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=5
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=RED agent=ppo vp=10 settlements=1 cities=1 roads=4
+extras  | player=RED knights=5 dev_cards=0 hidden_vp=5 largest_army=1 longest_road=0 longest_road_len=3
+
+Game 6
+result  | winner=WHITE steps=1501 turns=98 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=5 cities=2 roads=15
+extras  | player=WHITE knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=8
+extras  | player=BLUE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=ORANGE agent=tom_dqn vp=5 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=5 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=1 longest_road_len=7
+seat    | player=RED agent=ppo vp=7 settlements=2 cities=0 roads=7
+extras  | player=RED knights=6 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=0 longest_road_len=3
+
+Game 7
+result  | winner=WHITE steps=1540 turns=102 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=2 cities=2 roads=7
+extras  | player=WHITE knights=8 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=0 longest_road_len=3
+seat    | player=BLUE agent=unified vp=4 settlements=4 cities=0 roads=6
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=ORANGE agent=tom_dqn vp=5 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=1 longest_road_len=7
+seat    | player=RED agent=ppo vp=4 settlements=2 cities=0 roads=7
+extras  | player=RED knights=6 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=3
+
+Game 8
+result  | winner=WHITE steps=994 turns=68 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=4 cities=1 roads=15
+extras  | player=WHITE knights=1 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=1 longest_road_len=10
+seat    | player=BLUE agent=unified vp=3 settlements=2 cities=0 roads=4
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=5
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=4
+extras  | player=RED knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+
+Game 9
+result  | winner=NONE steps=2000 turns=137 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=8 settlements=1 cities=2 roads=15
+extras  | player=WHITE knights=7 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=9
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=7 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=4 dev_cards=0 hidden_vp=3 largest_army=0 longest_road=1 longest_road_len=10
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=5
+extras  | player=RED knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+
+Game 10
+result  | winner=NONE steps=2000 turns=136 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=2 settlements=2 cities=0 roads=10
+extras  | player=WHITE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=BLUE agent=unified vp=5 settlements=1 cities=1 roads=2
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=3
+extras  | player=ORANGE knights=3 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=RED agent=ppo vp=9 settlements=2 cities=0 roads=11
+extras  | player=RED knights=9 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=1 longest_road_len=8
+
+Game 11
+result  | winner=NONE steps=2000 turns=137 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=5 settlements=2 cities=0 roads=10
+extras  | player=WHITE knights=1 dev_cards=1 hidden_vp=3 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=BLUE agent=unified vp=8 settlements=0 cities=4 roads=7
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=4
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=RED agent=ppo vp=7 settlements=2 cities=0 roads=14
+extras  | player=RED knights=7 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=1 longest_road_len=8
+
+Game 12
+result  | winner=WHITE steps=1707 turns=119 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=1 cities=2 roads=10
+extras  | player=WHITE knights=2 dev_cards=0 hidden_vp=3 largest_army=0 longest_road=1 longest_road_len=5
+seat    | player=BLUE agent=unified vp=3 settlements=3 cities=0 roads=6
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=ORANGE agent=tom_dqn vp=5 settlements=2 cities=0 roads=5
+extras  | player=ORANGE knights=6 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=3
+seat    | player=RED agent=ppo vp=3 settlements=2 cities=0 roads=3
+extras  | player=RED knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=2
+
+Game 13
+result  | winner=RED steps=911 turns=61 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=2 settlements=2 cities=0 roads=7
+extras  | player=WHITE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=5
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=4
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=RED agent=ppo vp=10 settlements=2 cities=0 roads=7
+extras  | player=RED knights=12 dev_cards=0 hidden_vp=4 largest_army=1 longest_road=1 longest_road_len=5
+
+Game 14
+result  | winner=NONE steps=2000 turns=129 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=6 settlements=0 cities=2 roads=4
+extras  | player=WHITE knights=4 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=BLUE agent=unified vp=4 settlements=3 cities=0 roads=8
+extras  | player=BLUE knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=ORANGE agent=tom_dqn vp=8 settlements=3 cities=0 roads=14
+extras  | player=ORANGE knights=5 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=1 longest_road_len=7
+seat    | player=RED agent=ppo vp=3 settlements=2 cities=0 roads=4
+extras  | player=RED knights=3 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=3
+
+Game 15
+result  | winner=ORANGE steps=1143 turns=74 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=4 settlements=0 cities=2 roads=3
+extras  | player=WHITE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=4
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=ORANGE agent=tom_dqn vp=10 settlements=2 cities=0 roads=12
+extras  | player=ORANGE knights=8 dev_cards=0 hidden_vp=4 largest_army=1 longest_road=1 longest_road_len=7
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=5
+extras  | player=RED knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=4
+
+Game 16
+result  | winner=NONE steps=2000 turns=141 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=4 settlements=3 cities=0 roads=15
+extras  | player=WHITE knights=1 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=9
+extras  | player=BLUE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=7
+seat    | player=ORANGE agent=tom_dqn vp=4 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=8
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=8
+extras  | player=RED knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=6
+
+Game 17
+result  | winner=NONE steps=2000 turns=135 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=2 settlements=2 cities=0 roads=9
+extras  | player=WHITE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=BLUE agent=unified vp=6 settlements=1 cities=2 roads=9
+extras  | player=BLUE knights=1 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=7
+seat    | player=ORANGE agent=tom_dqn vp=7 settlements=1 cities=1 roads=7
+extras  | player=ORANGE knights=7 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=0 longest_road_len=4
+seat    | player=RED agent=ppo vp=8 settlements=4 cities=0 roads=15
+extras  | player=RED knights=5 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=1 longest_road_len=10
+
+Game 18
+result  | winner=NONE steps=2000 turns=132 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=3 settlements=2 cities=0 roads=8
+extras  | player=WHITE knights=5 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=BLUE agent=unified vp=4 settlements=4 cities=0 roads=9
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=7
+seat    | player=ORANGE agent=tom_dqn vp=6 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=3 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=1 longest_road_len=9
+seat    | player=RED agent=ppo vp=8 settlements=0 cities=2 roads=5
+extras  | player=RED knights=6 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=0 longest_road_len=3
+
+Game 19
+result  | winner=WHITE steps=912 turns=60 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=2 cities=2 roads=15
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=1 longest_road_len=9
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=4
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=ORANGE agent=tom_dqn vp=5 settlements=2 cities=0 roads=11
+extras  | player=ORANGE knights=4 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=6
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=3
+extras  | player=RED knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+
+Game 20
+result  | winner=WHITE steps=1812 turns=121 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=3 cities=1 roads=15
+extras  | player=WHITE knights=8 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=1 longest_road_len=11
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=3
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=ORANGE agent=tom_dqn vp=4 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=7
+seat    | player=RED agent=ppo vp=3 settlements=2 cities=0 roads=6
+extras  | player=RED knights=1 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=3
+
+Game 21
+result  | winner=ORANGE steps=1537 turns=106 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=4 settlements=0 cities=2 roads=5
+extras  | player=WHITE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=10 settlements=1 cities=1 roads=9
+extras  | player=ORANGE knights=3 dev_cards=0 hidden_vp=5 largest_army=0 longest_road=1 longest_road_len=6
+seat    | player=RED agent=ppo vp=4 settlements=2 cities=0 roads=4
+extras  | player=RED knights=9 dev_cards=0 hidden_vp=0 largest_army=1 longest_road=0 longest_road_len=3
+
+Game 22
+result  | winner=WHITE steps=811 turns=53 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=3 cities=1 roads=7
+extras  | player=WHITE knights=6 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=0 longest_road_len=4
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=7
+extras  | player=BLUE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=ORANGE agent=tom_dqn vp=5 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=1 longest_road_len=9
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=3
+extras  | player=RED knights=4 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+
+Game 23
+result  | winner=WHITE steps=1349 turns=90 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=5 cities=0 roads=15
+extras  | player=WHITE knights=1 dev_cards=0 hidden_vp=3 largest_army=0 longest_road=1 longest_road_len=10
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=5
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=ORANGE agent=tom_dqn vp=3 settlements=2 cities=0 roads=4
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=RED agent=ppo vp=5 settlements=2 cities=0 roads=6
+extras  | player=RED knights=13 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=4
+
+Game 24
+result  | winner=NONE steps=2000 turns=128 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=9 settlements=4 cities=1 roads=15
+extras  | player=WHITE knights=0 dev_cards=0 hidden_vp=3 largest_army=0 longest_road=0 longest_road_len=7
+seat    | player=BLUE agent=unified vp=8 settlements=4 cities=1 roads=10
+extras  | player=BLUE knights=3 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=8
+seat    | player=ORANGE agent=tom_dqn vp=5 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=7 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=7
+seat    | player=RED agent=ppo vp=4 settlements=1 cities=1 roads=4
+extras  | player=RED knights=4 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=3
+
+Game 25
+result  | winner=NONE steps=2000 turns=128 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=9 settlements=3 cities=1 roads=15
+extras  | player=WHITE knights=1 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=1 longest_road_len=10
+seat    | player=BLUE agent=unified vp=9 settlements=4 cities=2 roads=11
+extras  | player=BLUE knights=1 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=8
+seat    | player=ORANGE agent=tom_dqn vp=5 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=9 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=10
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=9
+extras  | player=RED knights=3 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=5
+
+Game 26
+result  | winner=WHITE steps=949 turns=62 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=4 cities=1 roads=15
+extras  | player=WHITE knights=2 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=1 longest_road_len=9
+seat    | player=BLUE agent=unified vp=5 settlements=0 cities=2 roads=2
+extras  | player=BLUE knights=1 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=4
+extras  | player=ORANGE knights=3 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=RED agent=ppo vp=6 settlements=2 cities=0 roads=4
+extras  | player=RED knights=6 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=0 longest_road_len=1
+
+Game 27
+result  | winner=NONE steps=2000 turns=137 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=4 settlements=1 cities=1 roads=9
+extras  | player=WHITE knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=BLUE agent=unified vp=5 settlements=5 cities=0 roads=7
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=ORANGE agent=tom_dqn vp=5 settlements=3 cities=0 roads=15
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=9
+seat    | player=RED agent=ppo vp=8 settlements=2 cities=0 roads=6
+extras  | player=RED knights=11 dev_cards=0 hidden_vp=4 largest_army=1 longest_road=0 longest_road_len=3
+
+Game 28
+result  | winner=RED steps=1467 turns=98 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=2 settlements=2 cities=0 roads=15
+extras  | player=WHITE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=8
+seat    | player=BLUE agent=unified vp=4 settlements=4 cities=0 roads=8
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=ORANGE agent=tom_dqn vp=4 settlements=1 cities=1 roads=15
+extras  | player=ORANGE knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=7
+seat    | player=RED agent=ppo vp=10 settlements=3 cities=1 roads=15
+extras  | player=RED knights=4 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=1 longest_road_len=11
+
+Game 29
+result  | winner=WHITE steps=999 turns=62 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=1 cities=4 roads=15
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=9
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=7 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=4 dev_cards=1 hidden_vp=1 largest_army=1 longest_road=1 longest_road_len=10
+seat    | player=RED agent=ppo vp=3 settlements=2 cities=0 roads=4
+extras  | player=RED knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=2
+
+Game 30
+result  | winner=NONE steps=2000 turns=129 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=3 settlements=2 cities=0 roads=14
+extras  | player=WHITE knights=1 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=7
+seat    | player=BLUE agent=unified vp=7 settlements=5 cities=0 roads=13
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=9
+seat    | player=ORANGE agent=tom_dqn vp=6 settlements=1 cities=1 roads=12
+extras  | player=ORANGE knights=8 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=7
+seat    | player=RED agent=ppo vp=8 settlements=5 cities=0 roads=15
+extras  | player=RED knights=5 dev_cards=0 hidden_vp=3 largest_army=0 longest_road=0 longest_road_len=8
+
+Game 31
+result  | winner=RED steps=1497 turns=98 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=4 settlements=0 cities=2 roads=4
+extras  | player=WHITE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=BLUE agent=unified vp=3 settlements=3 cities=0 roads=9
+extras  | player=BLUE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=ORANGE agent=tom_dqn vp=4 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=8
+seat    | player=RED agent=ppo vp=10 settlements=1 cities=1 roads=8
+extras  | player=RED knights=9 dev_cards=0 hidden_vp=5 largest_army=1 longest_road=0 longest_road_len=5
+
+Game 32
+result  | winner=WHITE steps=1141 turns=76 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=4 cities=2 roads=15
+extras  | player=WHITE knights=2 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=BLUE agent=unified vp=3 settlements=2 cities=0 roads=4
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=ORANGE agent=tom_dqn vp=5 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=1 longest_road_len=8
+seat    | player=RED agent=ppo vp=4 settlements=2 cities=0 roads=6
+extras  | player=RED knights=4 dev_cards=0 hidden_vp=0 largest_army=1 longest_road=0 longest_road_len=5
+
+Game 33
+result  | winner=WHITE steps=1449 turns=92 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=5 cities=1 roads=15
+extras  | player=WHITE knights=5 dev_cards=1 hidden_vp=3 largest_army=0 longest_road=0 longest_road_len=8
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=3
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=ORANGE agent=tom_dqn vp=4 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=RED agent=ppo vp=9 settlements=5 cities=0 roads=15
+extras  | player=RED knights=5 dev_cards=0 hidden_vp=0 largest_army=1 longest_road=1 longest_road_len=11
+
+Game 34
+result  | winner=WHITE steps=1462 turns=95 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=5 cities=2 roads=15
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=9
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=3
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=ORANGE agent=tom_dqn vp=9 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=6 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=1 longest_road_len=10
+seat    | player=RED agent=ppo vp=3 settlements=2 cities=0 roads=4
+extras  | player=RED knights=5 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=3
+
+Game 35
+result  | winner=RED steps=1416 turns=96 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=4 settlements=0 cities=2 roads=7
+extras  | player=WHITE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=5 settlements=2 cities=0 roads=13
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=1 longest_road_len=8
+seat    | player=RED agent=ppo vp=10 settlements=0 cities=2 roads=4
+extras  | player=RED knights=13 dev_cards=0 hidden_vp=4 largest_army=1 longest_road=0 longest_road_len=3
+
+Game 36
+result  | winner=NONE steps=2000 turns=121 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=9 settlements=5 cities=1 roads=15
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=7
+seat    | player=BLUE agent=unified vp=5 settlements=3 cities=0 roads=11
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=9
+seat    | player=ORANGE agent=tom_dqn vp=7 settlements=1 cities=1 roads=8
+extras  | player=ORANGE knights=6 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=0 longest_road_len=5
+seat    | player=RED agent=ppo vp=8 settlements=5 cities=1 roads=15
+extras  | player=RED knights=5 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=8
+
+Game 37
+result  | winner=NONE steps=2000 turns=138 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=8 settlements=1 cities=2 roads=7
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=3
+seat    | player=BLUE agent=unified vp=5 settlements=5 cities=0 roads=11
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=9
+seat    | player=ORANGE agent=tom_dqn vp=4 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=3 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=10
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=8
+extras  | player=RED knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=6
+
+Game 38
+result  | winner=WHITE steps=547 turns=34 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=5 cities=1 roads=15
+extras  | player=WHITE knights=1 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=1 longest_road_len=10
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=4
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=2
+extras  | player=RED knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+
+Game 39
+result  | winner=WHITE steps=1166 turns=77 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=5 cities=0 roads=15
+extras  | player=WHITE knights=5 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=0 longest_road_len=6
+seat    | player=BLUE agent=unified vp=3 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=4 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=3 settlements=1 cities=1 roads=8
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=RED agent=ppo vp=4 settlements=2 cities=0 roads=15
+extras  | player=RED knights=3 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=7
+
+Game 40
+result  | winner=WHITE steps=764 turns=49 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=2 cities=3 roads=15
+extras  | player=WHITE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=6
+seat    | player=BLUE agent=unified vp=3 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=2
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=0
+seat    | player=RED agent=ppo vp=7 settlements=2 cities=0 roads=5
+extras  | player=RED knights=7 dev_cards=1 hidden_vp=3 largest_army=1 longest_road=0 longest_road_len=4
+
+Game 41
+result  | winner=WHITE steps=1350 turns=89 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=5 cities=1 roads=15
+extras  | player=WHITE knights=4 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=4
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=5
+extras  | player=BLUE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=12
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=7
+seat    | player=RED agent=ppo vp=5 settlements=3 cities=0 roads=15
+extras  | player=RED knights=4 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=9
+
+Game 42
+result  | winner=NONE steps=2000 turns=130 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=9 settlements=5 cities=0 roads=15
+extras  | player=WHITE knights=1 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=1 longest_road_len=9
+seat    | player=BLUE agent=unified vp=5 settlements=3 cities=1 roads=9
+extras  | player=BLUE knights=4 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=7
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=7
+extras  | player=ORANGE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=RED agent=ppo vp=9 settlements=0 cities=2 roads=8
+extras  | player=RED knights=7 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=0 longest_road_len=7
+
+Game 43
+result  | winner=RED steps=1892 turns=124 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=4 settlements=2 cities=0 roads=13
+extras  | player=WHITE knights=5 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=9
+seat    | player=BLUE agent=unified vp=5 settlements=3 cities=0 roads=12
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=11
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=9
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=RED agent=ppo vp=10 settlements=5 cities=0 roads=15
+extras  | player=RED knights=8 dev_cards=1 hidden_vp=3 largest_army=1 longest_road=0 longest_road_len=10
+
+Game 44
+result  | winner=WHITE steps=1131 turns=70 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=4 cities=1 roads=15
+extras  | player=WHITE knights=4 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=0 longest_road_len=6
+seat    | player=BLUE agent=unified vp=3 settlements=3 cities=0 roads=6
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=7
+seat    | player=RED agent=ppo vp=7 settlements=3 cities=1 roads=15
+extras  | player=RED knights=3 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=8
+
+Game 45
+result  | winner=NONE steps=2000 turns=135 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=5 settlements=4 cities=0 roads=12
+extras  | player=WHITE knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=BLUE agent=unified vp=7 settlements=5 cities=0 roads=10
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=7
+seat    | player=ORANGE agent=tom_dqn vp=8 settlements=2 cities=0 roads=11
+extras  | player=ORANGE knights=12 dev_cards=0 hidden_vp=4 largest_army=1 longest_road=0 longest_road_len=6
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=2
+extras  | player=RED knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+
+Game 46
+result  | winner=RED steps=848 turns=56 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=2 settlements=2 cities=0 roads=7
+extras  | player=WHITE knights=4 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=3
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=3
 extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=RED agent=ppo vp=10 settlements=1 cities=1 roads=7
+extras  | player=RED knights=9 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=1 longest_road_len=6
+
+Game 47
+result  | winner=NONE steps=2000 turns=134 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=8 settlements=2 cities=1 roads=15
+extras  | player=WHITE knights=6 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=1 longest_road_len=9
+seat    | player=BLUE agent=unified vp=3 settlements=3 cities=0 roads=9
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=ORANGE agent=tom_dqn vp=3 settlements=2 cities=0 roads=6
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=RED agent=ppo vp=8 settlements=0 cities=2 roads=5
+extras  | player=RED knights=7 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=0 longest_road_len=3
+
+Game 48
+result  | winner=BLUE steps=1244 turns=80 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=3 settlements=3 cities=0 roads=15
+extras  | player=WHITE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=9
+seat    | player=BLUE agent=unified vp=10 settlements=2 cities=3 roads=14
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=10
+seat    | player=ORANGE agent=tom_dqn vp=9 settlements=4 cities=0 roads=12
+extras  | player=ORANGE knights=3 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=0 longest_road_len=7
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=7
+extras  | player=RED knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=5
+
+Game 49
+result  | winner=RED steps=1475 turns=97 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=5 settlements=4 cities=0 roads=15
+extras  | player=WHITE knights=1 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=8
+seat    | player=BLUE agent=unified vp=6 settlements=4 cities=1 roads=15
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=8
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=7
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=RED agent=ppo vp=10 settlements=5 cities=0 roads=15
+extras  | player=RED knights=4 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=1 longest_road_len=9
+
+Game 50
+result  | winner=WHITE steps=1731 turns=114 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=2 cities=2 roads=15
+extras  | player=WHITE knights=4 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=1 longest_road_len=7
+seat    | player=BLUE agent=unified vp=4 settlements=0 cities=2 roads=2
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=4 settlements=2 cities=0 roads=5
+extras  | player=ORANGE knights=4 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=RED agent=ppo vp=5 settlements=2 cities=0 roads=7
+extras  | player=RED knights=6 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=6
+
+Game 51
+result  | winner=WHITE steps=1243 turns=82 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=4 cities=2 roads=15
+extras  | player=WHITE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=6
+seat    | player=BLUE agent=unified vp=4 settlements=0 cities=2 roads=4
+extras  | player=BLUE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=ORANGE agent=tom_dqn vp=3 settlements=2 cities=0 roads=4
+extras  | player=ORANGE knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=RED agent=ppo vp=8 settlements=2 cities=0 roads=2
+extras  | player=RED knights=10 dev_cards=0 hidden_vp=4 largest_army=1 longest_road=0 longest_road_len=1
+
+Game 52
+result  | winner=WHITE steps=1999 turns=137 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=3 cities=1 roads=9
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=3 largest_army=0 longest_road=1 longest_road_len=7
+seat    | player=BLUE agent=unified vp=3 settlements=2 cities=0 roads=4
+extras  | player=BLUE knights=1 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=4
+extras  | player=ORANGE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=RED agent=ppo vp=5 settlements=2 cities=0 roads=6
+extras  | player=RED knights=8 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=5
+
+Game 53
+result  | winner=NONE steps=2000 turns=137 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=6 settlements=0 cities=2 roads=4
+extras  | player=WHITE knights=5 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=BLUE agent=unified vp=6 settlements=2 cities=0 roads=4
+extras  | player=BLUE knights=5 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=0 longest_road_len=3
+seat    | player=ORANGE agent=tom_dqn vp=7 settlements=5 cities=0 roads=15
+extras  | player=ORANGE knights=3 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=8
+seat    | player=RED agent=ppo vp=3 settlements=2 cities=0 roads=6
+extras  | player=RED knights=1 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=5
+
+Game 54
+result  | winner=WHITE steps=1670 turns=104 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=4 cities=1 roads=15
+extras  | player=WHITE knights=7 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=0 longest_road_len=7
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=6 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=5 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=1 longest_road_len=10
+seat    | player=RED agent=ppo vp=5 settlements=5 cities=0 roads=15
+extras  | player=RED knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=8
+
+Game 55
+result  | winner=RED steps=1486 turns=100 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=3 settlements=2 cities=0 roads=4
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=BLUE agent=unified vp=5 settlements=5 cities=0 roads=10
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=8
+seat    | player=ORANGE agent=tom_dqn vp=4 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=9
+seat    | player=RED agent=ppo vp=10 settlements=2 cities=1 roads=15
+extras  | player=RED knights=9 dev_cards=1 hidden_vp=4 largest_army=1 longest_road=0 longest_road_len=9
+
+Game 56
+result  | winner=WHITE steps=1142 turns=74 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=1 cities=2 roads=15
+extras  | player=WHITE knights=5 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=0 longest_road_len=5
+seat    | player=BLUE agent=unified vp=3 settlements=3 cities=0 roads=6
+extras  | player=BLUE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=ORANGE agent=tom_dqn vp=3 settlements=2 cities=0 roads=10
+extras  | player=ORANGE knights=3 dev_cards=1 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=RED agent=ppo vp=5 settlements=3 cities=0 roads=15
+extras  | player=RED knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=11
+
+Game 57
+result  | winner=ORANGE steps=1252 turns=87 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=2 settlements=2 cities=0 roads=15
+extras  | player=WHITE knights=4 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=5
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=ORANGE agent=tom_dqn vp=10 settlements=1 cities=1 roads=3
+extras  | player=ORANGE knights=9 dev_cards=0 hidden_vp=5 largest_army=1 longest_road=0 longest_road_len=1
+seat    | player=RED agent=ppo vp=4 settlements=2 cities=0 roads=7
+extras  | player=RED knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=6
+
+Game 58
+result  | winner=WHITE steps=1242 turns=80 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=11 settlements=2 cities=3 roads=15
+extras  | player=WHITE knights=4 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=4
+seat    | player=BLUE agent=unified vp=4 settlements=3 cities=0 roads=6
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=ORANGE agent=tom_dqn vp=4 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=10
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=5
+extras  | player=RED knights=3 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+
+Game 59
+result  | winner=NONE steps=2000 turns=128 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=6 settlements=5 cities=0 roads=15
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=BLUE agent=unified vp=3 settlements=2 cities=0 roads=7
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=ORANGE agent=tom_dqn vp=9 settlements=0 cities=2 roads=2
+extras  | player=ORANGE knights=7 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=0 longest_road_len=0
+seat    | player=RED agent=ppo vp=8 settlements=0 cities=3 roads=6
+extras  | player=RED knights=4 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=5
+
+Game 60
+result  | winner=NONE steps=2000 turns=141 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=6 settlements=1 cities=1 roads=9
+extras  | player=WHITE knights=5 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=6
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=6
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=ORANGE agent=tom_dqn vp=4 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=9
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=5
+extras  | player=RED knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+
+Game 61
+result  | winner=BLUE steps=1585 turns=107 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=3 settlements=2 cities=0 roads=7
+extras  | player=WHITE knights=0 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=BLUE agent=unified vp=10 settlements=1 cities=4 roads=12
+extras  | player=BLUE knights=3 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=8
+seat    | player=ORANGE agent=tom_dqn vp=3 settlements=2 cities=0 roads=6
+extras  | player=ORANGE knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=RED agent=ppo vp=8 settlements=2 cities=0 roads=15
+extras  | player=RED knights=9 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=1 longest_road_len=8
+
+Game 62
+result  | winner=NONE steps=2000 turns=130 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=9 settlements=4 cities=2 roads=15
+extras  | player=WHITE knights=4 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=BLUE agent=unified vp=5 settlements=3 cities=0 roads=6
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=5
+seat    | player=ORANGE agent=tom_dqn vp=6 settlements=1 cities=1 roads=11
+extras  | player=ORANGE knights=5 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=4
+seat    | player=RED agent=ppo vp=6 settlements=1 cities=1 roads=4
+extras  | player=RED knights=5 dev_cards=0 hidden_vp=3 largest_army=0 longest_road=0 longest_road_len=3
+
+Game 63
+result  | winner=RED steps=677 turns=43 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=2 settlements=2 cities=0 roads=15
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=2
+extras  | player=ORANGE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=0
+seat    | player=RED agent=ppo vp=10 settlements=2 cities=0 roads=6
+extras  | player=RED knights=7 dev_cards=0 hidden_vp=4 largest_army=1 longest_road=1 longest_road_len=5
+
+Game 64
+result  | winner=WHITE steps=1400 turns=92 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=5 cities=1 roads=15
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=1 longest_road_len=7
+seat    | player=BLUE agent=unified vp=3 settlements=2 cities=0 roads=4
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=ORANGE agent=tom_dqn vp=3 settlements=2 cities=0 roads=8
+extras  | player=ORANGE knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=RED agent=ppo vp=4 settlements=2 cities=0 roads=4
+extras  | player=RED knights=3 dev_cards=1 hidden_vp=0 largest_army=1 longest_road=0 longest_road_len=3
+
+Game 65
+result  | winner=WHITE steps=1634 turns=111 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=5 cities=1 roads=15
+extras  | player=WHITE knights=6 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=5
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=3
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=ORANGE agent=tom_dqn vp=6 settlements=3 cities=0 roads=15
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=1 longest_road_len=8
+seat    | player=RED agent=ppo vp=3 settlements=2 cities=0 roads=6
+extras  | player=RED knights=1 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=4
+
+Game 66
+result  | winner=RED steps=1743 turns=113 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=6 settlements=5 cities=0 roads=15
+extras  | player=WHITE knights=0 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=BLUE agent=unified vp=5 settlements=5 cities=0 roads=11
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=8
+seat    | player=ORANGE agent=tom_dqn vp=4 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=10
+seat    | player=RED agent=ppo vp=10 settlements=0 cities=2 roads=5
+extras  | player=RED knights=13 dev_cards=0 hidden_vp=4 largest_army=1 longest_road=0 longest_road_len=4
+
+Game 67
+result  | winner=WHITE steps=574 turns=36 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=5 cities=0 roads=15
+extras  | player=WHITE knights=2 dev_cards=0 hidden_vp=3 largest_army=0 longest_road=1 longest_road_len=8
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=3 settlements=2 cities=0 roads=4
+extras  | player=ORANGE knights=2 dev_cards=1 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=4
+extras  | player=RED knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+
+Game 68
+result  | winner=WHITE steps=1335 turns=81 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=4 cities=2 roads=15
+extras  | player=WHITE knights=4 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=7
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=3 settlements=2 cities=0 roads=4
+extras  | player=ORANGE knights=3 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=RED agent=ppo vp=8 settlements=2 cities=0 roads=3
+extras  | player=RED knights=7 dev_cards=0 hidden_vp=4 largest_army=1 longest_road=0 longest_road_len=1
+
+Game 69
+result  | winner=NONE steps=2000 turns=137 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=7 settlements=5 cities=0 roads=15
+extras  | player=WHITE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=7
+seat    | player=BLUE agent=unified vp=4 settlements=2 cities=0 roads=9
+extras  | player=BLUE knights=3 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=9
+extras  | player=ORANGE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=RED agent=ppo vp=5 settlements=2 cities=0 roads=5
+extras  | player=RED knights=7 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=3
+
+Game 70
+result  | winner=NONE steps=2000 turns=129 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=9 settlements=0 cities=3 roads=4
+extras  | player=WHITE knights=5 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=2
+seat    | player=BLUE agent=unified vp=3 settlements=2 cities=0 roads=4
+extras  | player=BLUE knights=3 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=4 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=10
+seat    | player=RED agent=ppo vp=8 settlements=5 cities=0 roads=15
+extras  | player=RED knights=5 dev_cards=0 hidden_vp=3 largest_army=0 longest_road=0 longest_road_len=9
+
+Game 71
+result  | winner=NONE steps=2000 turns=139 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=3 settlements=3 cities=0 roads=8
+extras  | player=WHITE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=BLUE agent=unified vp=7 settlements=3 cities=0 roads=9
+extras  | player=BLUE knights=9 dev_cards=3 hidden_vp=2 largest_army=1 longest_road=0 longest_road_len=7
+seat    | player=ORANGE agent=tom_dqn vp=4 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=11
+seat    | player=RED agent=ppo vp=3 settlements=2 cities=0 roads=4
+extras  | player=RED knights=0 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=3
+
+Game 72
+result  | winner=NONE steps=2000 turns=137 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=2 settlements=2 cities=0 roads=9
+extras  | player=WHITE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=4
+extras  | player=BLUE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=5 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=3 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=1 longest_road_len=10
+seat    | player=RED agent=ppo vp=8 settlements=2 cities=0 roads=10
+extras  | player=RED knights=9 dev_cards=0 hidden_vp=4 largest_army=1 longest_road=0 longest_road_len=8
+
+Game 73
+result  | winner=NONE steps=2000 turns=136 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=5 settlements=3 cities=1 roads=9
+extras  | player=WHITE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=BLUE agent=unified vp=3 settlements=3 cities=0 roads=5
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=ORANGE agent=tom_dqn vp=9 settlements=2 cities=0 roads=13
+extras  | player=ORANGE knights=8 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=1 longest_road_len=7
+seat    | player=RED agent=ppo vp=4 settlements=2 cities=0 roads=3
+extras  | player=RED knights=5 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=2
+
+Game 74
+result  | winner=NONE steps=2000 turns=133 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=8 settlements=1 cities=2 roads=7
+extras  | player=WHITE knights=4 dev_cards=0 hidden_vp=3 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=5
+extras  | player=BLUE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=ORANGE agent=tom_dqn vp=5 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=1 longest_road_len=9
+seat    | player=RED agent=ppo vp=5 settlements=2 cities=0 roads=6
+extras  | player=RED knights=6 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=4
+
+Game 75
+result  | winner=NONE steps=2000 turns=134 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=6 settlements=2 cities=0 roads=9
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=0 longest_road_len=3
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=4
+extras  | player=BLUE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=8
+seat    | player=RED agent=ppo vp=8 settlements=5 cities=0 roads=15
+extras  | player=RED knights=3 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=1 longest_road_len=9
+
+Game 76
+result  | winner=NONE steps=2000 turns=130 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=8 settlements=4 cities=1 roads=15
+extras  | player=WHITE knights=2 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=BLUE agent=unified vp=5 settlements=3 cities=0 roads=10
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=6
+seat    | player=ORANGE agent=tom_dqn vp=3 settlements=2 cities=0 roads=2
+extras  | player=ORANGE knights=3 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=0
+seat    | player=RED agent=ppo vp=6 settlements=2 cities=0 roads=5
+extras  | player=RED knights=9 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=0 longest_road_len=2
+
+Game 77
+result  | winner=NONE steps=2000 turns=135 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=6 settlements=0 cities=2 roads=2
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=5
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=8
+extras  | player=ORANGE knights=4 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=RED agent=ppo vp=9 settlements=2 cities=0 roads=11
+extras  | player=RED knights=7 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=1 longest_road_len=8
+
+Game 78
+result  | winner=WHITE steps=1477 turns=95 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=11 settlements=4 cities=1 roads=15
+extras  | player=WHITE knights=5 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=1 longest_road_len=9
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=4
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=5
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=RED agent=ppo vp=3 settlements=2 cities=0 roads=4
+extras  | player=RED knights=4 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=3
+
+Game 79
+result  | winner=ORANGE steps=1273 turns=83 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=4 settlements=2 cities=0 roads=14
+extras  | player=WHITE knights=2 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=BLUE agent=unified vp=4 settlements=4 cities=0 roads=7
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=ORANGE agent=tom_dqn vp=10 settlements=4 cities=0 roads=15
+extras  | player=ORANGE knights=8 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=1 longest_road_len=10
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=5
+extras  | player=RED knights=3 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=4
+
+Game 80
+result  | winner=WHITE steps=1654 turns=108 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=0 cities=3 roads=12
+extras  | player=WHITE knights=4 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=1 longest_road_len=8
+seat    | player=BLUE agent=unified vp=8 settlements=3 cities=2 roads=8
+extras  | player=BLUE knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=ORANGE agent=tom_dqn vp=4 settlements=1 cities=1 roads=5
+extras  | player=ORANGE knights=3 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=RED agent=ppo vp=5 settlements=2 cities=0 roads=9
+extras  | player=RED knights=5 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=5
+
+Game 81
+result  | winner=RED steps=1066 turns=72 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=2 settlements=2 cities=0 roads=4
+extras  | player=WHITE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=BLUE agent=unified vp=3 settlements=3 cities=0 roads=4
+extras  | player=BLUE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=5
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=RED agent=ppo vp=10 settlements=0 cities=2 roads=4
+extras  | player=RED knights=8 dev_cards=0 hidden_vp=4 largest_army=1 longest_road=0 longest_road_len=3
+
+Game 82
+result  | winner=WHITE steps=1903 turns=131 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=1 cities=2 roads=11
+extras  | player=WHITE knights=6 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=0 longest_road_len=5
+seat    | player=BLUE agent=unified vp=4 settlements=1 cities=1 roads=2
+extras  | player=BLUE knights=3 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=5 settlements=2 cities=0 roads=9
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=1 longest_road_len=6
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=6
+extras  | player=RED knights=4 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=4
+
+Game 83
+result  | winner=WHITE steps=1802 turns=120 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=3 cities=3 roads=15
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=3
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=4 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=10
+seat    | player=RED agent=ppo vp=8 settlements=2 cities=0 roads=11
+extras  | player=RED knights=9 dev_cards=0 hidden_vp=4 largest_army=1 longest_road=0 longest_road_len=7
+
+Game 84
+result  | winner=WHITE steps=1780 turns=121 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=5 cities=0 roads=15
+extras  | player=WHITE knights=4 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=0 longest_road_len=6
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=4
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=5 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=3 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=1 longest_road_len=8
+seat    | player=RED agent=ppo vp=3 settlements=2 cities=0 roads=9
+extras  | player=RED knights=4 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=8
+
+Game 85
+result  | winner=NONE steps=2000 turns=133 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=4 settlements=3 cities=0 roads=11
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=BLUE agent=unified vp=9 settlements=5 cities=1 roads=10
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=5
+seat    | player=ORANGE agent=tom_dqn vp=6 settlements=2 cities=0 roads=5
+extras  | player=ORANGE knights=10 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=0 longest_road_len=3
+seat    | player=RED agent=ppo vp=4 settlements=2 cities=0 roads=7
+extras  | player=RED knights=1 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=5
+
+Game 86
+result  | winner=NONE steps=2000 turns=135 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=4 settlements=1 cities=1 roads=14
+extras  | player=WHITE knights=5 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=7
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=ORANGE agent=tom_dqn vp=5 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=1 longest_road_len=10
+seat    | player=RED agent=ppo vp=9 settlements=0 cities=2 roads=4
+extras  | player=RED knights=9 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=0 longest_road_len=3
+
+Game 87
+result  | winner=RED steps=1998 turns=129 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=8 settlements=5 cities=0 roads=15
+extras  | player=WHITE knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=1 longest_road_len=6
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=2
+extras  | player=ORANGE knights=3 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=0
+seat    | player=RED agent=ppo vp=10 settlements=0 cities=2 roads=4
+extras  | player=RED knights=9 dev_cards=0 hidden_vp=4 largest_army=1 longest_road=0 longest_road_len=3
+
+Game 88
+result  | winner=RED steps=1073 turns=73 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=4 settlements=2 cities=0 roads=4
+extras  | player=WHITE knights=2 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=BLUE agent=unified vp=3 settlements=1 cities=1 roads=2
+extras  | player=BLUE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=3 settlements=2 cities=0 roads=7
+extras  | player=ORANGE knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=RED agent=ppo vp=10 settlements=5 cities=0 roads=15
+extras  | player=RED knights=3 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=1 longest_road_len=8
+
+Game 89
+result  | winner=WHITE steps=1366 turns=89 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=11 settlements=5 cities=1 roads=15
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=0 largest_army=1 longest_road=1 longest_road_len=10
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=4
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=ORANGE agent=tom_dqn vp=3 settlements=3 cities=0 roads=15
+extras  | player=ORANGE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=9
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=2
+extras  | player=RED knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+
+Game 90
+result  | winner=WHITE steps=1338 turns=82 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=5 cities=0 roads=15
+extras  | player=WHITE knights=7 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=0 longest_road_len=5
+seat    | player=BLUE agent=unified vp=4 settlements=4 cities=0 roads=9
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=8
+seat    | player=ORANGE agent=tom_dqn vp=4 settlements=2 cities=0 roads=14
+extras  | player=ORANGE knights=3 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=10
+seat    | player=RED agent=ppo vp=3 settlements=2 cities=0 roads=4
+extras  | player=RED knights=1 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=3
+
+Game 91
+result  | winner=WHITE steps=1770 turns=116 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=1 cities=3 roads=12
+extras  | player=WHITE knights=6 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=5
+seat    | player=BLUE agent=unified vp=5 settlements=0 cities=2 roads=2
+extras  | player=BLUE knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=3 settlements=2 cities=0 roads=5
+extras  | player=ORANGE knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=RED agent=ppo vp=9 settlements=5 cities=0 roads=15
+extras  | player=RED knights=4 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=1 longest_road_len=8
+
+Game 92
+result  | winner=ORANGE steps=852 turns=59 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=2 settlements=2 cities=0 roads=7
+extras  | player=WHITE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=10 settlements=2 cities=0 roads=10
+extras  | player=ORANGE knights=6 dev_cards=0 hidden_vp=4 largest_army=1 longest_road=1 longest_road_len=6
 seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=2
 extras  | player=RED knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
 
+Game 93
+result  | winner=NONE steps=2000 turns=72 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=6 settlements=0 cities=3 roads=5
+extras  | player=WHITE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=5
+extras  | player=BLUE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=ORANGE agent=tom_dqn vp=9 settlements=5 cities=0 roads=15
+extras  | player=ORANGE knights=5 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=1 longest_road_len=10
+seat    | player=RED agent=ppo vp=7 settlements=2 cities=0 roads=12
+extras  | player=RED knights=6 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=0 longest_road_len=7
+
+Game 94
+result  | winner=WHITE steps=1673 turns=112 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=2 cities=2 roads=15
+extras  | player=WHITE knights=8 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=0 longest_road_len=5
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=3
+extras  | player=BLUE knights=4 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=4 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=10
+seat    | player=RED agent=ppo vp=5 settlements=2 cities=0 roads=4
+extras  | player=RED knights=1 dev_cards=0 hidden_vp=3 largest_army=0 longest_road=0 longest_road_len=3
+
+Game 95
+result  | winner=RED steps=1190 turns=81 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=2 settlements=2 cities=0 roads=5
+extras  | player=WHITE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=6
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=ORANGE agent=tom_dqn vp=3 settlements=2 cities=0 roads=6
+extras  | player=ORANGE knights=5 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=RED agent=ppo vp=10 settlements=2 cities=0 roads=8
+extras  | player=RED knights=8 dev_cards=0 hidden_vp=4 largest_army=1 longest_road=1 longest_road_len=7
+
+Game 96
+result  | winner=RED steps=747 turns=48 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=3 settlements=3 cities=0 roads=11
+extras  | player=WHITE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=3 settlements=2 cities=0 roads=7
+extras  | player=ORANGE knights=3 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=RED agent=ppo vp=10 settlements=2 cities=0 roads=12
+extras  | player=RED knights=7 dev_cards=0 hidden_vp=4 largest_army=1 longest_road=1 longest_road_len=6
+
+Game 97
+result  | winner=WHITE steps=1291 turns=83 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=4 cities=0 roads=15
+extras  | player=WHITE knights=6 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=1 longest_road_len=9
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=7
+extras  | player=BLUE knights=4 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=ORANGE agent=tom_dqn vp=3 settlements=1 cities=1 roads=15
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=9
+seat    | player=RED agent=ppo vp=7 settlements=0 cities=2 roads=2
+extras  | player=RED knights=3 dev_cards=0 hidden_vp=3 largest_army=0 longest_road=0 longest_road_len=1
+
+Game 98
+result  | winner=RED steps=753 turns=46 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=6 settlements=5 cities=0 roads=15
+extras  | player=WHITE knights=1 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=5
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=4
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=RED agent=ppo vp=10 settlements=4 cities=1 roads=15
+extras  | player=RED knights=2 dev_cards=1 hidden_vp=2 largest_army=0 longest_road=1 longest_road_len=8
+
+Game 99
+result  | winner=ORANGE steps=581 turns=38 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=2 settlements=2 cities=0 roads=6
+extras  | player=WHITE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=4
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=ORANGE agent=tom_dqn vp=11 settlements=4 cities=0 roads=12
+extras  | player=ORANGE knights=3 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=1 longest_road_len=8
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=2
+extras  | player=RED knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+
+Game 100
+result  | winner=NONE steps=2000 turns=141 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=5 settlements=1 cities=1 roads=14
+extras  | player=WHITE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=7
+seat    | player=BLUE agent=unified vp=3 settlements=2 cities=0 roads=3
+extras  | player=BLUE knights=1 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=5
+extras  | player=ORANGE knights=4 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=RED agent=ppo vp=5 settlements=2 cities=0 roads=8
+extras  | player=RED knights=4 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=6
+
+Game 101
+result  | winner=RED steps=1815 turns=123 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=5 settlements=2 cities=0 roads=11
+extras  | player=WHITE knights=2 dev_cards=0 hidden_vp=3 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=BLUE agent=unified vp=5 settlements=5 cities=0 roads=15
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=10
+seat    | player=ORANGE agent=tom_dqn vp=5 settlements=3 cities=0 roads=15
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=11
+seat    | player=RED agent=ppo vp=10 settlements=0 cities=3 roads=8
+extras  | player=RED knights=11 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=0 longest_road_len=5
+
+Game 102
+result  | winner=WHITE steps=1149 turns=73 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=5 cities=1 roads=15
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=1 longest_road_len=7
+seat    | player=BLUE agent=unified vp=3 settlements=3 cities=0 roads=6
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=ORANGE agent=tom_dqn vp=8 settlements=2 cities=0 roads=4
+extras  | player=ORANGE knights=8 dev_cards=0 hidden_vp=4 largest_army=1 longest_road=0 longest_road_len=2
+seat    | player=RED agent=ppo vp=4 settlements=4 cities=0 roads=15
+extras  | player=RED knights=3 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=7
+
+Game 103
+result  | winner=RED steps=1612 turns=109 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=8 settlements=5 cities=0 roads=15
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=10
+seat    | player=BLUE agent=unified vp=4 settlements=0 cities=2 roads=2
+extras  | player=BLUE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=5
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=RED agent=ppo vp=10 settlements=5 cities=0 roads=15
+extras  | player=RED knights=1 dev_cards=0 hidden_vp=3 largest_army=0 longest_road=1 longest_road_len=11
+
+Game 104
+result  | winner=WHITE steps=1051 turns=69 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=0 cities=3 roads=15
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=0 largest_army=1 longest_road=1 longest_road_len=11
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=5
+extras  | player=ORANGE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=RED agent=ppo vp=3 settlements=2 cities=0 roads=2
+extras  | player=RED knights=0 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=1
+
+Game 105
+result  | winner=NONE steps=2000 turns=86 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=6 settlements=1 cities=1 roads=8
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=4
+seat    | player=BLUE agent=unified vp=4 settlements=4 cities=0 roads=8
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=7
+seat    | player=ORANGE agent=tom_dqn vp=5 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=3 dev_cards=0 hidden_vp=3 largest_army=0 longest_road=0 longest_road_len=8
+seat    | player=RED agent=ppo vp=5 settlements=1 cities=1 roads=15
+extras  | player=RED knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=8
+
+Game 106
+result  | winner=RED steps=1842 turns=119 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=8 settlements=4 cities=1 roads=15
+extras  | player=WHITE knights=4 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=8
+seat    | player=BLUE agent=unified vp=3 settlements=3 cities=0 roads=3
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=7
+extras  | player=ORANGE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=RED agent=ppo vp=10 settlements=4 cities=0 roads=15
+extras  | player=RED knights=6 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=1 longest_road_len=10
+
+Game 107
+result  | winner=RED steps=1669 turns=108 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=5 settlements=2 cities=0 roads=15
+extras  | player=WHITE knights=5 dev_cards=0 hidden_vp=3 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=BLUE agent=unified vp=3 settlements=3 cities=0 roads=7
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=7
+seat    | player=RED agent=ppo vp=11 settlements=5 cities=0 roads=15
+extras  | player=RED knights=6 dev_cards=1 hidden_vp=2 largest_army=1 longest_road=1 longest_road_len=8
+
+Game 108
+result  | winner=WHITE steps=1346 turns=87 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=5 cities=0 roads=15
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=3 largest_army=0 longest_road=1 longest_road_len=7
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=4 settlements=2 cities=0 roads=8
+extras  | player=ORANGE knights=7 dev_cards=0 hidden_vp=0 largest_army=1 longest_road=0 longest_road_len=5
+seat    | player=RED agent=ppo vp=4 settlements=4 cities=0 roads=15
+extras  | player=RED knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=5
+
+Game 109
+result  | winner=RED steps=909 turns=59 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=4 settlements=0 cities=2 roads=7
+extras  | player=WHITE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=6
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=RED agent=ppo vp=10 settlements=2 cities=0 roads=6
+extras  | player=RED knights=7 dev_cards=0 hidden_vp=4 largest_army=1 longest_road=1 longest_road_len=5
+
+Game 110
+result  | winner=ORANGE steps=1683 turns=112 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=4 settlements=0 cities=2 roads=2
+extras  | player=WHITE knights=6 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=0
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=10 settlements=3 cities=0 roads=15
+extras  | player=ORANGE knights=6 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=1 longest_road_len=10
+seat    | player=RED agent=ppo vp=4 settlements=2 cities=0 roads=12
+extras  | player=RED knights=2 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=8
+
+Game 111
+result  | winner=RED steps=556 turns=35 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=2 settlements=2 cities=0 roads=3
+extras  | player=WHITE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=2
+extras  | player=ORANGE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=0
+seat    | player=RED agent=ppo vp=10 settlements=1 cities=1 roads=8
+extras  | player=RED knights=3 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=1 longest_road_len=6
+
+Game 112
+result  | winner=ORANGE steps=816 turns=55 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=2 settlements=2 cities=0 roads=7
+extras  | player=WHITE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=3
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=ORANGE agent=tom_dqn vp=10 settlements=1 cities=1 roads=11
+extras  | player=ORANGE knights=6 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=1 longest_road_len=5
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=2
+extras  | player=RED knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+
+Game 113
+result  | winner=ORANGE steps=756 turns=50 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=5 settlements=1 cities=1 roads=4
+extras  | player=WHITE knights=2 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=10 settlements=3 cities=0 roads=12
+extras  | player=ORANGE knights=5 dev_cards=1 hidden_vp=3 largest_army=1 longest_road=1 longest_road_len=6
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=2
+extras  | player=RED knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+
+Game 114
+result  | winner=WHITE steps=1606 turns=111 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=1 cities=2 roads=7
+extras  | player=WHITE knights=8 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=0 longest_road_len=2
+seat    | player=BLUE agent=unified vp=6 settlements=0 cities=2 roads=2
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=4 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=10
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=12
+extras  | player=RED knights=6 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=10
+
+Game 115
+result  | winner=NONE steps=2000 turns=129 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=8 settlements=4 cities=1 roads=15
+extras  | player=WHITE knights=5 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=7
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=3
+extras  | player=BLUE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=ORANGE agent=tom_dqn vp=7 settlements=4 cities=0 roads=15
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=1 longest_road_len=10
+seat    | player=RED agent=ppo vp=6 settlements=2 cities=0 roads=6
+extras  | player=RED knights=6 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=0 longest_road_len=4
+
+Game 116
+result  | winner=RED steps=1657 turns=110 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=5 settlements=2 cities=0 roads=12
+extras  | player=WHITE knights=5 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=1 longest_road_len=8
+seat    | player=BLUE agent=unified vp=3 settlements=3 cities=0 roads=7
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=ORANGE agent=tom_dqn vp=5 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=3 largest_army=0 longest_road=0 longest_road_len=7
+seat    | player=RED agent=ppo vp=10 settlements=1 cities=3 roads=6
+extras  | player=RED knights=8 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=4
+
+Game 117
+result  | winner=NONE steps=2000 turns=139 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=5 settlements=2 cities=0 roads=8
+extras  | player=WHITE knights=5 dev_cards=0 hidden_vp=3 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=BLUE agent=unified vp=3 settlements=3 cities=0 roads=7
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=ORANGE agent=tom_dqn vp=4 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=3 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=11
+seat    | player=RED agent=ppo vp=6 settlements=2 cities=0 roads=8
+extras  | player=RED knights=6 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=0 longest_road_len=6
+
+Game 118
+result  | winner=NONE steps=2000 turns=139 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=4 settlements=2 cities=0 roads=12
+extras  | player=WHITE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=9
+seat    | player=BLUE agent=unified vp=3 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=5 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=7 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=6 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=0 longest_road_len=8
+seat    | player=RED agent=ppo vp=3 settlements=2 cities=0 roads=4
+extras  | player=RED knights=1 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=3
+
+Game 119
+result  | winner=NONE steps=2000 turns=139 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=3 settlements=2 cities=0 roads=9
+extras  | player=WHITE knights=5 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=BLUE agent=unified vp=3 settlements=2 cities=0 roads=7
+extras  | player=BLUE knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=ORANGE agent=tom_dqn vp=8 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=7 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=1 longest_road_len=11
+seat    | player=RED agent=ppo vp=6 settlements=5 cities=0 roads=15
+extras  | player=RED knights=0 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=9
+
+Game 120
+result  | winner=RED steps=1945 turns=123 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=9 settlements=0 cities=4 roads=11
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=BLUE agent=unified vp=3 settlements=3 cities=0 roads=7
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=ORANGE agent=tom_dqn vp=8 settlements=2 cities=0 roads=13
+extras  | player=ORANGE knights=6 dev_cards=0 hidden_vp=4 largest_army=1 longest_road=0 longest_road_len=7
+seat    | player=RED agent=ppo vp=10 settlements=4 cities=2 roads=15
+extras  | player=RED knights=5 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=8
+
+Game 121
+result  | winner=WHITE steps=1817 turns=118 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=5 cities=1 roads=15
+extras  | player=WHITE knights=5 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=1 longest_road_len=6
+seat    | player=BLUE agent=unified vp=5 settlements=0 cities=2 roads=2
+extras  | player=BLUE knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=6 settlements=2 cities=0 roads=4
+extras  | player=ORANGE knights=7 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=0 longest_road_len=2
+seat    | player=RED agent=ppo vp=3 settlements=2 cities=0 roads=5
+extras  | player=RED knights=0 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=3
+
+Game 122
+result  | winner=WHITE steps=1822 turns=121 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=4 cities=2 roads=15
+extras  | player=WHITE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=10
+seat    | player=BLUE agent=unified vp=4 settlements=4 cities=0 roads=9
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=ORANGE agent=tom_dqn vp=6 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=2 dev_cards=0 hidden_vp=4 largest_army=0 longest_road=0 longest_road_len=10
+seat    | player=RED agent=ppo vp=5 settlements=2 cities=0 roads=13
+extras  | player=RED knights=10 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=8
+
+Game 123
+result  | winner=RED steps=1490 turns=99 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=4 settlements=3 cities=0 roads=10
+extras  | player=WHITE knights=4 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=BLUE agent=unified vp=3 settlements=3 cities=0 roads=8
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=ORANGE agent=tom_dqn vp=4 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=4 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=9
+seat    | player=RED agent=ppo vp=10 settlements=0 cities=2 roads=5
+extras  | player=RED knights=6 dev_cards=0 hidden_vp=4 largest_army=1 longest_road=0 longest_road_len=4
+
+Game 124
+result  | winner=BLUE steps=1647 turns=108 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=6 settlements=3 cities=0 roads=12
+extras  | player=WHITE knights=4 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=4
+seat    | player=BLUE agent=unified vp=10 settlements=4 cities=2 roads=14
+extras  | player=BLUE knights=0 dev_cards=1 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=10
+seat    | player=ORANGE agent=tom_dqn vp=6 settlements=1 cities=1 roads=6
+extras  | player=ORANGE knights=3 dev_cards=1 hidden_vp=3 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=15
+extras  | player=RED knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=6
+
+Game 125
+result  | winner=WHITE steps=803 turns=52 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=11 settlements=5 cities=1 roads=15
+extras  | player=WHITE knights=5 dev_cards=0 hidden_vp=0 largest_army=1 longest_road=1 longest_road_len=5
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=4
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=3
+extras  | player=ORANGE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=RED agent=ppo vp=4 settlements=2 cities=0 roads=2
+extras  | player=RED knights=4 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=1
+
+Game 126
+result  | winner=RED steps=840 turns=56 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=6 settlements=1 cities=1 roads=11
+extras  | player=WHITE knights=1 dev_cards=0 hidden_vp=3 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=2
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=0
+seat    | player=RED agent=ppo vp=10 settlements=2 cities=1 roads=15
+extras  | player=RED knights=3 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=1 longest_road_len=8
+
+Game 127
+result  | winner=WHITE steps=651 turns=41 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=2 cities=2 roads=11
+extras  | player=WHITE knights=6 dev_cards=0 hidden_vp=0 largest_army=1 longest_road=1 longest_road_len=6
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=4
+extras  | player=BLUE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=ORANGE agent=tom_dqn vp=5 settlements=2 cities=0 roads=8
+extras  | player=ORANGE knights=4 dev_cards=1 hidden_vp=3 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=2
+extras  | player=RED knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+
+Game 128
+result  | winner=ORANGE steps=833 turns=54 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=4 settlements=2 cities=0 roads=4
+extras  | player=WHITE knights=6 dev_cards=1 hidden_vp=0 largest_army=1 longest_road=0 longest_road_len=1
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=10 settlements=5 cities=0 roads=15
+extras  | player=ORANGE knights=3 dev_cards=0 hidden_vp=3 largest_army=0 longest_road=1 longest_road_len=11
+seat    | player=RED agent=ppo vp=3 settlements=2 cities=0 roads=4
+extras  | player=RED knights=4 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=3
+
+Game 129
+result  | winner=WHITE steps=1055 turns=70 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=3 cities=2 roads=15
+extras  | player=WHITE knights=0 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=1 longest_road_len=6
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=5
+extras  | player=BLUE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=2
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=0
+seat    | player=RED agent=ppo vp=7 settlements=2 cities=0 roads=2
+extras  | player=RED knights=5 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=0 longest_road_len=0
+
+Game 130
+result  | winner=RED steps=786 turns=53 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=4 settlements=2 cities=0 roads=7
+extras  | player=WHITE knights=4 dev_cards=0 hidden_vp=0 largest_army=1 longest_road=0 longest_road_len=4
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=4
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=2
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=0
+seat    | player=RED agent=ppo vp=10 settlements=4 cities=0 roads=15
+extras  | player=RED knights=1 dev_cards=0 hidden_vp=4 largest_army=0 longest_road=1 longest_road_len=8
+
+Game 131
+result  | winner=NONE steps=2000 turns=133 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=4 settlements=2 cities=0 roads=7
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=BLUE agent=unified vp=5 settlements=2 cities=1 roads=5
+extras  | player=BLUE knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=ORANGE agent=tom_dqn vp=5 settlements=3 cities=0 roads=15
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=RED agent=ppo vp=9 settlements=5 cities=0 roads=15
+extras  | player=RED knights=8 dev_cards=0 hidden_vp=0 largest_army=1 longest_road=1 longest_road_len=10
+
+Game 132
+result  | winner=ORANGE steps=894 turns=56 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=3 settlements=2 cities=0 roads=10
+extras  | player=WHITE knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=BLUE agent=unified vp=3 settlements=3 cities=0 roads=5
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=ORANGE agent=tom_dqn vp=11 settlements=3 cities=1 roads=15
+extras  | player=ORANGE knights=5 dev_cards=1 hidden_vp=2 largest_army=1 longest_road=1 longest_road_len=8
+seat    | player=RED agent=ppo vp=3 settlements=2 cities=0 roads=2
+extras  | player=RED knights=4 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=1
+
+Game 133
+result  | winner=WHITE steps=705 turns=45 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=3 cities=2 roads=15
+extras  | player=WHITE knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=1 longest_road_len=6
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=4
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=ORANGE agent=tom_dqn vp=4 settlements=2 cities=0 roads=6
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=4
+extras  | player=RED knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+
+Game 134
+result  | winner=RED steps=1308 turns=89 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=5 settlements=2 cities=0 roads=9
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=4
+seat    | player=BLUE agent=unified vp=5 settlements=5 cities=0 roads=9
+extras  | player=BLUE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=3
+extras  | player=ORANGE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=RED agent=ppo vp=10 settlements=5 cities=0 roads=15
+extras  | player=RED knights=2 dev_cards=1 hidden_vp=3 largest_army=0 longest_road=1 longest_road_len=11
+
+Game 135
+result  | winner=RED steps=1293 turns=85 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=6 settlements=1 cities=1 roads=12
+extras  | player=WHITE knights=8 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=5
+seat    | player=BLUE agent=unified vp=3 settlements=2 cities=0 roads=6
+extras  | player=BLUE knights=3 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=10
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=RED agent=ppo vp=10 settlements=5 cities=0 roads=15
+extras  | player=RED knights=3 dev_cards=0 hidden_vp=3 largest_army=0 longest_road=1 longest_road_len=7
+
+Game 136
+result  | winner=WHITE steps=1890 turns=123 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=4 cities=2 roads=15
+extras  | player=WHITE knights=6 dev_cards=0 hidden_vp=0 largest_army=1 longest_road=0 longest_road_len=8
+seat    | player=BLUE agent=unified vp=4 settlements=2 cities=0 roads=7
+extras  | player=BLUE knights=1 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=ORANGE agent=tom_dqn vp=5 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=4 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=1 longest_road_len=9
+seat    | player=RED agent=ppo vp=4 settlements=2 cities=0 roads=7
+extras  | player=RED knights=3 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=5
+
+Game 137
+result  | winner=ORANGE steps=1048 turns=66 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=8 settlements=4 cities=2 roads=15
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=BLUE agent=unified vp=3 settlements=3 cities=0 roads=6
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=ORANGE agent=tom_dqn vp=10 settlements=2 cities=0 roads=11
+extras  | player=ORANGE knights=6 dev_cards=0 hidden_vp=4 largest_army=1 longest_road=1 longest_road_len=7
+seat    | player=RED agent=ppo vp=3 settlements=2 cities=0 roads=4
+extras  | player=RED knights=5 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=3
+
+Game 138
+result  | winner=NONE steps=2000 turns=135 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=6 settlements=2 cities=1 roads=12
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=BLUE agent=unified vp=9 settlements=5 cities=1 roads=11
+extras  | player=BLUE knights=0 dev_cards=1 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=10
+seat    | player=ORANGE agent=tom_dqn vp=7 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=9 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=0 longest_road_len=8
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=9
+extras  | player=RED knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=7
+
+Game 139
+result  | winner=RED steps=1835 turns=121 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=6 settlements=3 cities=0 roads=15
+extras  | player=WHITE knights=6 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=6
+seat    | player=BLUE agent=unified vp=6 settlements=4 cities=1 roads=12
+extras  | player=BLUE knights=0 dev_cards=1 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=7
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=6
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=RED agent=ppo vp=10 settlements=1 cities=2 roads=15
+extras  | player=RED knights=3 dev_cards=0 hidden_vp=3 largest_army=0 longest_road=1 longest_road_len=11
+
+Game 140
+result  | winner=ORANGE steps=1096 turns=73 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=2 settlements=2 cities=0 roads=9
+extras  | player=WHITE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=10 settlements=5 cities=0 roads=15
+extras  | player=ORANGE knights=7 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=1 longest_road_len=7
+seat    | player=RED agent=ppo vp=3 settlements=2 cities=0 roads=5
+extras  | player=RED knights=0 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=4
+
+Game 141
+result  | winner=WHITE steps=1882 turns=120 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=11 settlements=5 cities=0 roads=15
+extras  | player=WHITE knights=5 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=1 longest_road_len=7
+seat    | player=BLUE agent=unified vp=5 settlements=5 cities=0 roads=7
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=ORANGE agent=tom_dqn vp=3 settlements=2 cities=0 roads=4
+extras  | player=ORANGE knights=4 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=RED agent=ppo vp=3 settlements=2 cities=0 roads=6
+extras  | player=RED knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=4
+
+Game 142
+result  | winner=WHITE steps=976 turns=64 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=4 cities=1 roads=15
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=0 longest_road_len=6
+seat    | player=BLUE agent=unified vp=3 settlements=3 cities=0 roads=8
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=3
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=RED agent=ppo vp=4 settlements=2 cities=0 roads=11
+extras  | player=RED knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=8
+
+Game 143
+result  | winner=NONE steps=2000 turns=128 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=8 settlements=5 cities=0 roads=15
+extras  | player=WHITE knights=6 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=5
+seat    | player=BLUE agent=unified vp=7 settlements=5 cities=0 roads=10
+extras  | player=BLUE knights=5 dev_cards=1 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=7
+seat    | player=ORANGE agent=tom_dqn vp=4 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=7
+seat    | player=RED agent=ppo vp=3 settlements=2 cities=0 roads=6
+extras  | player=RED knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=3
+
+Game 144
+result  | winner=NONE steps=2000 turns=136 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=5 settlements=2 cities=0 roads=9
+extras  | player=WHITE knights=5 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=6
+seat    | player=BLUE agent=unified vp=3 settlements=3 cities=0 roads=5
+extras  | player=BLUE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=ORANGE agent=tom_dqn vp=6 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=1 dev_cards=1 hidden_vp=2 largest_army=0 longest_road=1 longest_road_len=8
+seat    | player=RED agent=ppo vp=3 settlements=2 cities=0 roads=2
+extras  | player=RED knights=0 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=1
+
+Game 145
+result  | winner=NONE steps=2000 turns=136 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=9 settlements=5 cities=0 roads=15
+extras  | player=WHITE knights=4 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=1 longest_road_len=8
+seat    | player=BLUE agent=unified vp=5 settlements=0 cities=2 roads=2
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=5
+extras  | player=ORANGE knights=3 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=RED agent=ppo vp=6 settlements=2 cities=0 roads=4
+extras  | player=RED knights=7 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=0 longest_road_len=3
+
+Game 146
+result  | winner=WHITE steps=1044 turns=70 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=2 cities=2 roads=14
+extras  | player=WHITE knights=2 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=1 longest_road_len=9
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=11
+extras  | player=ORANGE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=RED agent=ppo vp=6 settlements=2 cities=0 roads=4
+extras  | player=RED knights=7 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=0 longest_road_len=2
+
+Game 147
+result  | winner=RED steps=1004 turns=66 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=2 settlements=2 cities=0 roads=6
+extras  | player=WHITE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=4 settlements=2 cities=0 roads=5
+extras  | player=ORANGE knights=2 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=RED agent=ppo vp=10 settlements=1 cities=1 roads=8
+extras  | player=RED knights=8 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=1 longest_road_len=7
+
+Game 148
+result  | winner=NONE steps=2000 turns=139 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=5 settlements=1 cities=1 roads=7
+extras  | player=WHITE knights=2 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=BLUE agent=unified vp=5 settlements=3 cities=0 roads=6
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=5
+seat    | player=ORANGE agent=tom_dqn vp=3 settlements=2 cities=0 roads=4
+extras  | player=ORANGE knights=3 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=RED agent=ppo vp=6 settlements=2 cities=0 roads=6
+extras  | player=RED knights=9 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=0 longest_road_len=5
+
+Game 149
+result  | winner=RED steps=1295 turns=86 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=4 settlements=4 cities=0 roads=10
+extras  | player=WHITE knights=5 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=3 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=RED agent=ppo vp=10 settlements=4 cities=0 roads=15
+extras  | player=RED knights=8 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=1 longest_road_len=12
+
+Game 150
+result  | winner=NONE steps=2000 turns=133 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=7 settlements=0 cities=2 roads=3
+extras  | player=WHITE knights=5 dev_cards=0 hidden_vp=3 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=5 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=3 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=1 longest_road_len=9
+seat    | player=RED agent=ppo vp=5 settlements=2 cities=0 roads=2
+extras  | player=RED knights=6 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=1
+
+Game 151
+result  | winner=WHITE steps=1096 turns=71 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=2 cities=1 roads=15
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=1 longest_road_len=5
+seat    | player=BLUE agent=unified vp=5 settlements=0 cities=2 roads=2
+extras  | player=BLUE knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=8
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=7
+extras  | player=RED knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+
+Game 152
+result  | winner=NONE steps=2000 turns=135 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=7 settlements=5 cities=0 roads=15
+extras  | player=WHITE knights=9 dev_cards=0 hidden_vp=0 largest_army=1 longest_road=0 longest_road_len=5
+seat    | player=BLUE agent=unified vp=5 settlements=4 cities=0 roads=8
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=7
+seat    | player=ORANGE agent=tom_dqn vp=6 settlements=1 cities=1 roads=15
+extras  | player=ORANGE knights=3 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=1 longest_road_len=10
+seat    | player=RED agent=ppo vp=5 settlements=2 cities=0 roads=6
+extras  | player=RED knights=2 dev_cards=0 hidden_vp=3 largest_army=0 longest_road=0 longest_road_len=5
+
+Game 153
+result  | winner=WHITE steps=884 turns=58 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=0 cities=4 roads=7
+extras  | player=WHITE knights=7 dev_cards=0 hidden_vp=0 largest_army=1 longest_road=0 longest_road_len=3
+seat    | player=BLUE agent=unified vp=9 settlements=0 cities=3 roads=3
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=3 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=ORANGE agent=tom_dqn vp=3 settlements=2 cities=0 roads=2
+extras  | player=ORANGE knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=0
+seat    | player=RED agent=ppo vp=3 settlements=2 cities=0 roads=2
+extras  | player=RED knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=1
+
+Game 154
+result  | winner=ORANGE steps=1626 turns=113 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=3 settlements=2 cities=0 roads=7
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=BLUE agent=unified vp=4 settlements=1 cities=1 roads=5
+extras  | player=BLUE knights=3 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=ORANGE agent=tom_dqn vp=11 settlements=2 cities=1 roads=10
+extras  | player=ORANGE knights=5 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=1 longest_road_len=5
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=5
+extras  | player=RED knights=3 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=4
+
+Game 155
+result  | winner=WHITE steps=928 turns=62 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=3 cities=2 roads=15
+extras  | player=WHITE knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=1 longest_road_len=9
+seat    | player=BLUE agent=unified vp=3 settlements=2 cities=0 roads=6
+extras  | player=BLUE knights=1 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=ORANGE agent=tom_dqn vp=3 settlements=1 cities=1 roads=7
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=RED agent=ppo vp=7 settlements=2 cities=0 roads=4
+extras  | player=RED knights=10 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=0 longest_road_len=3
+
+Game 156
+result  | winner=WHITE steps=1662 turns=112 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=3 cities=2 roads=15
+extras  | player=WHITE knights=4 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=7
+seat    | player=BLUE agent=unified vp=5 settlements=2 cities=0 roads=5
+extras  | player=BLUE knights=3 dev_cards=0 hidden_vp=3 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=ORANGE agent=tom_dqn vp=5 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=1 longest_road_len=7
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=5
+extras  | player=RED knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+
+Game 157
+result  | winner=WHITE steps=858 turns=55 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=4 cities=0 roads=15
+extras  | player=WHITE knights=4 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=1 longest_road_len=8
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=8
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=RED agent=ppo vp=3 settlements=2 cities=0 roads=2
+extras  | player=RED knights=3 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=1
+
+Game 158
+result  | winner=WHITE steps=1863 turns=124 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=2 cities=2 roads=15
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=1 longest_road_len=6
+seat    | player=BLUE agent=unified vp=4 settlements=4 cities=0 roads=7
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=ORANGE agent=tom_dqn vp=3 settlements=2 cities=0 roads=4
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=RED agent=ppo vp=8 settlements=0 cities=2 roads=3
+extras  | player=RED knights=10 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=0 longest_road_len=2
+
+Game 159
+result  | winner=WHITE steps=1521 turns=104 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=11 settlements=4 cities=0 roads=15
+extras  | player=WHITE knights=5 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=1 longest_road_len=8
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=10
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=7
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=7
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=8
+extras  | player=RED knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=7
+
+Game 160
+result  | winner=RED steps=1446 turns=95 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=4 settlements=2 cities=0 roads=8
+extras  | player=WHITE knights=5 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=BLUE agent=unified vp=4 settlements=0 cities=2 roads=2
+extras  | player=BLUE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=2
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=0
+seat    | player=RED agent=ppo vp=10 settlements=3 cities=0 roads=15
+extras  | player=RED knights=7 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=1 longest_road_len=8
+
+Game 161
+result  | winner=WHITE steps=1049 turns=69 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=5 cities=0 roads=15
+extras  | player=WHITE knights=7 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=1 longest_road_len=10
+seat    | player=BLUE agent=unified vp=6 settlements=2 cities=2 roads=5
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=ORANGE agent=tom_dqn vp=4 settlements=2 cities=0 roads=5
+extras  | player=ORANGE knights=4 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=RED agent=ppo vp=4 settlements=2 cities=0 roads=2
+extras  | player=RED knights=3 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=1
+
+Game 162
+result  | winner=WHITE steps=1506 turns=92 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=4 cities=2 roads=15
+extras  | player=WHITE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=7
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=4
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=ORANGE agent=tom_dqn vp=4 settlements=2 cities=0 roads=4
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=RED agent=ppo vp=9 settlements=0 cities=2 roads=7
+extras  | player=RED knights=12 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=0 longest_road_len=4
+
+Game 163
+result  | winner=NONE steps=2000 turns=128 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=8 settlements=1 cities=1 roads=9
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=5 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=BLUE agent=unified vp=4 settlements=0 cities=2 roads=2
+extras  | player=BLUE knights=4 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=9
+seat    | player=RED agent=ppo vp=9 settlements=5 cities=0 roads=15
+extras  | player=RED knights=6 dev_cards=0 hidden_vp=0 largest_army=1 longest_road=1 longest_road_len=10
+
+Game 164
+result  | winner=BLUE steps=1843 turns=129 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=4 settlements=2 cities=0 roads=10
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=0 largest_army=1 longest_road=0 longest_road_len=4
+seat    | player=BLUE agent=unified vp=10 settlements=5 cities=0 roads=9
+extras  | player=BLUE knights=0 dev_cards=1 hidden_vp=3 largest_army=0 longest_road=1 longest_road_len=8
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=9
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=3
+extras  | player=RED knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+
+Game 165
+result  | winner=WHITE steps=1513 turns=99 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=1 cities=3 roads=15
+extras  | player=WHITE knights=8 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=5
+seat    | player=BLUE agent=unified vp=3 settlements=2 cities=0 roads=3
+extras  | player=BLUE knights=3 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=12
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=RED agent=ppo vp=5 settlements=2 cities=0 roads=13
+extras  | player=RED knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=1 longest_road_len=9
+
+Game 166
+result  | winner=ORANGE steps=1729 turns=119 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=5 settlements=3 cities=0 roads=15
+extras  | player=WHITE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=6
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=10 settlements=1 cities=1 roads=7
+extras  | player=ORANGE knights=11 dev_cards=0 hidden_vp=5 largest_army=1 longest_road=0 longest_road_len=4
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=2
+extras  | player=RED knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+
+Game 167
+result  | winner=ORANGE steps=1567 turns=111 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=2 settlements=2 cities=0 roads=5
+extras  | player=WHITE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=4
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=ORANGE agent=tom_dqn vp=10 settlements=0 cities=2 roads=7
+extras  | player=ORANGE knights=8 dev_cards=0 hidden_vp=4 largest_army=1 longest_road=0 longest_road_len=4
+seat    | player=RED agent=ppo vp=3 settlements=2 cities=0 roads=3
+extras  | player=RED knights=6 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=2
+
+Game 168
+result  | winner=RED steps=758 turns=46 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=3 settlements=3 cities=0 roads=13
+extras  | player=WHITE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=2
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=0
+seat    | player=RED agent=ppo vp=10 settlements=1 cities=1 roads=13
+extras  | player=RED knights=12 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=1 longest_road_len=8
+
+Game 169
+result  | winner=NONE steps=2000 turns=133 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=8 settlements=2 cities=1 roads=8
+extras  | player=WHITE knights=4 dev_cards=0 hidden_vp=4 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=BLUE agent=unified vp=4 settlements=1 cities=1 roads=3
+extras  | player=BLUE knights=1 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=3
+extras  | player=ORANGE knights=3 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=RED agent=ppo vp=9 settlements=5 cities=0 roads=15
+extras  | player=RED knights=6 dev_cards=0 hidden_vp=0 largest_army=1 longest_road=1 longest_road_len=10
+
+Game 170
+result  | winner=WHITE steps=1079 turns=70 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=5 cities=0 roads=15
+extras  | player=WHITE knights=2 dev_cards=0 hidden_vp=3 largest_army=0 longest_road=1 longest_road_len=8
+seat    | player=BLUE agent=unified vp=3 settlements=3 cities=0 roads=4
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=5
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=RED agent=ppo vp=6 settlements=2 cities=0 roads=6
+extras  | player=RED knights=11 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=0 longest_road_len=3
+
+Game 171
+result  | winner=WHITE steps=1915 turns=130 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=5 cities=0 roads=15
+extras  | player=WHITE knights=4 dev_cards=0 hidden_vp=3 largest_army=0 longest_road=1 longest_road_len=8
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=8
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=7
+seat    | player=RED agent=ppo vp=6 settlements=2 cities=0 roads=4
+extras  | player=RED knights=9 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=0 longest_road_len=1
+
+Game 172
+result  | winner=ORANGE steps=825 turns=53 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=2 settlements=2 cities=0 roads=6
+extras  | player=WHITE knights=4 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=BLUE agent=unified vp=3 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=3 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=10 settlements=3 cities=0 roads=8
+extras  | player=ORANGE knights=6 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=1 longest_road_len=5
+seat    | player=RED agent=ppo vp=3 settlements=2 cities=0 roads=5
+extras  | player=RED knights=1 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=3
+
+Game 173
+result  | winner=NONE steps=2000 turns=137 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=7 settlements=5 cities=0 roads=15
+extras  | player=WHITE knights=7 dev_cards=0 hidden_vp=0 largest_army=1 longest_road=0 longest_road_len=6
+seat    | player=BLUE agent=unified vp=4 settlements=4 cities=0 roads=8
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=ORANGE agent=tom_dqn vp=6 settlements=1 cities=1 roads=15
+extras  | player=ORANGE knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=1 longest_road_len=7
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=15
+extras  | player=RED knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=6
+
+Game 174
+result  | winner=ORANGE steps=1184 turns=79 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=4 settlements=2 cities=0 roads=6
+extras  | player=WHITE knights=4 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=BLUE agent=unified vp=3 settlements=3 cities=0 roads=6
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=ORANGE agent=tom_dqn vp=10 settlements=3 cities=0 roads=15
+extras  | player=ORANGE knights=7 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=1 longest_road_len=7
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=7
+extras  | player=RED knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=5
+
+Game 175
+result  | winner=WHITE steps=1694 turns=106 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=2 cities=1 roads=15
+extras  | player=WHITE knights=6 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=1 longest_road_len=11
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=3 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=4 settlements=4 cities=0 roads=15
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=10
+seat    | player=RED agent=ppo vp=5 settlements=2 cities=0 roads=7
+extras  | player=RED knights=4 dev_cards=0 hidden_vp=3 largest_army=0 longest_road=0 longest_road_len=5
+
+Game 176
+result  | winner=WHITE steps=729 turns=48 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=1 cities=1 roads=12
+extras  | player=WHITE knights=4 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=1 longest_road_len=5
+seat    | player=BLUE agent=unified vp=3 settlements=3 cities=0 roads=6
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=3
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=5
+extras  | player=RED knights=3 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=4
+
+Game 177
+result  | winner=NONE steps=2000 turns=136 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=2 settlements=2 cities=0 roads=3
+extras  | player=WHITE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=BLUE agent=unified vp=6 settlements=0 cities=3 roads=8
+extras  | player=BLUE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=ORANGE agent=tom_dqn vp=9 settlements=2 cities=0 roads=14
+extras  | player=ORANGE knights=10 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=1 longest_road_len=8
+seat    | player=RED agent=ppo vp=4 settlements=2 cities=0 roads=2
+extras  | player=RED knights=1 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=1
+
+Game 178
+result  | winner=NONE steps=2000 turns=138 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=5 settlements=1 cities=1 roads=15
+extras  | player=WHITE knights=1 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=4
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=ORANGE agent=tom_dqn vp=7 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=6 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=1 longest_road_len=8
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=9
+extras  | player=RED knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=6
+
+Game 179
+result  | winner=NONE steps=2000 turns=138 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=7 settlements=3 cities=0 roads=13
+extras  | player=WHITE knights=2 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=1 longest_road_len=8
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=6 settlements=2 cities=0 roads=4
+extras  | player=ORANGE knights=4 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=0 longest_road_len=2
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=2
+extras  | player=RED knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+
+Game 180
+result  | winner=WHITE steps=982 turns=62 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=3 cities=2 roads=15
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=1 longest_road_len=9
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=6
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=ORANGE agent=tom_dqn vp=9 settlements=1 cities=1 roads=12
+extras  | player=ORANGE knights=11 dev_cards=0 hidden_vp=4 largest_army=1 longest_road=0 longest_road_len=6
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=6
+extras  | player=RED knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=4
+
+Game 181
+result  | winner=ORANGE steps=1191 turns=74 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=5 settlements=3 cities=0 roads=15
+extras  | player=WHITE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=9
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=5
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=ORANGE agent=tom_dqn vp=10 settlements=3 cities=0 roads=15
+extras  | player=ORANGE knights=8 dev_cards=0 hidden_vp=5 largest_army=1 longest_road=0 longest_road_len=8
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=2
+extras  | player=RED knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=0
+
+Game 182
+result  | winner=NONE steps=2000 turns=135 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=7 settlements=2 cities=0 roads=14
+extras  | player=WHITE knights=8 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=0 longest_road_len=6
+seat    | player=BLUE agent=unified vp=5 settlements=5 cities=0 roads=10
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=ORANGE agent=tom_dqn vp=4 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=10
+seat    | player=RED agent=ppo vp=4 settlements=2 cities=0 roads=9
+extras  | player=RED knights=3 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=6
+
+Game 183
+result  | winner=WHITE steps=1388 turns=93 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=2 cities=3 roads=15
+extras  | player=WHITE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=8
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=3
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=ORANGE agent=tom_dqn vp=5 settlements=2 cities=0 roads=10
+extras  | player=ORANGE knights=5 dev_cards=1 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=4
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=3
+extras  | player=RED knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+
+Game 184
+result  | winner=NONE steps=2000 turns=132 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=9 settlements=2 cities=1 roads=14
+extras  | player=WHITE knights=4 dev_cards=0 hidden_vp=3 largest_army=0 longest_road=1 longest_road_len=9
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=9
+extras  | player=BLUE knights=4 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=ORANGE agent=tom_dqn vp=5 settlements=2 cities=0 roads=3
+extras  | player=ORANGE knights=6 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=1
+seat    | player=RED agent=ppo vp=3 settlements=2 cities=0 roads=4
+extras  | player=RED knights=0 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=3
+
+Game 185
+result  | winner=NONE steps=2000 turns=133 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=8 settlements=0 cities=3 roads=5
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=4
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=ORANGE agent=tom_dqn vp=5 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=3 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=1 longest_road_len=9
+seat    | player=RED agent=ppo vp=7 settlements=1 cities=1 roads=5
+extras  | player=RED knights=8 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=0 longest_road_len=4
+
+Game 186
+result  | winner=ORANGE steps=1161 turns=80 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=2 settlements=2 cities=0 roads=4
+extras  | player=WHITE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=4
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=ORANGE agent=tom_dqn vp=11 settlements=2 cities=0 roads=9
+extras  | player=ORANGE knights=8 dev_cards=0 hidden_vp=5 largest_army=1 longest_road=1 longest_road_len=5
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=4
+extras  | player=RED knights=3 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+
+Game 187
+result  | winner=RED steps=1574 turns=110 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=4 settlements=2 cities=0 roads=7
+extras  | player=WHITE knights=2 dev_cards=1 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=BLUE agent=unified vp=3 settlements=2 cities=0 roads=6
+extras  | player=BLUE knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=13
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=7
+seat    | player=RED agent=ppo vp=10 settlements=4 cities=0 roads=15
+extras  | player=RED knights=6 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=1 longest_road_len=10
+
+Game 188
+result  | winner=NONE steps=2000 turns=136 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=4 settlements=2 cities=0 roads=15
+extras  | player=WHITE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=8
+seat    | player=BLUE agent=unified vp=3 settlements=3 cities=0 roads=6
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=ORANGE agent=tom_dqn vp=3 settlements=2 cities=0 roads=11
+extras  | player=ORANGE knights=4 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=RED agent=ppo vp=6 settlements=2 cities=0 roads=11
+extras  | player=RED knights=8 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=0 longest_road_len=6
+
+Game 189
+result  | winner=WHITE steps=1206 turns=79 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=2 cities=2 roads=15
+extras  | player=WHITE knights=8 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=0 longest_road_len=4
+seat    | player=BLUE agent=unified vp=5 settlements=3 cities=0 roads=8
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=7
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=5
+extras  | player=ORANGE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=RED agent=ppo vp=3 settlements=2 cities=0 roads=8
+extras  | player=RED knights=1 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=7
+
+Game 190
+result  | winner=ORANGE steps=586 turns=37 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=2 settlements=2 cities=0 roads=3
+extras  | player=WHITE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=6
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=ORANGE agent=tom_dqn vp=10 settlements=2 cities=1 roads=15
+extras  | player=ORANGE knights=4 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=1 longest_road_len=7
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=7
+extras  | player=RED knights=3 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=5
+
+Game 191
+result  | winner=WHITE steps=815 turns=52 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=3 cities=3 roads=15
+extras  | player=WHITE knights=1 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=5 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=1 longest_road_len=8
+seat    | player=RED agent=ppo vp=3 settlements=2 cities=0 roads=2
+extras  | player=RED knights=1 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=1
+
+Game 192
+result  | winner=RED steps=1501 turns=103 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=2 settlements=2 cities=0 roads=11
+extras  | player=WHITE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=BLUE agent=unified vp=3 settlements=2 cities=0 roads=7
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=6
+seat    | player=ORANGE agent=tom_dqn vp=4 settlements=2 cities=0 roads=10
+extras  | player=ORANGE knights=5 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=RED agent=ppo vp=10 settlements=4 cities=0 roads=15
+extras  | player=RED knights=7 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=1 longest_road_len=12
+
+Game 193
+result  | winner=ORANGE steps=848 turns=56 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=4 settlements=3 cities=0 roads=15
+extras  | player=WHITE knights=1 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=7
+seat    | player=BLUE agent=unified vp=4 settlements=0 cities=2 roads=2
+extras  | player=BLUE knights=3 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=10 settlements=2 cities=0 roads=12
+extras  | player=ORANGE knights=4 dev_cards=0 hidden_vp=4 largest_army=1 longest_road=1 longest_road_len=8
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=2
+extras  | player=RED knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+
+Game 194
+result  | winner=WHITE steps=972 turns=62 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=0 cities=2 roads=14
+extras  | player=WHITE knights=8 dev_cards=0 hidden_vp=4 largest_army=1 longest_road=0 longest_road_len=5
+seat    | player=BLUE agent=unified vp=4 settlements=0 cities=2 roads=4
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=ORANGE agent=tom_dqn vp=3 settlements=2 cities=0 roads=11
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=RED agent=ppo vp=4 settlements=2 cities=0 roads=15
+extras  | player=RED knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=9
+
+Game 195
+result  | winner=NONE steps=2000 turns=132 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=4 settlements=4 cities=0 roads=15
+extras  | player=WHITE knights=3 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=8
+seat    | player=BLUE agent=unified vp=4 settlements=2 cities=0 roads=6
+extras  | player=BLUE knights=1 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=ORANGE agent=tom_dqn vp=4 settlements=2 cities=0 roads=15
+extras  | player=ORANGE knights=1 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=9
+seat    | player=RED agent=ppo vp=7 settlements=2 cities=0 roads=9
+extras  | player=RED knights=9 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=0 longest_road_len=6
+
+Game 196
+result  | winner=WHITE steps=1588 turns=100 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=2 cities=1 roads=13
+extras  | player=WHITE knights=7 dev_cards=0 hidden_vp=2 largest_army=1 longest_road=1 longest_road_len=9
+seat    | player=BLUE agent=unified vp=8 settlements=1 cities=3 roads=7
+extras  | player=BLUE knights=2 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=0 longest_road_len=5
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=14
+extras  | player=ORANGE knights=2 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=8
+seat    | player=RED agent=ppo vp=7 settlements=5 cities=0 roads=15
+extras  | player=RED knights=3 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=8
+
+Game 197
+result  | winner=NONE steps=2000 turns=130 truncated=1
+seat    | player=WHITE agent=random_no_trade vp=6 settlements=0 cities=2 roads=6
+extras  | player=WHITE knights=4 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=BLUE agent=unified vp=5 settlements=3 cities=0 roads=6
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=1 longest_road_len=5
+seat    | player=ORANGE agent=tom_dqn vp=9 settlements=0 cities=2 roads=7
+extras  | player=ORANGE knights=10 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=0 longest_road_len=4
+seat    | player=RED agent=ppo vp=2 settlements=2 cities=0 roads=3
+extras  | player=RED knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+
+Game 198
+result  | winner=WHITE steps=1751 turns=116 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=10 settlements=5 cities=1 roads=15
+extras  | player=WHITE knights=0 dev_cards=0 hidden_vp=1 largest_army=0 longest_road=1 longest_road_len=6
+seat    | player=BLUE agent=unified vp=3 settlements=1 cities=1 roads=5
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=4
+seat    | player=ORANGE agent=tom_dqn vp=5 settlements=3 cities=0 roads=9
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=2 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=RED agent=ppo vp=5 settlements=2 cities=0 roads=9
+extras  | player=RED knights=11 dev_cards=0 hidden_vp=1 largest_army=1 longest_road=0 longest_road_len=4
+
+Game 199
+result  | winner=RED steps=885 turns=57 truncated=0
+seat    | player=WHITE agent=random_no_trade vp=2 settlements=2 cities=0 roads=6
+extras  | player=WHITE knights=2 dev_cards=1 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=3
+seat    | player=BLUE agent=unified vp=2 settlements=2 cities=0 roads=2
+extras  | player=BLUE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=1
+seat    | player=ORANGE agent=tom_dqn vp=2 settlements=2 cities=0 roads=4
+extras  | player=ORANGE knights=0 dev_cards=0 hidden_vp=0 largest_army=0 longest_road=0 longest_road_len=2
+seat    | player=RED agent=ppo vp=10 settlements=1 cities=1 roads=12
+extras  | player=RED knights=9 dev_cards=0 hidden_vp=3 largest_army=1 longest_road=1 longest_road_len=8
+
 Summary
-games   | count=1 avg_steps=200.00 avg_turns=13.00 truncations=1
-wins    | random_no_trade=0 (0.000) unified=0 (0.000) dqn=0 (0.000) ppo=0 (0.000)
-avg_vp  | random_no_trade=2.00 unified=2.00 dqn=2.00 ppo=2.00
+games   | count=200 avg_steps=1501.43 avg_turns=99.10 truncations=60
+wins    | random_no_trade=74 (0.370) unified=4 (0.020) tom_dqn=23 (0.115) ppo=39 (0.195)
+avg_vp  | random_no_trade=6.77 unified=3.52 tom_dqn=4.76 ppo=5.54

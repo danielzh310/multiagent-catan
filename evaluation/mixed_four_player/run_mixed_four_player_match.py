@@ -424,7 +424,12 @@ def write_csv_outputs(
     return steps_path, summary_path
 
 
-def write_figures(summaries: list[dict[str, Any]], agents: dict[PlayerId, BaseSeatAgent], figures_dir: Path) -> list[Path]:
+def write_figures(
+    summaries: list[dict[str, Any]],
+    step_rows: list[dict[str, Any]],
+    agents: dict[PlayerId, BaseSeatAgent],
+    figures_dir: Path,
+) -> list[Path]:
     if not summaries:
         return []
     try:
@@ -438,18 +443,28 @@ def write_figures(summaries: list[dict[str, Any]], agents: dict[PlayerId, BaseSe
     names = [agents[player_id].name for player_id in PLAYER_ORDER]
     vp_totals = {name: 0 for name in names}
     win_counts = {name: 0 for name in names}
+    leader_counts = {name: 0 for name in names}
     fallback_totals = {name: agents[player_id].fallback_count for player_id, name in zip(PLAYER_ORDER, names)}
 
     for summary in summaries:
         winner_name = summary["winner"]
         if winner_name != "NONE":
             win_counts[agents[PlayerId[winner_name]].name] += 1
+        max_vp = max(int(summary["players"][player_id.name]["victory_points"]) for player_id in PLAYER_ORDER)
+        leaders = [
+            agents[player_id].name
+            for player_id in PLAYER_ORDER
+            if int(summary["players"][player_id.name]["victory_points"]) == max_vp
+        ]
+        for name in leaders:
+            leader_counts[name] += 1 / max(len(leaders), 1)
         for player_id in PLAYER_ORDER:
             agent_name = agents[player_id].name
             vp_totals[agent_name] += int(summary["players"][player_id.name]["victory_points"])
 
     avg_vp = [vp_totals[name] / games for name in names]
     win_rates = [win_counts[name] / games for name in names]
+    leader_rates = [leader_counts[name] / games for name in names]
     fallbacks = [fallback_totals[name] for name in names]
     output_paths: list[Path] = []
 
@@ -466,8 +481,80 @@ def write_figures(summaries: list[dict[str, Any]], agents: dict[PlayerId, BaseSe
         output_paths.append(path)
 
     _bar(win_rates, "Mixed Four-Player Win Rate", "Win rate", "mixed_four_player_win_rate.png")
+    _bar(leader_rates, "Mixed Four-Player VP Leader Rate", "Leader rate", "mixed_four_player_vp_leader_rate.png")
     _bar(avg_vp, "Mixed Four-Player Average VP", "Average victory points", "mixed_four_player_avg_vp.png")
     _bar(fallbacks, "Mixed Four-Player Policy Fallbacks", "Fallback decisions", "mixed_four_player_fallbacks.png")
+
+    game_ids = [int(summary["game"]) for summary in summaries]
+    fig, ax = plt.subplots(figsize=(10, 5.5))
+    for player_id in PLAYER_ORDER:
+        agent_name = agents[player_id].name
+        values = [int(summary["players"][player_id.name]["victory_points"]) for summary in summaries]
+        ax.plot(game_ids, values, linewidth=1.5, alpha=0.8, label=agent_name)
+    ax.set_title("Victory Points By Game")
+    ax.set_xlabel("Game")
+    ax.set_ylabel("Victory points")
+    ax.legend()
+    fig.tight_layout()
+    path = figures_dir / "mixed_four_player_vp_by_game.png"
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+    output_paths.append(path)
+
+    vp_by_agent = [
+        [int(summary["players"][player_id.name]["victory_points"]) for summary in summaries]
+        for player_id in PLAYER_ORDER
+    ]
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.boxplot(vp_by_agent, tick_labels=names, showmeans=True)
+    ax.set_title("Victory Point Distribution")
+    ax.set_ylabel("Victory points")
+    ax.tick_params(axis="x", rotation=15)
+    fig.tight_layout()
+    path = figures_dir / "mixed_four_player_vp_distribution.png"
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+    output_paths.append(path)
+
+    ignored_actions = {"auto"}
+    action_counts: dict[str, dict[str, int]] = {name: {} for name in names}
+    for row in step_rows:
+        action = str(row.get("action", ""))
+        agent = str(row.get("agent", ""))
+        if agent not in action_counts or action in ignored_actions:
+            continue
+        action_counts[agent][action] = action_counts[agent].get(action, 0) + 1
+    common_actions = sorted(
+        {action for counts in action_counts.values() for action in counts},
+        key=lambda action: sum(counts.get(action, 0) for counts in action_counts.values()),
+        reverse=True,
+    )[:10]
+    fig, ax = plt.subplots(figsize=(10, 5.5))
+    bottoms = [0] * len(names)
+    for action in common_actions:
+        values = [action_counts[name].get(action, 0) for name in names]
+        ax.bar(names, values, bottom=bottoms, label=action)
+        bottoms = [bottom + value for bottom, value in zip(bottoms, values)]
+    ax.set_title("Top Action Mix By Agent")
+    ax.set_ylabel("Action count")
+    ax.tick_params(axis="x", rotation=15)
+    ax.legend(fontsize=8, ncol=2)
+    fig.tight_layout()
+    path = figures_dir / "mixed_four_player_action_mix.png"
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+    output_paths.append(path)
+
+    fig, ax = plt.subplots(figsize=(8, 4.5))
+    ax.hist([int(summary["steps"]) for summary in summaries], bins=20, color="#457b9d")
+    ax.set_title("Game Length Distribution")
+    ax.set_xlabel("Steps")
+    ax.set_ylabel("Games")
+    fig.tight_layout()
+    path = figures_dir / "mixed_four_player_game_lengths.png"
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+    output_paths.append(path)
     return output_paths
 
 
@@ -533,7 +620,7 @@ def main() -> None:
     steps_path, summary_path = write_csv_outputs(summaries, all_step_rows, args.output_dir)
     print(f"Wrote {steps_path}")
     print(f"Wrote {summary_path}")
-    for figure_path in write_figures(summaries, agents, args.figures_dir):
+    for figure_path in write_figures(summaries, all_step_rows, agents, args.figures_dir):
         print(f"Wrote {figure_path}")
 
 
