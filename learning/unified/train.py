@@ -41,16 +41,13 @@ class UnifiedPPOTrainer:
         clip_param: float = 0.10,
         value_clip_param: float = 0.10,
         value_loss_coef: float = 0.25,
-        entropy_coef_start: float = 1.2e-3,
+        entropy_coef_start: float = 1.5e-3,  # Lowered to prevent overpowering small trade penalties
         entropy_coef_end: float = 7.5e-4,
         entropy_hold_fraction: float = 0.75,
-        gameplay_entropy_floor: float = 0.65,
-        trade_entropy_floor: float = 0.75,
-        gameplay_entropy_floor_coef: float = 0.025,
-        trade_entropy_floor_coef: float = 0.022,
         tom_loss_coef_start: float = 0.05,
         tom_loss_coef_end: float = 0.15,
         tom_activation_threshold: float = 0.05,
+        target_kl: float = 0.015,  # Standard threshold for PPO early stopping
         max_grad_norm: float = 0.25,
         ppo_epochs: int = 3,
         mini_batch_size: int = 512,
@@ -68,15 +65,11 @@ class UnifiedPPOTrainer:
         self.entropy_coef_end = entropy_coef_end
         self.entropy_hold_fraction = entropy_hold_fraction
 
-        self.gameplay_entropy_floor = gameplay_entropy_floor
-        self.trade_entropy_floor = trade_entropy_floor
-        self.gameplay_entropy_floor_coef = gameplay_entropy_floor_coef
-        self.trade_entropy_floor_coef = trade_entropy_floor_coef
-
         self.tom_loss_coef_start = tom_loss_coef_start
         self.tom_loss_coef_end = tom_loss_coef_end
         self.tom_activation_threshold = tom_activation_threshold
 
+        self.target_kl = target_kl
         self.max_grad_norm = max_grad_norm
         self.ppo_epochs = ppo_epochs
         self.mini_batch_size = mini_batch_size
@@ -141,8 +134,9 @@ class UnifiedPPOTrainer:
             returns[t] = advantages[t] + values[t]
             next_value = values[t]
 
-        returns = (returns - returns.mean()) / (returns.std() + 1e-8)
-        advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
+        # Removed global normalization here.
+        # Advantages must be normalized PER-PHASE in _optimize_phase so that small
+        # trade penalties aren't washed out by large gameplay VP rewards.
         return returns, advantages
 
     def _trade_targets(self, storage: List[Dict], idxs: List[int], gameplay_need_events: List[Dict]):
@@ -237,11 +231,17 @@ class UnifiedPPOTrainer:
                 "value_loss": zero_float,
                 "entropy": zero_float,
                 "tom_loss": zero_float,
+                "kl_early_stops": 0,
             }
 
         obs = phase_batch["obs"]
         returns = phase_batch["returns"]
         advantages = phase_batch["advantages"]
+        
+        # Normalize advantages per-phase to ensure trade gradients don't vanish
+        if advantages.numel() > 1:
+            advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
+            
         old_values = phase_batch["old_values"]
         actions = phase_batch["actions"]
         old_log_prob = phase_batch["old_log_prob"]
@@ -253,9 +253,11 @@ class UnifiedPPOTrainer:
         value_losses = []
         entropies = []
         tom_losses = []
+        kl_early_stops = 0
 
         for _ in range(self.ppo_epochs):
             perm = torch.randperm(n, device=self.device)
+            approx_kl_divergences = []
 
             for start in range(0, n, self.mini_batch_size):
                 mb = perm[start : start + self.mini_batch_size]
@@ -282,7 +284,14 @@ class UnifiedPPOTrainer:
                 else:
                     new_log_prob = log_prob_dict["trade_action"]
 
-                ratio = torch.exp(new_log_prob - mb_old_log_prob)
+                log_ratio = new_log_prob - mb_old_log_prob
+                ratio = torch.exp(log_ratio)
+                
+                # Calculate approximate KL Divergence
+                with torch.no_grad():
+                    approx_kl = ((ratio - 1) - log_ratio).mean()
+                    approx_kl_divergences.append(approx_kl.item())
+
                 surr1 = ratio * mb_advantages
                 surr2 = torch.clamp(ratio, 1.0 - self.clip_param, 1.0 + self.clip_param) * mb_advantages
                 policy_loss = -torch.min(surr1, surr2).mean()
@@ -305,32 +314,13 @@ class UnifiedPPOTrainer:
                         mb_need_targets,
                         mb_need_mask,
                     )
-                    # Only penalize low entropy if the agent actually has a choice (> 1 valid action)
-                    # When action_mask sets all but one action to -1e9, the agent is forced to choose,
-                    # and entropy must be ~0. We should not penalize this.
-                    valid_actions_count = mb_obs["trade_mask"].float().sum(dim=-1)
-                    apply_entropy_penalty_mask = (valid_actions_count > 1.0).float()
-                    raw_entropy_floor_penalty = torch.relu(
-                        torch.tensor(self.trade_entropy_floor, device=self.device) - entropy
-                    )
-                    # Apply mask per-batch-element and reduce to scalar by averaging
-                    entropy_floor_penalty = self.trade_entropy_floor_coef * (raw_entropy_floor_penalty * apply_entropy_penalty_mask).mean()
                 else:
                     tom_loss = torch.tensor(0.0, device=self.device)
-                    # Only penalize low entropy if the agent actually has a choice (> 1 valid action)
-                    valid_actions_count = mb_obs["gameplay_mask"].float().sum(dim=-1)
-                    apply_entropy_penalty_mask = (valid_actions_count > 1.0).float()
-                    raw_entropy_floor_penalty = torch.relu(
-                        torch.tensor(self.gameplay_entropy_floor, device=self.device) - entropy
-                    )
-                    # Apply mask per-batch-element and reduce to scalar by averaging
-                    entropy_floor_penalty = self.gameplay_entropy_floor_coef * (raw_entropy_floor_penalty * apply_entropy_penalty_mask).mean()
 
                 total_mb_loss = (
                     policy_loss
                     + self.value_loss_coef * value_loss
                     - self.entropy_coef() * entropy
-                    + entropy_floor_penalty
                     + self.tom_loss_coef() * tom_loss
                 )
 
@@ -344,11 +334,20 @@ class UnifiedPPOTrainer:
                 entropies.append(float(entropy.item()))
                 tom_losses.append(float(tom_loss.item()))
 
+            # Target KL Early Stopping: Stop taking epoch steps if the policy has changed too much
+            # This prevents the entropy from suddenly crashing to 0 in a single update.
+            if approx_kl_divergences:
+                mean_kl = sum(approx_kl_divergences) / len(approx_kl_divergences)
+                if mean_kl > 1.5 * self.target_kl:
+                    kl_early_stops = self.ppo_epochs - _
+                    break  # Stop updating this phase for the rest of the PPO epochs
+
         return {
-            "policy_loss": float(sum(policy_losses) / max(len(policy_losses), 1)),
-            "value_loss": float(sum(value_losses) / max(len(value_losses), 1)),
-            "entropy": float(sum(entropies) / max(len(entropies), 1)),
-            "tom_loss": float(sum(tom_losses) / max(len(tom_losses), 1)),
+            "policy_loss": float(sum(policy_losses) / max(len(policy_losses), 1)) if policy_losses else 0.0,
+            "value_loss": float(sum(value_losses) / max(len(value_losses), 1)) if value_losses else 0.0,
+            "entropy": float(sum(entropies) / max(len(entropies), 1)) if entropies else 0.0,
+            "tom_loss": float(sum(tom_losses) / max(len(tom_losses), 1)) if tom_losses else 0.0,
+            "kl_early_stops": kl_early_stops,
         }
 
     def update(self, storage: List[Dict], gameplay_need_events: List[Dict]) -> Dict[str, float]:
@@ -392,10 +391,12 @@ class UnifiedPPOTrainer:
             "gameplay_policy_loss": gp["policy_loss"],
             "gameplay_value_loss": gp["value_loss"],
             "gameplay_entropy": gp["entropy"],
+            "gameplay_kl_stops": float(gp["kl_early_stops"]),
             "trade_policy_loss": tr["policy_loss"],
             "trade_value_loss": tr["value_loss"],
             "trade_entropy": tr["entropy"],
             "tom_loss": tr["tom_loss"],
+            "trade_kl_stops": float(tr["kl_early_stops"]),
             "total_loss": float(total_loss),
             "entropy_coef": float(self.entropy_coef()),
             "gamma": float(self.gamma()),
@@ -595,6 +596,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--max-game-steps", type=int, default=3000, help="Maximum steps per game before truncation")
     parser.add_argument("--seed", type=int, default=7)
     parser.add_argument("--device", type=str, default="cpu")
+    parser.add_argument("--mini-batch-size", type=int, default=128, help="PPO mini-batch size")
     parser.add_argument("--checkpoint-dir", type=str, default="./checkpoints")
     return parser
 
@@ -613,7 +615,7 @@ def train(args: argparse.Namespace) -> None:
         torch.cuda.manual_seed_all(args.seed)
 
     policy = UnifiedPolicy(hidden_dim=args.hidden_dim).to(device)
-    trainer = UnifiedPPOTrainer(policy=policy, device=device)
+    trainer = UnifiedPPOTrainer(policy=policy, device=device, mini_batch_size=args.mini_batch_size)
     league = LeagueManager(checkpoint_dir=args.checkpoint_dir, frozen_ratio=0.2, load_existing=False)
     reward_shaper = RewardShaper()
 
@@ -740,13 +742,15 @@ def train(args: argparse.Namespace) -> None:
             print(
                 f"ppo gameplay | policy={metrics['gameplay_policy_loss']:.4f} "
                 f"value={metrics['gameplay_value_loss']:.4f} "
-                f"entropy={metrics['gameplay_entropy']:.4f} (avg={avg_gameplay_entropy:.4f})"
+                f"entropy={metrics['gameplay_entropy']:.4f} (avg={avg_gameplay_entropy:.4f}) "
+                f"kl_stops={int(metrics.get('gameplay_kl_stops', 0))}"
             )
             print(
                 f"ppo trade    | policy={metrics['trade_policy_loss']:.4f} "
                 f"value={metrics['trade_value_loss']:.4f} "
                 f"entropy={metrics['trade_entropy']:.4f} (avg={avg_trade_entropy:.4f}) "
-                f"tom={metrics['tom_loss']:.6f}"
+                f"tom={metrics['tom_loss']:.6f} "
+                f"kl_stops={int(metrics.get('trade_kl_stops', 0))}"
             )
             print(
                 f"ppo total    | loss={metrics['total_loss']:.4f} "
