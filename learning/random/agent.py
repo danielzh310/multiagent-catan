@@ -8,16 +8,24 @@ class RandomNoTradeBaselineAgent:
     """
     Random legal-action agent that declines player-to-player trades.
 
-    The environment can still allow normal gameplay actions, including bank trades.
-    Player trade proposals/responses are skipped or rejected whenever they appear.
+    The environment can still allow normal gameplay actions. By default, all
+    trade actions are avoided so this behaves as a true no-trade control.
+    Player trade proposals/responses are skipped or rejected whenever they
+    appear.
     """
 
     TRADE_DECLINE_ACTIONS = {"skip_trade", "reject_trade"}
     PLAYER_TRADE_ACTIONS = {"propose_trade", "accept_trade", "counter_trade"}
 
-    def __init__(self, seed: Optional[int] = None, allow_bank_trades: bool = True):
+    def __init__(
+        self,
+        seed: Optional[int] = None,
+        allow_bank_trades: bool = False,
+        bank_trade_probability: float = 1.0,
+    ):
         self.random = random.Random(seed)
         self.allow_bank_trades = allow_bank_trades
+        self.bank_trade_probability = max(0.0, min(1.0, bank_trade_probability))
 
     def select_action(self, legal_actions: Iterable[dict[str, Any]]) -> Optional[dict[str, Any]]:
         actions = list(legal_actions)
@@ -35,7 +43,7 @@ class RandomNoTradeBaselineAgent:
             action for action in actions
             if action.get("type") not in self.PLAYER_TRADE_ACTIONS
         ]
-        if not self.allow_bank_trades:
+        if not self.allow_bank_trades or self.random.random() > self.bank_trade_probability:
             candidates = [
                 action for action in candidates
                 if action.get("type") != "bank_trade"

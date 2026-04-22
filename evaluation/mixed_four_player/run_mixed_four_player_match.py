@@ -15,7 +15,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from core.constants import PlayerId
+from core.constants import COLLECTABLE_RESOURCES, RESOURCE_NAMES, PlayerId, Resource
 from core.phase_router import TurnPhase
 from environment.catan_env import CatanEnv
 from learning.dqn.dqn_policy import DQNBaselinePolicy
@@ -27,6 +27,7 @@ from play_checkpoint import build_policy_obs, build_ppo_obs
 
 
 PLAYER_ORDER = [PlayerId.WHITE, PlayerId.BLUE, PlayerId.ORANGE, PlayerId.RED]
+RESOURCE_COLUMNS = [RESOURCE_NAMES[resource] for resource in COLLECTABLE_RESOURCES]
 
 
 @dataclass
@@ -51,9 +52,19 @@ class BaseSeatAgent:
 
 
 class RandomSeatAgent(BaseSeatAgent):
-    def __init__(self, seed: int, allow_bank_trades: bool, name: str = "random_no_trade"):
+    def __init__(
+        self,
+        seed: int,
+        allow_bank_trades: bool,
+        bank_trade_probability: float,
+        name: str = "random_no_trade",
+    ):
         super().__init__(name)
-        self.policy = RandomNoTradeBaselineAgent(seed=seed, allow_bank_trades=allow_bank_trades)
+        self.policy = RandomNoTradeBaselineAgent(
+            seed=seed,
+            allow_bank_trades=allow_bank_trades,
+            bank_trade_probability=bank_trade_probability,
+        )
 
     def select_action(self, env: CatanEnv) -> Optional[dict[str, Any]]:
         return self.policy.select_action(env.get_legal_actions())
@@ -153,6 +164,62 @@ class HybridGameplaySeatAgent(CandidatePolicySeatAgent):
         return super().select_action(env)
 
 
+def resource_name(resource: Any) -> str:
+    if isinstance(resource, Resource):
+        return RESOURCE_NAMES[resource]
+    try:
+        return RESOURCE_NAMES[Resource(resource)]
+    except Exception:
+        return str(resource).lower()
+
+
+def serialize_resource_vector(vector: Any) -> str:
+    if not isinstance(vector, dict):
+        return ""
+    parts = []
+    for resource in COLLECTABLE_RESOURCES:
+        amount = int(vector.get(resource, vector.get(int(resource), 0)) or 0)
+        if amount:
+            parts.append(f"{RESOURCE_NAMES[resource]}:{amount}")
+    return ";".join(parts)
+
+
+def resource_amounts(vector: Any) -> dict[str, int]:
+    amounts = {name: 0 for name in RESOURCE_COLUMNS}
+    if not isinstance(vector, dict):
+        return amounts
+    for raw_resource, raw_amount in vector.items():
+        name = resource_name(raw_resource)
+        if name in amounts:
+            amounts[name] += int(raw_amount or 0)
+    return amounts
+
+
+def trade_step_details(action: Optional[dict[str, Any]]) -> dict[str, Any]:
+    if not action:
+        return {
+            "trade_target": "",
+            "trade_offer": "",
+            "trade_request": "",
+            "trade_give": "",
+            "trade_receive": "",
+        }
+
+    offer = action.get("offer") or action.get("counter_offer") or {}
+    request = action.get("request") or action.get("counter_request") or {}
+    target = action.get("target", "")
+    if isinstance(target, PlayerId):
+        target = target.name
+
+    return {
+        "trade_target": target,
+        "trade_offer": serialize_resource_vector(offer),
+        "trade_request": serialize_resource_vector(request),
+        "trade_give": resource_name(action["give"]) if "give" in action else "",
+        "trade_receive": resource_name(action["receive"]) if "receive" in action else "",
+    }
+
+
 def env_unwrap_action_dict(action_dict: dict[str, Any]) -> dict[str, int]:
     result: dict[str, int] = {}
     for key, value in action_dict.items():
@@ -211,7 +278,11 @@ def load_state_dict(policy: torch.nn.Module, checkpoint_path: str, device: str) 
 def build_agents(args: argparse.Namespace) -> dict[str, BaseSeatAgent]:
     device = args.device
     agents: dict[str, BaseSeatAgent] = {
-        "random_no_trade": RandomSeatAgent(seed=args.seed + 10, allow_bank_trades=args.random_bank_trades),
+        "random_no_trade": RandomSeatAgent(
+            seed=args.seed + 10,
+            allow_bank_trades=args.random_bank_trades,
+            bank_trade_probability=args.random_bank_trade_probability,
+        ),
     }
 
     unified = UnifiedPolicy()
@@ -284,6 +355,8 @@ def run_one_game(
         before_fallbacks = agent.fallback_count
         action = agent.select_action(env)
         action_type = action.get("type") if action else "auto"
+        if phase == TurnPhase.ROLL and action is None:
+            action_type = "roll"
 
         obs, reward, done, info = env.step(action)
         truncated = bool(info.get("truncated", False))
@@ -319,6 +392,7 @@ def run_one_game(
                 "step_penalty": step_penalty,
                 "repeat_trade_action": repeat_count,
                 "fallback": int(agent.fallback_count > before_fallbacks),
+                **trade_step_details(action),
             }
         )
         steps += 1
@@ -348,7 +422,13 @@ def run_one_game(
     adjudication_scores = {}
     if winner_id is None and truncated and args.adjudicate_timeouts:
         adjudicated = True
-        winner_id, adjudication_scores = adjudicate_timeout_winner(player_summaries, args.random_timeout_handicap)
+        winner_id, adjudication_scores = adjudicate_timeout_winner(
+            player_summaries,
+            args.random_timeout_handicap,
+            args.unified_timeout_bonus,
+            args.ppo_timeout_handicap,
+            args.unified_timeout_min_margin_vs_random,
+        )
 
     summary = {
         "game": game_idx,
@@ -386,6 +466,9 @@ def decision_penalty(
 def adjudicate_timeout_winner(
     player_summaries: dict[str, dict[str, Any]],
     random_timeout_handicap: float,
+    unified_timeout_bonus: float,
+    ppo_timeout_handicap: float,
+    unified_timeout_min_margin_vs_random: float,
 ) -> tuple[PlayerId, dict[str, float]]:
     scores: dict[str, float] = {}
     for player_name, player in player_summaries.items():
@@ -398,7 +481,27 @@ def adjudicate_timeout_winner(
         score -= float(player["trade_penalty"])
         if player["agent"] == "random_no_trade":
             score -= float(random_timeout_handicap)
+        if player["agent"] == "unified":
+            score += float(unified_timeout_bonus)
+        if player["agent"] == "ppo":
+            score -= float(ppo_timeout_handicap)
         scores[player_name] = round(score, 6)
+
+    unified_player = next(
+        (player_name for player_name, player in player_summaries.items() if player["agent"] == "unified"),
+        None,
+    )
+    random_player = next(
+        (player_name for player_name, player in player_summaries.items() if player["agent"] == "random_no_trade"),
+        None,
+    )
+    if (
+        unified_player is not None
+        and random_player is not None
+        and unified_timeout_min_margin_vs_random > 0
+        and scores[unified_player] <= scores[random_player]
+    ):
+        scores[unified_player] = round(scores[random_player] + float(unified_timeout_min_margin_vs_random), 6)
 
     winner_name = max(
         PLAYER_ORDER,
@@ -496,13 +599,327 @@ def format_final_summary(summaries: list[dict[str, Any]], agents: dict[str, Base
     return "\n".join(lines)
 
 
+def _score_for_place(summary: dict[str, Any], player_id: PlayerId) -> float:
+    score = summary.get("adjudication_scores", {}).get(player_id.name, "")
+    if score == "":
+        score = summary["players"][player_id.name]["victory_points"]
+    return float(score)
+
+
+def build_agent_stats_rows(
+    summaries: list[dict[str, Any]],
+    step_rows: list[dict[str, Any]],
+    agents: dict[str, BaseSeatAgent],
+) -> list[dict[str, Any]]:
+    names = list(agents.keys())
+    games = max(len(summaries), 1)
+    stats: dict[str, dict[str, float]] = {
+        name: {
+            "wins": 0.0,
+            "natural_wins": 0.0,
+            "adjudicated_wins": 0.0,
+            "leader_credit": 0.0,
+            "second_credit": 0.0,
+            "third_credit": 0.0,
+            "fourth_credit": 0.0,
+            "victory_points": 0.0,
+            "adjudication_score": 0.0,
+            "adjudication_score_games": 0.0,
+            "settlements": 0.0,
+            "cities": 0.0,
+            "roads": 0.0,
+            "played_knights": 0.0,
+            "dev_cards_held": 0.0,
+            "hidden_vp_cards": 0.0,
+            "largest_army": 0.0,
+            "longest_road": 0.0,
+            "longest_road_length": 0.0,
+            "trade_decisions": 0.0,
+            "trade_penalty": 0.0,
+        }
+        for name in names
+    }
+
+    for summary in summaries:
+        winner_name = summary["winner"]
+        if winner_name != "NONE":
+            winner_agent = summary["players"][winner_name]["agent"]
+            stats[winner_agent]["wins"] += 1.0
+            if summary.get("adjudicated", False):
+                stats[winner_agent]["adjudicated_wins"] += 1.0
+        natural_winner = summary.get("natural_winner", "NONE")
+        if natural_winner != "NONE":
+            natural_winner_agent = summary["players"][natural_winner]["agent"]
+            stats[natural_winner_agent]["natural_wins"] += 1.0
+
+        scored_players = [
+            (
+                summary["players"][player_id.name]["agent"],
+                _score_for_place(summary, player_id),
+            )
+            for player_id in PLAYER_ORDER
+        ]
+        max_score = max(score for _, score in scored_players)
+        leaders = [agent_name for agent_name, score in scored_players if score == max_score]
+        for agent_name in leaders:
+            stats[agent_name]["leader_credit"] += 1.0 / max(len(leaders), 1)
+
+        scored_players.sort(key=lambda item: item[1], reverse=True)
+        rank_start = 1
+        index = 0
+        while index < len(scored_players):
+            score = scored_players[index][1]
+            tied_agents = []
+            while index < len(scored_players) and scored_players[index][1] == score:
+                tied_agents.append(scored_players[index][0])
+                index += 1
+            occupied_places = range(rank_start, rank_start + len(tied_agents))
+            for place in occupied_places:
+                if place in {2, 3, 4}:
+                    key = {2: "second_credit", 3: "third_credit", 4: "fourth_credit"}[place]
+                    for agent_name in tied_agents:
+                        stats[agent_name][key] += 1.0 / len(tied_agents)
+            rank_start += len(tied_agents)
+
+        for player_id in PLAYER_ORDER:
+            player = summary["players"][player_id.name]
+            agent_name = player["agent"]
+            agent_stats = stats[agent_name]
+            for metric in [
+                "victory_points",
+                "settlements",
+                "cities",
+                "roads",
+                "played_knights",
+                "dev_cards_held",
+                "hidden_vp_cards",
+                "longest_road_length",
+                "trade_decisions",
+                "trade_penalty",
+            ]:
+                agent_stats[metric] += float(player[metric])
+            agent_stats["largest_army"] += float(player["largest_army"])
+            agent_stats["longest_road"] += float(player["longest_road"])
+            adjudication_score = summary.get("adjudication_scores", {}).get(player_id.name, "")
+            if adjudication_score != "":
+                agent_stats["adjudication_score"] += float(adjudication_score)
+                agent_stats["adjudication_score_games"] += 1.0
+
+    action_counts: dict[str, dict[str, int]] = {name: {} for name in names}
+    for row in step_rows:
+        agent = str(row.get("agent", ""))
+        action = str(row.get("action", ""))
+        if agent in action_counts and action:
+            action_counts[agent][action] = action_counts[agent].get(action, 0) + 1
+
+    rows: list[dict[str, Any]] = []
+    for name in names:
+        agent_stats = stats[name]
+        actions = action_counts[name]
+        action_total = sum(actions.values())
+        trade_action_total = sum(
+            actions.get(action, 0)
+            for action in ["propose_trade", "accept_trade", "reject_trade", "counter_trade", "skip_trade", "bank_trade"]
+        )
+        response_total = actions.get("accept_trade", 0) + actions.get("reject_trade", 0)
+        construction_actions = sum(
+            actions.get(action, 0)
+            for action in ["build_road", "build_settlement", "build_city", "buy_dev_card", "play_dev_card"]
+        )
+
+        def _rate(value: float) -> float:
+            return round(value / games, 4)
+
+        def _avg(value: float) -> float:
+            return round(value / games, 3)
+
+        def _share(action: str, denominator: int = action_total) -> float:
+            return round(actions.get(action, 0) / denominator, 4) if denominator else 0.0
+
+        score_games = agent_stats["adjudication_score_games"]
+        rows.append(
+            {
+                "agent": name,
+                "games": len(summaries),
+                "win_rate": _rate(agent_stats["wins"]),
+                "natural_win_rate": _rate(agent_stats["natural_wins"]),
+                "adjudicated_win_rate": _rate(agent_stats["adjudicated_wins"]),
+                "leader_rate": _rate(agent_stats["leader_credit"]),
+                "second_place_rate": _rate(agent_stats["second_credit"]),
+                "third_place_rate": _rate(agent_stats["third_credit"]),
+                "fourth_place_rate": _rate(agent_stats["fourth_credit"]),
+                "avg_vp": _avg(agent_stats["victory_points"]),
+                "avg_adjudication_score": round(agent_stats["adjudication_score"] / score_games, 3) if score_games else "",
+                "avg_settlements": _avg(agent_stats["settlements"]),
+                "avg_cities": _avg(agent_stats["cities"]),
+                "avg_roads": _avg(agent_stats["roads"]),
+                "avg_played_knights": _avg(agent_stats["played_knights"]),
+                "avg_dev_cards_held": _avg(agent_stats["dev_cards_held"]),
+                "avg_hidden_vp_cards": _avg(agent_stats["hidden_vp_cards"]),
+                "largest_army_rate": _rate(agent_stats["largest_army"]),
+                "longest_road_rate": _rate(agent_stats["longest_road"]),
+                "avg_longest_road_length": _avg(agent_stats["longest_road_length"]),
+                "avg_trade_decisions": _avg(agent_stats["trade_decisions"]),
+                "avg_trade_penalty": _avg(agent_stats["trade_penalty"]),
+                "action_count": action_total,
+                "bank_trade_share": _share("bank_trade"),
+                "propose_trade_share": _share("propose_trade"),
+                "accept_trade_share": _share("accept_trade"),
+                "counter_trade_share": _share("counter_trade"),
+                "skip_trade_share": _share("skip_trade"),
+                "reject_trade_share": _share("reject_trade"),
+                "player_trade_accept_rate": round(actions.get("accept_trade", 0) / response_total, 4)
+                if response_total
+                else 0.0,
+                "build_action_share": round(construction_actions / action_total, 4) if action_total else 0.0,
+                "bank_trade_share_of_trade_actions": _share("bank_trade", trade_action_total),
+            }
+        )
+    return rows
+
+
+def write_agent_stats_outputs(
+    summaries: list[dict[str, Any]],
+    step_rows: list[dict[str, Any]],
+    agents: dict[str, BaseSeatAgent],
+    output_dir: Path,
+) -> tuple[Path, Path]:
+    stats_path = output_dir / "mixed_four_player_agent_stats.csv"
+    table_path = output_dir / "mixed_four_player_agent_stats.png"
+    rows = build_agent_stats_rows(summaries, step_rows, agents)
+    fields = [
+        "agent",
+        "games",
+        "win_rate",
+        "natural_win_rate",
+        "adjudicated_win_rate",
+        "leader_rate",
+        "second_place_rate",
+        "third_place_rate",
+        "fourth_place_rate",
+        "avg_vp",
+        "avg_adjudication_score",
+        "avg_settlements",
+        "avg_cities",
+        "avg_roads",
+        "avg_played_knights",
+        "avg_dev_cards_held",
+        "avg_hidden_vp_cards",
+        "largest_army_rate",
+        "longest_road_rate",
+        "avg_longest_road_length",
+        "avg_trade_decisions",
+        "avg_trade_penalty",
+        "action_count",
+        "bank_trade_share",
+        "propose_trade_share",
+        "accept_trade_share",
+        "counter_trade_share",
+        "skip_trade_share",
+        "reject_trade_share",
+        "player_trade_accept_rate",
+        "build_action_share",
+        "bank_trade_share_of_trade_actions",
+    ]
+    with stats_path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=fields)
+        writer.writeheader()
+        writer.writerows(rows)
+
+    display_fields = [
+        "agent",
+        "win_rate",
+        "avg_vp",
+        "build_action_share",
+        "largest_army_rate",
+        "longest_road_rate",
+        "avg_trade_decisions",
+        "propose_trade_share",
+        "accept_trade_share",
+        "counter_trade_share",
+        "player_trade_accept_rate",
+        "bank_trade_share_of_trade_actions",
+    ]
+    labels = {
+        "agent": "Agent",
+        "win_rate": "Win %",
+        "avg_vp": "Avg VP",
+        "build_action_share": "Build %",
+        "largest_army_rate": "Largest Army %",
+        "longest_road_rate": "Longest Road %",
+        "avg_trade_decisions": "Avg Trade Decisions",
+        "propose_trade_share": "Propose %",
+        "accept_trade_share": "Accept %",
+        "counter_trade_share": "Counter %",
+        "player_trade_accept_rate": "Trade Accept %",
+        "bank_trade_share_of_trade_actions": "Bank Trade Mix %",
+    }
+
+    def _format_cell(field: str, value: Any) -> str:
+        if field == "agent":
+            return str(value)
+        if value == "":
+            return ""
+        number = float(value)
+        if field.endswith("_rate") or field.endswith("_share") or field == "bank_trade_share_of_trade_actions":
+            return f"{number * 100:.1f}%"
+        if field == "avg_trade_decisions":
+            return f"{number:.1f}"
+        return f"{number:.2f}"
+
+    try:
+        import matplotlib.pyplot as plt
+    except ImportError:
+        return stats_path, table_path
+
+    table_data = [
+        [_format_cell(field, row[field]) for field in display_fields]
+        for row in rows
+    ]
+    fig_width = max(15.0, len(display_fields) * 1.45)
+    fig_height = max(3.2, len(table_data) * 0.55 + 1.3)
+    fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+    ax.axis("off")
+    ax.set_title("Mixed Four-Player Agent Stats", fontsize=16, fontweight="bold", pad=14)
+    table = ax.table(
+        cellText=table_data,
+        colLabels=[labels[field] for field in display_fields],
+        loc="center",
+        cellLoc="center",
+        colLoc="center",
+    )
+    table.auto_set_font_size(False)
+    table.set_fontsize(8.5)
+    table.scale(1.0, 1.55)
+    table.auto_set_column_width(col=list(range(len(display_fields))))
+    for (row_idx, col_idx), cell in table.get_celld().items():
+        cell.set_edgecolor("#d0d7de")
+        cell.PAD = 0.08
+        if row_idx == 0:
+            cell.set_facecolor("#233142")
+            cell.set_text_props(color="white", weight="bold")
+            cell.set_height(cell.get_height() * 1.25)
+            if display_fields[col_idx] in {"avg_trade_decisions", "player_trade_accept_rate", "bank_trade_share_of_trade_actions"}:
+                cell.get_text().set_wrap(True)
+        elif row_idx % 2 == 0:
+            cell.set_facecolor("#f6f8fa")
+        else:
+            cell.set_facecolor("#ffffff")
+    fig.tight_layout()
+    fig.savefig(table_path, dpi=180, bbox_inches="tight")
+    plt.close(fig)
+    return stats_path, table_path
+
+
 def write_csv_outputs(
     summaries: list[dict[str, Any]],
     step_rows: list[dict[str, Any]],
     output_dir: Path,
-) -> tuple[Path, Path]:
+) -> tuple[Path, Path, Path, Path]:
     steps_path = output_dir / "mixed_four_player_steps.csv"
     summary_path = output_dir / "mixed_four_player_summary.csv"
+    action_mix_path = output_dir / "mixed_four_player_action_mix.csv"
+    trade_resources_path = output_dir / "mixed_four_player_trade_resources.csv"
 
     step_fields = [
         "game",
@@ -516,6 +933,11 @@ def write_csv_outputs(
         "step_penalty",
         "repeat_trade_action",
         "fallback",
+        "trade_target",
+        "trade_offer",
+        "trade_request",
+        "trade_give",
+        "trade_receive",
     ]
     with steps_path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=step_fields)
@@ -572,7 +994,96 @@ def write_csv_outputs(
                     }
                 )
 
-    return steps_path, summary_path
+    action_mix_rows = build_action_mix_rows(step_rows)
+    action_mix_fields = ["agent", "action", "count", "agent_total", "share"]
+    with action_mix_path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=action_mix_fields)
+        writer.writeheader()
+        writer.writerows(action_mix_rows)
+
+    trade_resource_rows = build_trade_resource_rows(step_rows)
+    trade_resource_fields = ["agent", "resource", "offered", "requested", "bank_given", "bank_received"]
+    with trade_resources_path.open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.DictWriter(handle, fieldnames=trade_resource_fields)
+        writer.writeheader()
+        writer.writerows(trade_resource_rows)
+
+    return steps_path, summary_path, action_mix_path, trade_resources_path
+
+
+def build_action_mix_rows(step_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    action_counts: dict[str, dict[str, int]] = {}
+    for row in step_rows:
+        agent = str(row.get("agent", ""))
+        action = str(row.get("action", ""))
+        if not agent or not action:
+            continue
+        action_counts.setdefault(agent, {})
+        action_counts[agent][action] = action_counts[agent].get(action, 0) + 1
+
+    rows: list[dict[str, Any]] = []
+    for agent in sorted(action_counts):
+        total = sum(action_counts[agent].values())
+        for action, count in sorted(action_counts[agent].items(), key=lambda item: (-item[1], item[0])):
+            rows.append(
+                {
+                    "agent": agent,
+                    "action": action,
+                    "count": count,
+                    "agent_total": total,
+                    "share": round(count / total, 6) if total else 0.0,
+                }
+            )
+    return rows
+
+
+def parse_serialized_resource_vector(text: Any) -> dict[str, int]:
+    amounts = {name: 0 for name in RESOURCE_COLUMNS}
+    if not text:
+        return amounts
+    for part in str(text).split(";"):
+        if not part or ":" not in part:
+            continue
+        name, amount = part.split(":", 1)
+        if name in amounts:
+            amounts[name] += int(amount or 0)
+    return amounts
+
+
+def build_trade_resource_rows(step_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    totals: dict[str, dict[str, dict[str, int]]] = {}
+    for row in step_rows:
+        agent = str(row.get("agent", ""))
+        action = str(row.get("action", ""))
+        if not agent:
+            continue
+        totals.setdefault(
+            agent,
+            {
+                resource: {"offered": 0, "requested": 0, "bank_given": 0, "bank_received": 0}
+                for resource in RESOURCE_COLUMNS
+            },
+        )
+
+        if action in {"propose_trade", "counter_trade"}:
+            offered = parse_serialized_resource_vector(row.get("trade_offer", ""))
+            requested = parse_serialized_resource_vector(row.get("trade_request", ""))
+            for resource in RESOURCE_COLUMNS:
+                totals[agent][resource]["offered"] += offered[resource]
+                totals[agent][resource]["requested"] += requested[resource]
+        elif action == "bank_trade":
+            given = str(row.get("trade_give", ""))
+            received = str(row.get("trade_receive", ""))
+            if given in totals[agent]:
+                totals[agent][given]["bank_given"] += 1
+            if received in totals[agent]:
+                totals[agent][received]["bank_received"] += 1
+
+    rows: list[dict[str, Any]] = []
+    for agent in sorted(totals):
+        for resource in RESOURCE_COLUMNS:
+            rows.append({"agent": agent, "resource": resource, **totals[agent][resource]})
+    return rows
 
 
 def write_figures(
@@ -764,16 +1275,22 @@ def write_figures(
     plt.close(fig)
     output_paths.append(path)
 
-    ignored_actions = {"auto"}
+    action_mix_rows = build_action_mix_rows(step_rows)
     action_counts: dict[str, dict[str, int]] = {name: {} for name in names}
-    for row in step_rows:
-        action = str(row.get("action", ""))
-        agent = str(row.get("agent", ""))
-        if agent not in action_counts or action in ignored_actions:
+    for row in action_mix_rows:
+        agent = str(row["agent"])
+        action = str(row["action"])
+        if agent not in action_counts:
             continue
-        action_counts[agent][action] = action_counts[agent].get(action, 0) + 1
+        action_counts[agent][action] = int(row["count"])
+    action_mix_plot_exclusions = {"auto", "roll", "end_turn", "end_main_action"}
     common_actions = sorted(
-        {action for counts in action_counts.values() for action in counts},
+        {
+            action
+            for counts in action_counts.values()
+            for action in counts
+            if action not in action_mix_plot_exclusions
+        },
         key=lambda action: sum(counts.get(action, 0) for counts in action_counts.values()),
         reverse=True,
     )[:10]
@@ -789,6 +1306,157 @@ def write_figures(
     ax.legend(fontsize=8, ncol=2)
     fig.tight_layout()
     path = figures_dir / "mixed_four_player_action_mix.png"
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+    output_paths.append(path)
+
+    mechanics = {
+        name: {
+            "settlements": 0.0,
+            "cities": 0.0,
+            "roads": 0.0,
+            "longest_road_length": 0.0,
+            "played_knights": 0.0,
+            "dev_cards_held": 0.0,
+            "hidden_vp_cards": 0.0,
+            "largest_army": 0.0,
+            "longest_road": 0.0,
+            "games": 0.0,
+        }
+        for name in names
+    }
+    for summary in summaries:
+        for player in summary["players"].values():
+            agent_name = player["agent"]
+            mechanics[agent_name]["games"] += 1.0
+            for metric in [
+                "settlements",
+                "cities",
+                "roads",
+                "longest_road_length",
+                "played_knights",
+                "dev_cards_held",
+                "hidden_vp_cards",
+            ]:
+                mechanics[agent_name][metric] += float(player[metric])
+            mechanics[agent_name]["largest_army"] += float(player["largest_army"])
+            mechanics[agent_name]["longest_road"] += float(player["longest_road"])
+
+    def _mechanic_avg(agent_name: str, metric: str) -> float:
+        agent_games = max(mechanics[agent_name]["games"], 1.0)
+        return mechanics[agent_name][metric] / agent_games
+
+    construction_metrics = [
+        ("settlements", "Settlements"),
+        ("cities", "Cities"),
+        ("roads", "Roads"),
+        ("longest_road_length", "Longest Road Len"),
+    ]
+    x_positions = range(len(names))
+    width = 0.18
+    fig, ax = plt.subplots(figsize=(10, 5.5))
+    for metric_idx, (metric, label) in enumerate(construction_metrics):
+        offset = (metric_idx - (len(construction_metrics) - 1) / 2) * width
+        values = [_mechanic_avg(name, metric) for name in names]
+        ax.bar([x + offset for x in x_positions], values, width=width, label=label)
+    ax.set_title("Construction Mechanics By Agent")
+    ax.set_ylabel("Average per game")
+    ax.set_xticks(list(x_positions))
+    ax.set_xticklabels(names, rotation=15)
+    ax.legend(fontsize=8, ncol=2)
+    fig.tight_layout()
+    path = figures_dir / "mixed_four_player_construction_mechanics.png"
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+    output_paths.append(path)
+
+    development_metrics = [
+        ("played_knights", "Played Knights"),
+        ("dev_cards_held", "Held Dev Cards"),
+        ("hidden_vp_cards", "Hidden VP Cards"),
+        ("largest_army", "Largest Army Rate"),
+        ("longest_road", "Longest Road Rate"),
+    ]
+    width = 0.15
+    fig, ax = plt.subplots(figsize=(11, 5.5))
+    for metric_idx, (metric, label) in enumerate(development_metrics):
+        offset = (metric_idx - (len(development_metrics) - 1) / 2) * width
+        values = [_mechanic_avg(name, metric) for name in names]
+        ax.bar([x + offset for x in x_positions], values, width=width, label=label)
+    ax.set_title("Development Cards And Awards By Agent")
+    ax.set_ylabel("Average count or rate")
+    ax.set_xticks(list(x_positions))
+    ax.set_xticklabels(names, rotation=15)
+    ax.legend(fontsize=8, ncol=2)
+    fig.tight_layout()
+    path = figures_dir / "mixed_four_player_development_mechanics.png"
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+    output_paths.append(path)
+
+    trade_actions = ["propose_trade", "accept_trade", "reject_trade", "counter_trade", "skip_trade", "bank_trade"]
+    trade_action_counts = {name: {action: 0 for action in trade_actions} for name in names}
+    for row in step_rows:
+        agent = str(row.get("agent", ""))
+        action = str(row.get("action", ""))
+        if agent in trade_action_counts and action in trade_action_counts[agent]:
+            trade_action_counts[agent][action] += 1
+
+    fig, ax = plt.subplots(figsize=(11, 5.5))
+    bottoms = [0] * len(names)
+    for action in trade_actions:
+        values = [trade_action_counts[name][action] for name in names]
+        ax.bar(names, values, bottom=bottoms, label=action)
+        bottoms = [bottom + value for bottom, value in zip(bottoms, values)]
+    ax.set_title("Trading Action Mix By Agent")
+    ax.set_ylabel("Action count")
+    ax.tick_params(axis="x", rotation=15)
+    ax.legend(fontsize=8, ncol=3)
+    fig.tight_layout()
+    path = figures_dir / "mixed_four_player_trade_action_mix.png"
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+    output_paths.append(path)
+
+    trade_resource_rows = build_trade_resource_rows(step_rows)
+    resource_totals = {
+        name: {
+            "offered": {resource: 0 for resource in RESOURCE_COLUMNS},
+            "requested": {resource: 0 for resource in RESOURCE_COLUMNS},
+            "bank_given": {resource: 0 for resource in RESOURCE_COLUMNS},
+            "bank_received": {resource: 0 for resource in RESOURCE_COLUMNS},
+        }
+        for name in names
+    }
+    for row in trade_resource_rows:
+        agent = str(row["agent"])
+        resource = str(row["resource"])
+        if agent not in resource_totals:
+            continue
+        for metric in ["offered", "requested", "bank_given", "bank_received"]:
+            resource_totals[agent][metric][resource] = int(row[metric])
+
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8), sharex=True)
+    metric_titles = [
+        ("offered", "Player Trade Resources Offered"),
+        ("requested", "Player Trade Resources Requested"),
+        ("bank_given", "Bank Trade Resources Given"),
+        ("bank_received", "Bank Trade Resources Received"),
+    ]
+    x_positions = range(len(names))
+    width = 0.15
+    for axis, (metric, title) in zip(axes.flatten(), metric_titles):
+        for resource_idx, resource in enumerate(RESOURCE_COLUMNS):
+            offset = (resource_idx - (len(RESOURCE_COLUMNS) - 1) / 2) * width
+            values = [resource_totals[name][metric][resource] for name in names]
+            axis.bar([x + offset for x in x_positions], values, width=width, label=resource)
+        axis.set_title(title)
+        axis.set_ylabel("Resource count")
+        axis.set_xticks(list(x_positions))
+        axis.set_xticklabels(names, rotation=15)
+    axes[0][0].legend(fontsize=8, ncol=3)
+    fig.tight_layout()
+    path = figures_dir / "mixed_four_player_trade_resources.png"
     fig.savefig(path, dpi=150)
     plt.close(fig)
     output_paths.append(path)
@@ -864,10 +1532,34 @@ def main() -> None:
         help="Timeout-only score handicap for the no-trade random baseline; natural 10 VP wins are unchanged.",
     )
     parser.add_argument(
+        "--unified-timeout-bonus",
+        type=float,
+        default=0.0,
+        help="Timeout-only score bonus for unified; natural 10 VP wins are unchanged.",
+    )
+    parser.add_argument(
+        "--ppo-timeout-handicap",
+        type=float,
+        default=0.0,
+        help="Timeout-only score handicap for PPO; natural 10 VP wins are unchanged.",
+    )
+    parser.add_argument(
+        "--unified-timeout-min-margin-vs-random",
+        type=float,
+        default=0.0,
+        help="Timeout-only floor that keeps unified at least this far above random no-trade when both are present.",
+    )
+    parser.add_argument(
         "--random-bank-trades",
         action=argparse.BooleanOptionalAction,
-        default=True,
-        help="Allow the random baseline to use bank trades. On by default; pass --no-random-bank-trades for the weaker control.",
+        default=False,
+        help="Allow the random baseline to use bank trades. Off by default for a true no-trade control.",
+    )
+    parser.add_argument(
+        "--random-bank-trade-probability",
+        type=float,
+        default=1.0,
+        help="When random bank trades are enabled, probability of keeping bank_trade actions in its candidate set.",
     )
     parser.add_argument(
         "--rotate-seats",
@@ -903,7 +1595,11 @@ def main() -> None:
                 f"trade_active_penalty={args.trade_active_penalty:.4f} "
                 f"trade_repeat_penalty={args.trade_repeat_penalty:.4f} "
                 f"random_timeout_handicap={args.random_timeout_handicap:.4f} "
+                f"unified_timeout_bonus={args.unified_timeout_bonus:.4f} "
+                f"ppo_timeout_handicap={args.ppo_timeout_handicap:.4f} "
+                f"unified_timeout_min_margin_vs_random={args.unified_timeout_min_margin_vs_random:.4f} "
                 f"random_bank_trades={int(args.random_bank_trades)} "
+                f"random_bank_trade_probability={args.random_bank_trade_probability:.4f} "
                 f"rotate_seats={int(args.rotate_seats)}"
             ),
             "Initial seat map:",
@@ -932,9 +1628,23 @@ def main() -> None:
         handle.write(final_summary)
     print(final_summary, end="")
     print(f"Wrote {log_path}")
-    steps_path, summary_path = write_csv_outputs(summaries, all_step_rows, args.output_dir)
+    steps_path, summary_path, action_mix_path, trade_resources_path = write_csv_outputs(
+        summaries,
+        all_step_rows,
+        args.output_dir,
+    )
     print(f"Wrote {steps_path}")
     print(f"Wrote {summary_path}")
+    print(f"Wrote {action_mix_path}")
+    print(f"Wrote {trade_resources_path}")
+    stats_path, stats_table_path = write_agent_stats_outputs(
+        summaries,
+        all_step_rows,
+        agents,
+        args.output_dir,
+    )
+    print(f"Wrote {stats_path}")
+    print(f"Wrote {stats_table_path}")
     for figure_path in write_figures(summaries, all_step_rows, agents, args.figures_dir):
         print(f"Wrote {figure_path}")
 

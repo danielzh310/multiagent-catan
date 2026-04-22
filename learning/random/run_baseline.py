@@ -62,7 +62,7 @@ def run_game(
     seed: int,
     max_steps: int,
     controlled_player: PlayerId = PlayerId.WHITE,
-    allow_bank_trades: bool = True,
+    allow_bank_trades: bool = False,
 ) -> GameResult:
     env = CatanEnv(seed=seed, enable_trading=False, max_steps=max_steps)
     agents = {
@@ -156,7 +156,7 @@ def summarize(results: list[GameResult], controlled_player: PlayerId) -> dict[st
         "avg_longest_road_length": mean(result.controlled_longest_road_length for result in results) if games else 0.0,
         "truncation_rate": mean(float(result.truncated) for result in results) if games else 0.0,
         "brick_wood_balance": mean(result.brick_wood_balance for result in results) if games else 0.0,
-        "notes": "Real random legal-action self-play baseline with player trading disabled.",
+        "notes": "Real random legal-action self-play baseline with all trading disabled by default.",
     }
 
 
@@ -190,7 +190,7 @@ def build_training_log_header(total_games: int) -> str:
     return "\n".join(
         [
             f"Starting Random / No-Trade Baseline self-play evaluation for {total_games} games",
-            "Config: player_trades=disabled, policy=random legal action",
+            "Config: player_trades=disabled, bank_trades=disabled_by_default, policy=random legal action",
             "Primary metric: controlled-player win rate",
             "",
         ]
@@ -508,7 +508,11 @@ def main() -> None:
     parser.add_argument("--figures-dir", type=Path, default=Path("figures/random_figures"))
     parser.add_argument("--plot", action="store_true", help="Generate the unified-style diagnostic plots after the run.")
     parser.add_argument("--stdout-log", action="store_true", help="Print the training log to stdout for shell redirection.")
-    parser.add_argument("--no-bank-trades", action="store_true")
+    parser.add_argument(
+        "--allow-bank-trades",
+        action="store_true",
+        help="Allow 4:1 bank trades for the stronger random baseline variant.",
+    )
     args = parser.parse_args()
 
     controlled_player = PlayerId.WHITE
@@ -522,7 +526,7 @@ def main() -> None:
             seed=args.seed + game_idx,
             max_steps=args.max_steps,
             controlled_player=controlled_player,
-            allow_bank_trades=not args.no_bank_trades,
+            allow_bank_trades=args.allow_bank_trades,
         )
         results.append(result)
 
