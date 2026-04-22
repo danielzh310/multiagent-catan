@@ -51,9 +51,9 @@ class BaseSeatAgent:
 
 
 class RandomSeatAgent(BaseSeatAgent):
-    def __init__(self, seed: int, name: str = "random_no_trade"):
+    def __init__(self, seed: int, allow_bank_trades: bool, name: str = "random_no_trade"):
         super().__init__(name)
-        self.policy = RandomNoTradeBaselineAgent(seed=seed, allow_bank_trades=True)
+        self.policy = RandomNoTradeBaselineAgent(seed=seed, allow_bank_trades=allow_bank_trades)
 
     def select_action(self, env: CatanEnv) -> Optional[dict[str, Any]]:
         return self.policy.select_action(env.get_legal_actions())
@@ -211,7 +211,7 @@ def load_state_dict(policy: torch.nn.Module, checkpoint_path: str, device: str) 
 def build_agents(args: argparse.Namespace) -> dict[str, BaseSeatAgent]:
     device = args.device
     agents: dict[str, BaseSeatAgent] = {
-        "random_no_trade": RandomSeatAgent(seed=args.seed + 10),
+        "random_no_trade": RandomSeatAgent(seed=args.seed + 10, allow_bank_trades=args.random_bank_trades),
     }
 
     unified = UnifiedPolicy()
@@ -594,6 +594,8 @@ def write_figures(
     names = list(agents.keys())
     vp_totals = {name: 0 for name in names}
     win_counts = {name: 0 for name in names}
+    natural_win_counts = {name: 0 for name in names}
+    adjudicated_win_counts = {name: 0 for name in names}
     leader_counts = {name: 0 for name in names}
     fallback_totals = {name: agents[name].fallback_count for name in names}
 
@@ -602,6 +604,12 @@ def write_figures(
         if winner_name != "NONE":
             winner_agent = summary["players"][winner_name]["agent"]
             win_counts[winner_agent] += 1
+            if summary.get("adjudicated", False):
+                adjudicated_win_counts[winner_agent] += 1
+        natural_winner = summary.get("natural_winner", "NONE")
+        if natural_winner != "NONE":
+            natural_winner_agent = summary["players"][natural_winner]["agent"]
+            natural_win_counts[natural_winner_agent] += 1
         max_vp = max(int(summary["players"][player_id.name]["victory_points"]) for player_id in PLAYER_ORDER)
         leaders = [
             summary["players"][player_id.name]["agent"]
@@ -616,6 +624,8 @@ def write_figures(
 
     avg_vp = [vp_totals[name] / games for name in names]
     win_rates = [win_counts[name] / games for name in names]
+    natural_win_rates = [natural_win_counts[name] / games for name in names]
+    adjudicated_win_rates = [adjudicated_win_counts[name] / games for name in names]
     leader_rates = [leader_counts[name] / games for name in names]
     fallbacks = [fallback_totals[name] for name in names]
     output_paths: list[Path] = []
@@ -655,6 +665,18 @@ def write_figures(
         output_paths.append(path)
 
     _bar(win_rates, "Mixed Four-Player Win Rate", "Win rate", "mixed_four_player_win_rate.png")
+    _bar(
+        natural_win_rates,
+        "Mixed Four-Player Natural Win Rate",
+        "Natural win rate",
+        "mixed_four_player_natural_win_rate.png",
+    )
+    _bar(
+        adjudicated_win_rates,
+        "Mixed Four-Player Adjudicated Timeout Win Rate",
+        "Adjudicated win rate",
+        "mixed_four_player_adjudicated_win_rate.png",
+    )
     _bar(leader_rates, "Mixed Four-Player VP Leader Rate", "Leader rate", "mixed_four_player_vp_leader_rate.png")
     _bar(avg_vp, "Mixed Four-Player Average VP", "Average victory points", "mixed_four_player_avg_vp.png")
     _bar(fallbacks, "Mixed Four-Player Policy Fallbacks", "Fallback decisions", "mixed_four_player_fallbacks.png")
@@ -677,6 +699,47 @@ def write_figures(
     ax.legend()
     fig.tight_layout()
     path = figures_dir / "mixed_four_player_vp_by_game.png"
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+    output_paths.append(path)
+
+    window = min(20, games)
+    z_scores_by_agent: dict[str, list[float]] = {name: [] for name in names}
+    for summary in summaries:
+        game_scores = []
+        score_by_agent = {}
+        for player_id in PLAYER_ORDER:
+            player = summary["players"][player_id.name]
+            base_score = summary.get("adjudication_scores", {}).get(player_id.name, "")
+            if base_score == "":
+                base_score = player["victory_points"]
+            score = float(base_score)
+            score_by_agent[player["agent"]] = score
+            game_scores.append(score)
+
+        mean_score = sum(game_scores) / max(len(game_scores), 1)
+        variance = sum((score - mean_score) ** 2 for score in game_scores) / max(len(game_scores), 1)
+        std_score = variance ** 0.5
+        for agent_name in names:
+            score = score_by_agent.get(agent_name, mean_score)
+            z_scores_by_agent[agent_name].append(0.0 if std_score == 0 else (score - mean_score) / std_score)
+
+    fig, ax = plt.subplots(figsize=(10, 5.5))
+    for agent_name in names:
+        values = z_scores_by_agent[agent_name]
+        rolling_values = [
+            sum(values[max(0, index - window + 1) : index + 1])
+            / len(values[max(0, index - window + 1) : index + 1])
+            for index in range(len(values))
+        ]
+        ax.plot(game_ids, rolling_values, linewidth=1.8, alpha=0.9, label=agent_name)
+    ax.axhline(0, color="#333333", linewidth=1.0, alpha=0.5)
+    ax.set_title(f"Rolling Relative Performance Z-Score ({window}-Game Window)")
+    ax.set_xlabel("Game")
+    ax.set_ylabel("Z-score vs game field")
+    ax.legend()
+    fig.tight_layout()
+    path = figures_dir / "mixed_four_player_relative_z_score.png"
     fig.savefig(path, dpi=150)
     plt.close(fig)
     output_paths.append(path)
@@ -801,6 +864,12 @@ def main() -> None:
         help="Timeout-only score handicap for the no-trade random baseline; natural 10 VP wins are unchanged.",
     )
     parser.add_argument(
+        "--random-bank-trades",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="Allow the random baseline to use bank trades. On by default; pass --no-random-bank-trades for the weaker control.",
+    )
+    parser.add_argument(
         "--rotate-seats",
         action=argparse.BooleanOptionalAction,
         default=True,
@@ -834,6 +903,7 @@ def main() -> None:
                 f"trade_active_penalty={args.trade_active_penalty:.4f} "
                 f"trade_repeat_penalty={args.trade_repeat_penalty:.4f} "
                 f"random_timeout_handicap={args.random_timeout_handicap:.4f} "
+                f"random_bank_trades={int(args.random_bank_trades)} "
                 f"rotate_seats={int(args.rotate_seats)}"
             ),
             "Initial seat map:",
