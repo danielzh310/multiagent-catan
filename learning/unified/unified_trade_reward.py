@@ -18,6 +18,15 @@ def _sigmoid(x: float) -> float:
     return 1 / (1 + math.exp(-x * 100))
 
 
+def unified_proposed_trade_reward() -> float:
+    """
+    Reward for proposing a trade. Set to 0.0 to prevent trade spamming.
+    The agent should only be rewarded when a trade is ACCEPTED and finalized,
+    not for simply proposing trades that may be rejected multiple times.
+    """
+    return 0.0
+
+
 def unified_accepted_trade_reward(
     proposer_offer: Dict[Resource, int] | None,
     proposer_request: Dict[Resource, int] | None,
@@ -36,10 +45,17 @@ def unified_accepted_trade_reward(
 
 
 def unified_rejected_trade_reward() -> float:
-    """Unified model specific reward for rejecting a trade."""
-    return 0.0 # No base reward, penalties/bonuses handled by RewardShaper
+    """
+    Reward for rejecting a trade.
+    Set to 0.0 - no penalty or reward for rejecting. The action mask (trade fatigue)
+    will prevent excessive propose->reject loops by limiting proposals per turn.
+    """
+    return 0.0
 
 
 def unified_skipped_trade_reward() -> float:
-    """Unified model specific reward for skipping a trade."""
-    return 0.0 # No base reward, penalties/bonuses handled by RewardShaper
+    """
+    Reward for skipping a trade phase.
+    Set to 0.0 - skipping trade is a neutral action from a reward perspective.
+    """
+    return 0.0

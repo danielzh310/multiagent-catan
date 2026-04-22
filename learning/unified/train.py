@@ -6,7 +6,7 @@ import sys
 import random
 import time
 from collections import deque
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import torch
 
@@ -48,8 +48,9 @@ class UnifiedPPOTrainer:
         trade_entropy_floor: float = 0.75,
         gameplay_entropy_floor_coef: float = 0.025,
         trade_entropy_floor_coef: float = 0.022,
-        tom_loss_coef_start: float = 0.02,
-        tom_loss_coef_end: float = 0.06,
+        tom_loss_coef_start: float = 0.05,
+        tom_loss_coef_end: float = 0.15,
+        tom_activation_threshold: float = 0.05,
         max_grad_norm: float = 0.25,
         ppo_epochs: int = 3,
         mini_batch_size: int = 512,
@@ -74,6 +75,7 @@ class UnifiedPPOTrainer:
 
         self.tom_loss_coef_start = tom_loss_coef_start
         self.tom_loss_coef_end = tom_loss_coef_end
+        self.tom_activation_threshold = tom_activation_threshold
 
         self.max_grad_norm = max_grad_norm
         self.ppo_epochs = ppo_epochs
@@ -97,7 +99,19 @@ class UnifiedPPOTrainer:
         return self.entropy_coef_start + (self.entropy_coef_end - self.entropy_coef_start) * scaled
 
     def tom_loss_coef(self) -> float:
-        return self.tom_loss_coef_start + (self.tom_loss_coef_end - self.tom_loss_coef_start) * self.progress
+        """
+        Compute the ToM loss coefficient with delayed activation.
+        Before tom_activation_threshold, ToM loss is not applied (coef = 0).
+        After that point, it interpolates from tom_loss_coef_start to tom_loss_coef_end.
+        This prevents the ToM head from corrupting representations during early random opponent behavior.
+        """
+        if self.progress < self.tom_activation_threshold:
+            return 0.0
+        
+        # Map progress from [threshold, 1.0] to [0.0, 1.0] for interpolation
+        scaled = (self.progress - self.tom_activation_threshold) / max(1.0 - self.tom_activation_threshold, 1e-8)
+        scaled = max(0.0, min(1.0, scaled))
+        return self.tom_loss_coef_start + (self.tom_loss_coef_end - self.tom_loss_coef_start) * scaled
 
     def _stack_obs(self, storage: List[Dict]) -> Dict[str, torch.Tensor]:
         return {
@@ -291,14 +305,26 @@ class UnifiedPPOTrainer:
                         mb_need_targets,
                         mb_need_mask,
                     )
-                    entropy_floor_penalty = self.trade_entropy_floor_coef * torch.relu(
+                    # Only penalize low entropy if the agent actually has a choice (> 1 valid action)
+                    # When action_mask sets all but one action to -1e9, the agent is forced to choose,
+                    # and entropy must be ~0. We should not penalize this.
+                    valid_actions_count = mb_obs["trade_mask"].float().sum(dim=-1)
+                    apply_entropy_penalty_mask = (valid_actions_count > 1.0).float()
+                    raw_entropy_floor_penalty = torch.relu(
                         torch.tensor(self.trade_entropy_floor, device=self.device) - entropy
                     )
+                    # Apply mask per-batch-element and reduce to scalar by averaging
+                    entropy_floor_penalty = self.trade_entropy_floor_coef * (raw_entropy_floor_penalty * apply_entropy_penalty_mask).mean()
                 else:
                     tom_loss = torch.tensor(0.0, device=self.device)
-                    entropy_floor_penalty = self.gameplay_entropy_floor_coef * torch.relu(
+                    # Only penalize low entropy if the agent actually has a choice (> 1 valid action)
+                    valid_actions_count = mb_obs["gameplay_mask"].float().sum(dim=-1)
+                    apply_entropy_penalty_mask = (valid_actions_count > 1.0).float()
+                    raw_entropy_floor_penalty = torch.relu(
                         torch.tensor(self.gameplay_entropy_floor, device=self.device) - entropy
                     )
+                    # Apply mask per-batch-element and reduce to scalar by averaging
+                    entropy_floor_penalty = self.gameplay_entropy_floor_coef * (raw_entropy_floor_penalty * apply_entropy_penalty_mask).mean()
 
                 total_mb_loss = (
                     policy_loss

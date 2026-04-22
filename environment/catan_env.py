@@ -47,10 +47,14 @@ class CatanEnv:
         self.opponent_policies = opponent_policies or []
         self.training_player_id = training_player_id
         self.opponent_policy_map: Dict[PlayerId, Any] = {}
+        # Track trades proposed per player per turn to prevent trade spamming
+        self.trades_proposed_this_turn: Dict[PlayerId, int] = {pid: 0 for pid in self.engine.player_order}
+        self.MAX_TRADES_PER_TURN = 2
 
     def reset(self) -> dict:
         self.engine.reset()
         self.step_count = 0
+        self.trades_proposed_this_turn = {pid: 0 for pid in self.engine.player_order}
         self._assign_opponent_policies()
         return self.get_observation()
 
@@ -63,10 +67,19 @@ class CatanEnv:
         self.step_count += 1
         acting_player_id = self.engine.get_current_player_id()
 
+        # Track trade proposals to prevent spamming (trade fatigue)
+        # Both propose_trade and counter_trade count toward the limit
+        if action is not None and action.get("type") in ("propose_trade", "counter_trade"):
+            self.trades_proposed_this_turn[acting_player_id] = self.trades_proposed_this_turn.get(acting_player_id, 0) + 1
+
         if action is None and acting_player_id != self.training_player_id:
             action = self._select_opponent_action()
 
         obs, reward, done, info = self.engine.step(action)
+
+        # Reset trade proposal counter on end_turn
+        if action is not None and action.get("type") == "end_turn":
+            self.trades_proposed_this_turn[acting_player_id] = 0
 
         # Convert opponent rewards into the training player's perspective.
         if acting_player_id != self.training_player_id:
@@ -742,6 +755,12 @@ class CatanEnv:
     def _get_legal_trade_proposals(self, player_id: PlayerId) -> List[dict]:
         actions: List[dict] = [{"type": "skip_trade"}]
 
+        # Check if player has reached the trade proposal limit for this turn (trade fatigue)
+        proposals_count = self.trades_proposed_this_turn.get(player_id, 0)
+        if proposals_count >= self.MAX_TRADES_PER_TURN:
+            # Player has hit the trade fatigue limit; only skip_trade is available
+            return actions
+
         player_ids = list(self.engine.players.keys())
         targets = self.engine.trade_manager.legal_trade_targets(player_id, player_ids)
 
@@ -770,17 +789,23 @@ class CatanEnv:
             {"type": "accept_trade", "response_type": "accept"},
         ]
 
-        responder_state = self.engine.players[player_id]
-        response_templates = self._default_trade_templates()
+        # Check if player has reached the trade proposal/counter limit for this turn (trade fatigue)
+        # Counter trades count toward the same limit as proposals to prevent back-and-forth spam
+        trades_count = self.trades_proposed_this_turn.get(player_id, 0)
+        
+        # Only allow counter_trade if under the limit
+        if trades_count < self.MAX_TRADES_PER_TURN:
+            responder_state = self.engine.players[player_id]
+            response_templates = self._default_trade_templates()
 
-        for counter_offer, counter_request in response_templates:
-            if self.engine.trade_manager.can_player_afford(responder_state, counter_offer):
-                actions.append({
-                    "type": "counter_trade",
-                    "response_type": "counter",
-                    "counter_offer": counter_offer,
-                    "counter_request": counter_request,
-                })
+            for counter_offer, counter_request in response_templates:
+                if self.engine.trade_manager.can_player_afford(responder_state, counter_offer):
+                    actions.append({
+                        "type": "counter_trade",
+                        "response_type": "counter",
+                        "counter_offer": counter_offer,
+                        "counter_request": counter_request,
+                    })
 
         return actions
 

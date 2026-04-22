@@ -147,6 +147,9 @@ class UnifiedPolicy(nn.Module):
             global_emb = self.global_encoder(obs["global_state"])
 
         trunk = self.fusion(torch.cat([board_emb, self_emb, opp_emb], dim=-1))
+        
+        # Feed the original (non-detached) features to need_predictor so it learns well.
+        # Gradient stopping is handled at the loss level (delayed activation in trainer).
         need_pred = self.need_predictor(torch.cat([opp_emb, global_emb], dim=-1))
 
         return trunk, global_emb, need_pred
